@@ -1,0 +1,7 @@
+Flask
+Flask-API
+requests
+docker
+Flask-SQLAlchemy
+pyyaml
+python-dateutil

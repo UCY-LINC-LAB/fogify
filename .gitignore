@@ -1,0 +1,11 @@
+.idea
+*.pyc
+*.class
+*.log
+*.iml
+*.ipr
+*.iws
+.env
+.current_agent
+.current_infrastructure
+.venv

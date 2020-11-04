@@ -1,0 +1,51 @@
+baseURL = "https://ucy-linc-lab.github.io/fogify/"
+
+languageCode = "en-us"
+DefaultContentLanguage = "en"
+title = "Fogify: A Fog Computing Emulator Framework"
+theme = "ace-documentation"
+pygmentsCodeFences = true
+pygmentsStyle = "monokailight"
+publishDir = "../docs"
+defaultContentLanguage = "en"
+defaultContentLanguageInSubdir= false
+enableMissingTranslationPlaceholders = false
+uglyurls = true
+
+# Enable Google Analytics by entering your tracking id
+googleAnalytics = ""
+
+[params]
+ordersectionsby = "weight" # ordersectionsby = "title"
+disableSearch = false # default is false
+disableReadmoreNav = false # set true to hide prev/next navigation, default is false
+highlightClientSide = false # set true to use highlight.pack.js instead of the default hugo chroma highlighter
+menushortcutsnewtab = true # set true to open shortcuts links to a new tab/window
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[outputs]
+home = [ "HTML"]
+
+[[menu.shortcuts]]
+name = "More from us"
+url = "http://linc.ucy.ac.cy/"
+weight = 1
+
+[[menu.shortcuts]]
+name = "<i class='fab fa-github'></i>"
+url = "https://github.com/UCY-LINC-LAB/fogify"
+weight = 2
+
+[[menu.shortcuts]]
+name = "<i class='fab fa-docker'></i>"
+url = "https://hub.docker.com/u/fogemulator"
+weight = 3
+
+[[menu.shortcuts]]
+name = "<button class='btn btn-success mt-n1'>Download</button>"
+url = "https://github.com/UCY-LINC-LAB/fogify"
+weight = 4

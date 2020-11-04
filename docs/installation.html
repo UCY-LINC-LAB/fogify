@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html><head>
+
+    <meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="canonical" href="https://ucy-linc-lab.github.io/fogify/installation.html">
+
+    <title>
+        
+        Installation | Fogify: A Fog Computing Emulator Framework
+        
+    </title>
+
+    
+    <link href="https://ucy-linc-lab.github.io/fogify/css/fontawesome.min.css" rel="stylesheet">
+
+    
+    <link rel="stylesheet" href="https://ucy-linc-lab.github.io/fogify/css/ace.min.css">
+
+    
+    
+        
+    
+
+</head>
+<body><nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow sticky-top" id="navbarMain">
+    <div class="container">
+        <div>
+            <a class="navbar-brand" href="/fogify">
+                Fogify: A Fog Computing Emulator Framework
+            </a>
+        </div>
+        
+            <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#navbarMainCollapse" aria-controls="navbarMainCollapse" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMainCollapse">
+              <ul class="navbar-nav ml-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="http://linc.ucy.ac.cy/" target="_blank">
+                                  More from us
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <i class='fab fa-github'></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://hub.docker.com/u/fogemulator" target="_blank">
+                                  <i class='fab fa-docker'></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <button class='btn btn-success mt-n1'>Download</button>
+                                </a>
+                            </li>
+              </ul>
+            </div>
+    </div>
+</nav>
+<div class="container-fluid">
+            <div class="row">
+
+                <div class="docs-sidenav order-0 col-12 col-md-3 col-lg-2 col-xl-2 position-sticky border-right"><nav class="navbar navbar-expand-md navbar-light pl-0">
+    <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#sidenav-left-collapse" aria-controls="sidenav-left-collapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+     <div class="collapse navbar-collapse align-items-start flex-column" id="sidenav-left-collapse">
+            <form class="form-inline my-2 my-lg-0 searchbox">
+                <input class="form-control mr-sm-2 w-100" data-search-input id="search-by" type="text" placeholder="Search">
+            </form>
+         <ul class="navbar-nav flex-column pt-3">
+    <li data-nav-id="/fogify/installation.html" class="nav-item my-1 parent active haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/installation.html"><h6>Installation</h6></a>
+        <ul class="list-unstyled ml-2">
+        <li data-nav-id="/fogify/installation/as-a-service.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/as-a-service.html" class="nav-link p-0">
+                    Fogify in Docker-compose
+                </a>
+        </li>
+        <li data-nav-id="/fogify/installation/bare-metal.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/bare-metal.html" class="nav-link p-0">
+                    Bare-metal Installation
+                </a>
+        </li>
+        </ul>
+    </li>
+    <li data-nav-id="/fogify/getting-started.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/getting-started.html"><h6>Getting started</h6></a>
+    </li>
+    <li data-nav-id="/fogify/services.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/services.html"><h6>Services</h6></a>
+    </li>
+    <li data-nav-id="/fogify/node-profiles.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/node-profiles.html"><h6>Node Profiles</h6></a>
+    </li>
+    <li data-nav-id="/fogify/network-qos.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS</h6></a>
+    </li>
+    <li data-nav-id="/fogify/blueprints.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/blueprints.html"><h6>Blueprints</h6></a>
+    </li>
+    <li data-nav-id="/fogify/actions-and-scenarios.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/actions-and-scenarios.html"><h6>Actions &amp; Scenarios</h6></a>
+    </li>
+    <li data-nav-id="/fogify/monitoring.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/monitoring.html"><h6>Monitoring</h6></a>
+    </li>
+    <li data-nav-id="/fogify/connection-3rd-parties.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/connection-3rd-parties.html"><h6>Connection with third parties and API</h6></a>
+    </li>
+    <li data-nav-id="/fogify/fogifysdk.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/fogifysdk.html"><h6>FogifySDK</h6></a>
+    </li>
+    <li data-nav-id="/fogify/faq.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/faq.html"><h6>Frequently Asked Questions (FAQs)</h6></a>
+    </li>
+        </ul>
+    </div>
+</nav>
+
+
+</div>
+                <div class="docs-toc large order-lg-2 order-md-0 order-xs-1 col-12 col-lg-2 col-xl-2 position-sticky border-left"><div class="docs-toc">
+	<nav id="TableOfContents">
+  <ul>
+    <li><a href="#installation-modes">Installation Modes</a></li>
+    <li><a href="#requirement-software-components">Requirement Software Components</a>
+      <ul>
+        <li><a href="#orchestrator-swarm-installation">Orchestrator (Swarm Installation)</a></li>
+        <li><a href="#kernel-network-plugin">Kernel Network Plugin</a></li>
+      </ul>
+    </li>
+    <li><a href="#required-parameters">Required Parameters</a></li>
+  </ul>
+</nav>
+</div>
+</div>
+                <div class="main col-12 order-1 col-md-9 col-lg-10 col-xl-8 py-3">
+                
+
+<h1>Installation</h1>
+
+<h2 id="installation-modes">Installation Modes</h2>
+<p>Fogify can be installed either directly on cluster nodes, aka as a <a href="/fogify/installation/bare-metal.html">bare-metal installation</a>,
+or the user can utilize a containerized version of the system written in <a href="/fogify/installation/as-a-service.html">docker-compose file</a>.
+However, for both modes, the <strong>all</strong> cluster nodes should have installed the Requirement Software Components,
+namely, the docker Swarm orchestrator and a network Linux kernel package (iproute).</p>
+<h2 id="requirement-software-components">Requirement Software Components</h2>
+<h3 id="orchestrator-swarm-installation">Orchestrator (Swarm Installation)</h3>
+<p>According to the Orchestration, Fogify needs a pre-installed Docker Swarm Orchestrator.
+With the following command, the user can easily install a Docker Swarm Manager (master Node).</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_96fc2c4c43">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_96fc2c4c43">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+docker swarm init
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<p>The latter command will generate a result similar to:</p>
+<pre><code>Swarm initialized: current node (dxn1zf6l61qsb1josjja83ngz) is now a manager.
+
+To add a worker to this swarm, run the following command:
+
+    docker swarm join \
+    --token SWMTKN-1-49nj1cmql0jkz5s954yi3oex3nedyz0fb0xx14ie39trti4wxv-8vxv8rssmk743ojnwacrr2e7c \
+    192.168.99.100:2377
+
+To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
+</code></pre><p>At this time, the Docker Swarm cluster consists of one node which is Manager and Worker.
+If a user needs to add more nodes, he/she can run the following command on each extra node.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_65f9e61dd5">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_65f9e61dd5">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+
+$ docker swarm join <span style="color:#8045ff">\
+</span><span style="color:#8045ff"></span>    --token SWMTKN-1-49nj1cmql0jkz5s954yi3oex3nedyz0fb0xx14ie39trti4wxv-8vxv8rssmk743ojnwacrr2e7c <span style="color:#8045ff">\
+</span><span style="color:#8045ff"></span>    192.168.99.100:2377
+    
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<h3 id="kernel-network-plugin">Kernel Network Plugin</h3>
+<p>Fogify executes some low-level commands in order to apply specific characteristics to the network.
+For this reason, on each cluster node, we should install the traffic control tool (tc-tool).
+On Debian-based destributions, tc-tool comes bundled with iproute, so in order to isntall it you have to run:</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_d32e0e99be">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_d32e0e99be">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+apt-get install iproute
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<h2 id="required-parameters">Required Parameters</h2>
+<p>The parameters of the <code>Fogify</code> should pass through host&rsquo;s environmental parameter. Specifically, the parameters are the following:</p>
+<ul>
+<li><code>MANAGER_NAME</code>: the relative name of the swarm master node</li>
+<li><code>MANAGER_IP</code>: the manager&rsquo;s IP</li>
+<li><code>HOST_IP</code>: the machine&rsquo;s IP</li>
+<li><code>CPU_OVERPROVISIONING_PERCENTAGE</code>: a CPU overprovisioning percentage, the default is <code>0</code></li>
+<li><code>RAM_OVERPROVISIONING_PERCENTAGE</code>: a CPU overprovisioning percentage, the default is <code>0</code></li>
+<li><code>CPU_FREQ</code>: The CPU frequency of the host machine</li>
+</ul>
+
+
+<div class="card my-3 border-top-0 border-right-0 border-bottom-0 border-left border-info rounded" style="border-width:4px !important;">
+    <div class="wrap border border-left-0 rounded">
+        
+        <div class="card-body pt-1">
+            A user selects a percentage of CPU or RAM overprovisioning, and Fogify will generate two limits:
+an upper limit and a lower limit for each emulated device.
+For instance, a 20% overprovissioning configuration demands the emulated nodes to occupy the 20% less than
+the maximum processing power that the user selected. However, when any node requires extra power, the system will provide it,
+if there are available resources. Generally, the system will
+provide overprovisioning as a share competing portion of <code>CPU</code> or <code>RAM</code>.
+        </div>
+    </div>
+</div>
+
+
+
+<div class="card my-3 border-top-0 border-right-0 border-bottom-0 border-left border-info rounded" style="border-width:4px !important;">
+    <div class="wrap border border-left-0 rounded">
+        
+        <div class="card-body pt-1">
+            Running <code>Fogify</code> through <code>docker-compose.yaml</code> the latter parameters may be declared in <code>.env</code> file or via command line parameters of <code>docker-compose up</code> command.
+        </div>
+    </div>
+</div>
+
+
+
+    
+
+
+                    
+                    <div class="row"><div class="position-relative mx-auto col-lg-9">
+                          <div class="bg-primary overflow-hidden p-3 mt-5 shadow">
+
+    <h4 class="text-white text-center">Read more</h4>
+
+    <div class="d-flex justify-content-center"><a class="p-1 mr-3 d-inline-block text-white" href="/fogify/" title="Fogify: A Fog Computing Emulation Framework"><i class="fas fa-chevron-left p-1"></i>Fogify: A Fog Computing Emulation Framework</a>
+        <a class="p-1 ml-3 d-inline-block text-white text-right" href="/fogify/installation/as-a-service.html" title="Fogify in Docker-compose">Fogify in Docker-compose<i class="fas fa-chevron-right p-1"></i></a>
+    </div>
+</div>
+
+
+                        </div></div> 
+
+                </div>
+
+            </div> 
+
+        </div> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/jquery.min.js"></script> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/popper.min.js"></script> 
+
+<script src="https://ucy-linc-lab.github.io/fogify/js/bootstrap.min.js"></script> 
+
+
+<script type="text/javascript" src="/fogify/plugins/lunr.min.js"></script>
+<script type="text/javascript" src="/fogify/plugins/auto-complete.js"></script>
+<link href="/fogify/plugins/auto-complete.css" rel="stylesheet">
+<script type="text/javascript">
+  
+      var baseurl = "https:\/\/ucy-linc-lab.github.io\/fogify\/";
+  
+</script>
+<script type="text/javascript" src="/fogify/plugins/search.js"></script>
+
+
+<script type="text/javascript" src="/fogify/plugins/clipboard.js"></script>
+<script>
+  new ClipboardJS('.btn');
+</script>
+</body>
+</html>

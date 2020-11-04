@@ -1,0 +1,15 @@
+FROM jupyter/scipy-notebook
+
+USER root
+
+RUN mkdir /FofigySDK
+
+COPY . /FofigySDK
+USER $NB_UID
+RUN pip install /FofigySDK && \
+    fix-permissions $CONDA_DIR && \
+    fix-permissions /home/$NB_USER
+ENV GRANT_SUDO=yes
+USER root
+ENTRYPOINT ["tini", "-g", "--"]
+CMD ["start-notebook.sh"]
