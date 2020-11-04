@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html><head>
+
+    <meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="canonical" href="https://ucy-linc-lab.github.io/fogify/connection-3rd-parties.html">
+
+    <title>
+        
+        Connection with third parties and API | Fogify: A Fog Computing Emulator Framework
+        
+    </title>
+
+    
+    <link href="https://ucy-linc-lab.github.io/fogify/css/fontawesome.min.css" rel="stylesheet">
+
+    
+    <link rel="stylesheet" href="https://ucy-linc-lab.github.io/fogify/css/ace.min.css">
+
+    
+    
+        
+    
+
+</head>
+<body><nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow sticky-top" id="navbarMain">
+    <div class="container">
+        <div>
+            <a class="navbar-brand" href="/fogify">
+                Fogify: A Fog Computing Emulator Framework
+            </a>
+        </div>
+        
+            <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#navbarMainCollapse" aria-controls="navbarMainCollapse" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMainCollapse">
+              <ul class="navbar-nav ml-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="http://linc.ucy.ac.cy/" target="_blank">
+                                  More from us
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <i class='fab fa-github'></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://hub.docker.com/u/fogemulator" target="_blank">
+                                  <i class='fab fa-docker'></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <button class='btn btn-success mt-n1'>Download</button>
+                                </a>
+                            </li>
+              </ul>
+            </div>
+    </div>
+</nav>
+<div class="container-fluid">
+            <div class="row">
+
+                <div class="docs-sidenav order-0 col-12 col-md-3 col-lg-2 col-xl-2 position-sticky border-right"><nav class="navbar navbar-expand-md navbar-light pl-0">
+    <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#sidenav-left-collapse" aria-controls="sidenav-left-collapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+     <div class="collapse navbar-collapse align-items-start flex-column" id="sidenav-left-collapse">
+            <form class="form-inline my-2 my-lg-0 searchbox">
+                <input class="form-control mr-sm-2 w-100" data-search-input id="search-by" type="text" placeholder="Search">
+            </form>
+         <ul class="navbar-nav flex-column pt-3">
+    <li data-nav-id="/fogify/installation.html" class="nav-item my-1 haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/installation.html"><h6>Installation</h6></a>
+        <ul class="list-unstyled ml-2">
+        <li data-nav-id="/fogify/installation/as-a-service.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/as-a-service.html" class="nav-link p-0">
+                    Fogify in Docker-compose
+                </a>
+        </li>
+        <li data-nav-id="/fogify/installation/bare-metal.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/bare-metal.html" class="nav-link p-0">
+                    Bare-metal Installation
+                </a>
+        </li>
+        </ul>
+    </li>
+    <li data-nav-id="/fogify/getting-started.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/getting-started.html"><h6>Getting started</h6></a>
+    </li>
+    <li data-nav-id="/fogify/services.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/services.html"><h6>Services</h6></a>
+    </li>
+    <li data-nav-id="/fogify/node-profiles.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/node-profiles.html"><h6>Node Profiles</h6></a>
+    </li>
+    <li data-nav-id="/fogify/network-qos.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS</h6></a>
+    </li>
+    <li data-nav-id="/fogify/blueprints.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/blueprints.html"><h6>Blueprints</h6></a>
+    </li>
+    <li data-nav-id="/fogify/actions-and-scenarios.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/actions-and-scenarios.html"><h6>Actions &amp; Scenarios</h6></a>
+    </li>
+    <li data-nav-id="/fogify/monitoring.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/monitoring.html"><h6>Monitoring</h6></a>
+    </li>
+    <li data-nav-id="/fogify/connection-3rd-parties.html" class="nav-item my-1 parent active
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/connection-3rd-parties.html"><h6>Connection with third parties and API</h6></a>
+    </li>
+    <li data-nav-id="/fogify/fogifysdk.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/fogifysdk.html"><h6>FogifySDK</h6></a>
+    </li>
+    <li data-nav-id="/fogify/faq.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/faq.html"><h6>Frequently Asked Questions (FAQs)</h6></a>
+    </li>
+        </ul>
+    </div>
+</nav>
+
+
+</div>
+                <div class="docs-toc large order-lg-2 order-md-0 order-xs-1 col-12 col-lg-2 col-xl-2 position-sticky border-left"><div class="docs-toc">
+	<nav id="TableOfContents">
+  <ul>
+    <li><a href="#fogifys-restfull-api">Fogify&rsquo;s Restfull API</a>
+      <ul>
+        <li><a href="#deploy-topology">Deploy Topology</a></li>
+        <li><a href="#undeploy-topology">Undeploy Topology</a></li>
+        <li><a href="#deploy-actions">Deploy Actions</a></li>
+        <li><a href="#get-monitoring-metrics">Get Monitoring Metrics</a></li>
+        <li><a href="#remove-monitoring-metrics">Remove Monitoring Metrics</a></li>
+      </ul>
+    </li>
+    <li><a href="#miscellaneous">Miscellaneous</a>
+      <ul>
+        <li><a href="#deploy-a-network-distribution">Deploy a Network Distribution</a></li>
+      </ul>
+    </li>
+    <li><a href="#python-sdk-fogifysdk">Python SDK (FogifySDK)</a></li>
+  </ul>
+</nav>
+</div>
+</div>
+                <div class="main col-12 order-1 col-md-9 col-lg-10 col-xl-8 py-3">
+                
+
+<h1>Connection with third parties and API</h1>
+
+<h2 id="fogifys-restfull-api">Fogify&rsquo;s Restfull API</h2>
+<p>The Fogify Controller exposes a REST API for interacting with the emulated testbed.
+Next we describe in details the available methods along with their parameters.
+Specifically, users can deploy and undeploy topologies, execute ad-hoc actions and retrieve monitored metrics.</p>
+<h3 id="deploy-topology">Deploy Topology</h3>
+<p>The user deploys his/her topology with a <code>POST</code> api call to the <code>&lt;manager&gt;:5000/topology/</code> path.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li>file: A yaml file that describes the application and the topology of the experiment</li>
+</ul>
+</li>
+</ul>
+<h3 id="undeploy-topology">Undeploy Topology</h3>
+<p>The user undeploys his/her topology with a <code>DELETE</code> api call to the <code>&lt;manager&gt;:5000/topology/</code> path.</p>
+<h3 id="deploy-actions">Deploy Actions</h3>
+<p>The user can execute various actions at runtime that can alter the underlying infrastructure.
+To achieve that a user can execute <code>POST</code> call to <code>&lt;manager&gt;:5000/action/&lt;action_type&gt;</code>.
+For <code>action_type</code>, we have various types, namely: <code>horizontal_scaling</code>, <code>vertical_scaling</code>, <code>network</code>, <code>command</code> and <code>stress</code>.
+Users can determine either a <code>blueprint</code> <code>label</code> and the <code>number</code> of instances that the action would like to affect or
+the label along with the number of a specific node, e.g. <code>supervisor.5</code>.</p>
+<p>We have already described the action&rsquo;s parameters in <a href="/fogify/actions-and-scenarios.html"><code>Actions &amp; Scenarios</code></a>.</p>
+<h3 id="get-monitoring-metrics">Get Monitoring Metrics</h3>
+<p>Returns the metrics in CSV format for all instances of the running application. The user should execute a <code>GET</code> api call
+to the <code>&lt;manager&gt;:5000/monitorings/</code> and the kresponse of the system will be in the following form:
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_f99bd1ee1a">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_f99bd1ee1a">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">
+<span style="color:#111">{</span>
+  <span style="color:#f92672">&#34;instance_id1&#34;</span><span style="color:#111">:</span> <span style="color:#d88200">&#34;CSV_file_for_instance_id1&#34;</span><span style="color:#111">,</span>
+  <span style="color:#f92672">&#34;instance_id2&#34;</span><span style="color:#111">:</span> <span style="color:#d88200">&#34;CSV_file_for_instance_id2&#34;</span>
+<span style="color:#111">}</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+</p>
+<h3 id="remove-monitoring-metrics">Remove Monitoring Metrics</h3>
+<p>In order to &ldquo;clean&rdquo; the monitoring metrics for a new experiment,
+we can execute a <code>DELETE</code> api call to the <code>&lt;manager&gt;:5000/monitorings/</code> path.</p>
+<h2 id="miscellaneous">Miscellaneous</h2>
+<h3 id="deploy-a-network-distribution">Deploy a Network Distribution</h3>
+<p>In order to deploy a custom delay distribution, one has to capture a <code>ping</code> trace file and deploy it to the system.
+Specifically, there is the <code>/generate-network-distribution/&lt;name&gt;/</code> endpoint where users send the file through <code>POST</code> api call.
+The property <code>name</code> specifies the name of the distribution on Fogify.
+The generation of trace file requires the execution of the following command where <code>destination</code> can be either a <code>url</code> or an <code>IP</code> of the destination.
+After that user should store the results of the latter command to a file. That is the file, which system requires in order to generate the distribution</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_0c41fed604">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_0c41fed604">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+ping &lt;destination&gt;
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<h2 id="python-sdk-fogifysdk">Python SDK (FogifySDK)</h2>
+<p>If you are familiar with python programming language, we suggest to use <a href="/fogify/fogifysdk.html"><strong>FogifySDK</strong></a>
+since it has implemented all available Fogify methods.</p>
+
+
+    
+
+
+                    
+                    <div class="row"><div class="position-relative mx-auto col-lg-9">
+                          <div class="bg-primary overflow-hidden p-3 mt-5 shadow">
+
+    <h4 class="text-white text-center">Read more</h4>
+
+    <div class="d-flex justify-content-center"><a class="p-1 mr-3 d-inline-block text-white" href="/fogify/monitoring.html" title="Monitoring"><i class="fas fa-chevron-left p-1"></i>Monitoring</a>
+        <a class="p-1 ml-3 d-inline-block text-white text-right" href="/fogify/fogifysdk.html" title="FogifySDK">FogifySDK<i class="fas fa-chevron-right p-1"></i></a>
+    </div>
+</div>
+
+
+                        </div></div> 
+
+                </div>
+
+            </div> 
+
+        </div> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/jquery.min.js"></script> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/popper.min.js"></script> 
+
+<script src="https://ucy-linc-lab.github.io/fogify/js/bootstrap.min.js"></script> 
+
+
+<script type="text/javascript" src="/fogify/plugins/lunr.min.js"></script>
+<script type="text/javascript" src="/fogify/plugins/auto-complete.js"></script>
+<link href="/fogify/plugins/auto-complete.css" rel="stylesheet">
+<script type="text/javascript">
+  
+      var baseurl = "https:\/\/ucy-linc-lab.github.io\/fogify\/";
+  
+</script>
+<script type="text/javascript" src="/fogify/plugins/search.js"></script>
+
+
+<script type="text/javascript" src="/fogify/plugins/clipboard.js"></script>
+<script>
+  new ClipboardJS('.btn');
+</script>
+</body>
+</html>

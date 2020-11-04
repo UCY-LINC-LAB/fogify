@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html><head>
+
+    <meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="canonical" href="https://ucy-linc-lab.github.io/fogify/installation/as-a-service.html">
+
+    <title>
+        
+        Fogify in Docker-compose | Fogify: A Fog Computing Emulator Framework
+        
+    </title>
+
+    
+    <link href="https://ucy-linc-lab.github.io/fogify/css/fontawesome.min.css" rel="stylesheet">
+
+    
+    <link rel="stylesheet" href="https://ucy-linc-lab.github.io/fogify/css/ace.min.css">
+
+    
+    
+        
+    
+
+</head>
+<body><nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow sticky-top" id="navbarMain">
+    <div class="container">
+        <div>
+            <a class="navbar-brand" href="/fogify">
+                Fogify: A Fog Computing Emulator Framework
+            </a>
+        </div>
+        
+            <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#navbarMainCollapse" aria-controls="navbarMainCollapse" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMainCollapse">
+              <ul class="navbar-nav ml-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="http://linc.ucy.ac.cy/" target="_blank">
+                                  More from us
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <i class='fab fa-github'></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://hub.docker.com/u/fogemulator" target="_blank">
+                                  <i class='fab fa-docker'></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <button class='btn btn-success mt-n1'>Download</button>
+                                </a>
+                            </li>
+              </ul>
+            </div>
+    </div>
+</nav>
+<div class="container-fluid">
+            <div class="row">
+
+                <div class="docs-sidenav order-0 col-12 col-md-3 col-lg-2 col-xl-2 position-sticky border-right"><nav class="navbar navbar-expand-md navbar-light pl-0">
+    <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#sidenav-left-collapse" aria-controls="sidenav-left-collapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+     <div class="collapse navbar-collapse align-items-start flex-column" id="sidenav-left-collapse">
+            <form class="form-inline my-2 my-lg-0 searchbox">
+                <input class="form-control mr-sm-2 w-100" data-search-input id="search-by" type="text" placeholder="Search">
+            </form>
+         <ul class="navbar-nav flex-column pt-3">
+    <li data-nav-id="/fogify/installation.html" class="nav-item my-1 parent haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/installation.html"><h6>Installation</h6></a>
+        <ul class="list-unstyled ml-2">
+        <li data-nav-id="/fogify/installation/as-a-service.html" class="nav-item my-1 active">
+                
+                 <a href="/fogify/installation/as-a-service.html" class="nav-link p-0">
+                    Fogify in Docker-compose
+                </a>
+        </li>
+        <li data-nav-id="/fogify/installation/bare-metal.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/bare-metal.html" class="nav-link p-0">
+                    Bare-metal Installation
+                </a>
+        </li>
+        </ul>
+    </li>
+    <li data-nav-id="/fogify/getting-started.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/getting-started.html"><h6>Getting started</h6></a>
+    </li>
+    <li data-nav-id="/fogify/services.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/services.html"><h6>Services</h6></a>
+    </li>
+    <li data-nav-id="/fogify/node-profiles.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/node-profiles.html"><h6>Node Profiles</h6></a>
+    </li>
+    <li data-nav-id="/fogify/network-qos.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS</h6></a>
+    </li>
+    <li data-nav-id="/fogify/blueprints.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/blueprints.html"><h6>Blueprints</h6></a>
+    </li>
+    <li data-nav-id="/fogify/actions-and-scenarios.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/actions-and-scenarios.html"><h6>Actions &amp; Scenarios</h6></a>
+    </li>
+    <li data-nav-id="/fogify/monitoring.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/monitoring.html"><h6>Monitoring</h6></a>
+    </li>
+    <li data-nav-id="/fogify/connection-3rd-parties.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/connection-3rd-parties.html"><h6>Connection with third parties and API</h6></a>
+    </li>
+    <li data-nav-id="/fogify/fogifysdk.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/fogifysdk.html"><h6>FogifySDK</h6></a>
+    </li>
+    <li data-nav-id="/fogify/faq.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/faq.html"><h6>Frequently Asked Questions (FAQs)</h6></a>
+    </li>
+        </ul>
+    </div>
+</nav>
+
+
+</div>
+                <div class="docs-toc large order-lg-2 order-md-0 order-xs-1 col-12 col-lg-2 col-xl-2 position-sticky border-left"><div class="docs-toc">
+	<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#execution">Execution</a></li>
+        <li><a href="#docker-compose-file">Docker-compose file</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</div>
+</div>
+                <div class="main col-12 order-1 col-md-9 col-lg-10 col-xl-8 py-3">
+                
+
+<h1>Fogify in Docker-compose</h1>
+
+<h3 id="execution">Execution</h3>
+<p>To ease the installation of Fogify, we created a docker-compose file that contains a dockerized version of Fogify connected
+with a Jupyter server, which is used as a web-based GUI.
+Since, the Fogify and Jupyter stack is provided as dockerized services,
+we only need to run the following command at the swarm master node.</p>
+<p>
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_b32dda119e">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_b32dda119e">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+sudo docker-compose -p fogemulator up
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+In order to open the web interface of Jupyter, you have to find the output of the <code>ui</code> service
+where the system outputs the <code>url</code> and the <code>token</code></p>
+<p><img src="/fogify/jupyter.png" alt="Jupyter Notebook"></p>
+<p>For instance, in previous output we can open the Jupyter interface with the following url:
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_5340438777">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_5340438777">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+http://127.0.0.1:8888/?token<span style="color:#f92672">=</span>1cd2e914cd03e76d551a666cb0a8dcdb6361bc29ddf54eed
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+</p>
+<p>If we have more nodes in the cluster, we have to execute the following command on every node.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_c959da170a">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_c959da170a">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+sudo docker-compose -p fogemulator up agent cadvisor
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<p>For both modes, users should provide a set of parameters to compose file (written in .env file), specificaly:
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_218aac9e6e">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_218aac9e6e">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+<span style="color:#111">MANAGER_NAME</span><span style="color:#f92672">=</span>.... <span style="color:#75715e">#The name of the swarm master node</span>
+<span style="color:#111">MANAGER_IP</span><span style="color:#f92672">=</span>192.168.1.1 <span style="color:#75715e">#The IP of the swarm master node</span>
+<span style="color:#111">HOST_IP</span><span style="color:#f92672">=</span>192.168.1.1 <span style="color:#75715e">#The IP of the host</span>
+<span style="color:#111">CPU_OVERPROVISIONING_PERCENTAGE</span><span style="color:#f92672">=</span>... <span style="color:#75715e"># A percentage of cpu over provisioning 0-100</span>
+<span style="color:#111">RAM_OVERPROVISIONING_PERCENTAGE</span><span style="color:#f92672">=</span>... <span style="color:#75715e"># A percentage of memory over provisioning 0-100 </span>
+<span style="color:#111">CPU_FREQ</span><span style="color:#f92672">=</span> ... <span style="color:#75715e"># The frequency of the underlying CPU </span>
+<span style="color:#111">VERSION</span><span style="color:#f92672">=</span>.... <span style="color:#75715e">#The version of Fogify</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+</p>
+<h3 id="docker-compose-file">Docker-compose file</h3>
+<p>Next, we have the docker-compose file of Fogify system. The <code>fogify</code> and <code>fogify-jupyter</code>
+are images upload to docker-hub.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_c401d83c5c">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_c401d83c5c">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
+<span style="color:#f92672">version</span><span style="color:#111">:</span> <span style="color:#d88200">&#39;3.7&#39;</span>
+
+<span style="color:#f92672">services</span><span style="color:#111">:</span>
+
+  <span style="color:#f92672">ui</span><span style="color:#111">:</span>
+    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">fogemulator/fogify-jupyter:${VERSION}</span>
+    <span style="color:#f92672">volumes</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">/var/run/docker.sock:/var/run/docker.sock</span>
+      - <span style="color:#ae81ff">/usr/bin/docker:/usr/bin/docker</span>
+    <span style="color:#f92672">ports</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">8888</span><span style="color:#111">:</span><span style="color:#ae81ff">8888</span>
+    <span style="color:#f92672">environment</span><span style="color:#111">:</span>
+      - <span style="color:#d88200">&#34;JUPYTER_ENABLE_LAB=yes&#34;</span>
+      - <span style="color:#d88200">&#34;GRANT_SUDO=yes&#34;</span>
+    <span style="color:#f92672">user</span><span style="color:#111">:</span> <span style="color:#ae81ff">root</span>
+  <span style="color:#f92672">controller</span><span style="color:#111">:</span>
+    <span style="color:#f92672">build</span><span style="color:#111">:</span> <span style="color:#ae81ff">.</span>
+    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">fogemulator/fogify:${VERSION} </span>
+    <span style="color:#f92672">entrypoint</span><span style="color:#111">:</span> <span style="color:#111">[</span> <span style="color:#d88200">&#34;python&#34;</span><span style="color:#111">,</span> <span style="color:#d88200">&#34;/code/fogify/main.py&#34;</span><span style="color:#111">,</span> <span style="color:#d88200">&#34;--controller&#34;</span><span style="color:#111">]</span>
+    <span style="color:#f92672">volumes</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">/var/run/docker.sock:/var/run/docker.sock</span>
+      - <span style="color:#ae81ff">/usr/bin/docker:/usr/bin/docker</span>
+    <span style="color:#f92672">ports</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">5000</span><span style="color:#111">:</span><span style="color:#ae81ff">5000</span>
+    <span style="color:#f92672">extra_hosts</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">${MANAGER_NAME}:${MANAGER_IP}</span>
+  <span style="color:#f92672">agent</span><span style="color:#111">:</span>
+    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">fogemulator/fogify:${VERSION}</span>
+    <span style="color:#f92672">entrypoint</span><span style="color:#111">:</span> <span style="color:#111">[</span> <span style="color:#d88200">&#34;python&#34;</span><span style="color:#111">,</span> <span style="color:#d88200">&#34;/code/fogify/main.py&#34;</span><span style="color:#111">,</span> <span style="color:#d88200">&#34;--agent&#34;</span><span style="color:#111">,</span> <span style="color:#d88200">&#34;--agent-ip&#34;</span><span style="color:#111">,</span> <span style="color:#d88200">&#34;${HOST_IP}&#34;</span><span style="color:#111">]</span>
+    <span style="color:#f92672">extra_hosts</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">${MANAGER_NAME}:${MANAGER_IP}</span>
+    <span style="color:#f92672">volumes</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">/var/run/docker.sock:/var/run/docker.sock</span>
+      - <span style="color:#ae81ff">/usr/bin/docker:/usr/bin/docker</span>
+      - <span style="color:#ae81ff">/proc/:/proc/</span>
+      - <span style="color:#ae81ff">/var/run/docker/:/var/run/docker/</span>
+      - <span style="color:#ae81ff">/sys/class/net/:/sys/class/net/</span>
+      - <span style="color:#ae81ff">/usr/bin/nsenter:/usr/bin/nsenter</span>
+      - <span style="color:#ae81ff">/lib/modules:/lib/modules</span>
+      - <span style="color:#ae81ff">/sbin/modprobe:/sbin/modprobe</span>
+    <span style="color:#f92672">privileged</span><span style="color:#111">:</span> <span style="color:#00a8c8">true</span>
+    <span style="color:#f92672">cap_add</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">ALL</span>
+    <span style="color:#f92672">depends_on</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">cadvisor</span>
+      - <span style="color:#ae81ff">controller</span>
+    <span style="color:#f92672">ports</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">5500</span><span style="color:#111">:</span><span style="color:#ae81ff">5500</span>
+    <span style="color:#f92672">environment</span><span style="color:#111">:</span>
+      <span style="color:#f92672">CONTROLLER_IP</span><span style="color:#111">:</span> <span style="color:#ae81ff">${MANAGER_IP}</span>
+
+  <span style="color:#f92672">cadvisor</span><span style="color:#111">:</span>
+    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">gcr.io/google-containers/cadvisor:v0.35.0</span>
+    <span style="color:#f92672">volumes</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">/:/rootfs:ro</span>
+      - <span style="color:#ae81ff">/var/run:/var/run:ro</span>
+      - <span style="color:#ae81ff">/sys:/sys:ro</span>
+      - <span style="color:#ae81ff">/var/lib/docker/:/var/lib/docker:ro</span>
+      - <span style="color:#ae81ff">/dev/disk/:/dev/disk:ro</span>
+    <span style="color:#f92672">ports</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">9090</span><span style="color:#111">:</span><span style="color:#ae81ff">8080</span>
+    <span style="color:#f92672">expose</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">8080</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+
+
+    
+
+
+                    
+                    <div class="row"><div class="position-relative mx-auto col-lg-9">
+                          <div class="bg-primary overflow-hidden p-3 mt-5 shadow">
+
+    <h4 class="text-white text-center">Read more</h4>
+
+    <div class="d-flex justify-content-center"><a class="p-1 mr-3 d-inline-block text-white" href="/fogify/installation.html" title="Installation"><i class="fas fa-chevron-left p-1"></i>Installation</a>
+        <a class="p-1 ml-3 d-inline-block text-white text-right" href="/fogify/installation/bare-metal.html" title="Bare-metal Installation">Bare-metal Installation<i class="fas fa-chevron-right p-1"></i></a>
+    </div>
+</div>
+
+
+                        </div></div> 
+
+                </div>
+
+            </div> 
+
+        </div> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/jquery.min.js"></script> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/popper.min.js"></script> 
+
+<script src="https://ucy-linc-lab.github.io/fogify/js/bootstrap.min.js"></script> 
+
+
+<script type="text/javascript" src="/fogify/plugins/lunr.min.js"></script>
+<script type="text/javascript" src="/fogify/plugins/auto-complete.js"></script>
+<link href="/fogify/plugins/auto-complete.css" rel="stylesheet">
+<script type="text/javascript">
+  
+      var baseurl = "https:\/\/ucy-linc-lab.github.io\/fogify\/";
+  
+</script>
+<script type="text/javascript" src="/fogify/plugins/search.js"></script>
+
+
+<script type="text/javascript" src="/fogify/plugins/clipboard.js"></script>
+<script>
+  new ClipboardJS('.btn');
+</script>
+</body>
+</html>

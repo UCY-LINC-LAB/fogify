@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html><head>
+
+    <meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="canonical" href="https://ucy-linc-lab.github.io/fogify/getting-started.html">
+
+    <title>
+        
+        Getting started | Fogify: A Fog Computing Emulator Framework
+        
+    </title>
+
+    
+    <link href="https://ucy-linc-lab.github.io/fogify/css/fontawesome.min.css" rel="stylesheet">
+
+    
+    <link rel="stylesheet" href="https://ucy-linc-lab.github.io/fogify/css/ace.min.css">
+
+    
+    
+        
+    
+
+</head>
+<body><nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow sticky-top" id="navbarMain">
+    <div class="container">
+        <div>
+            <a class="navbar-brand" href="/fogify">
+                Fogify: A Fog Computing Emulator Framework
+            </a>
+        </div>
+        
+            <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#navbarMainCollapse" aria-controls="navbarMainCollapse" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMainCollapse">
+              <ul class="navbar-nav ml-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="http://linc.ucy.ac.cy/" target="_blank">
+                                  More from us
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <i class='fab fa-github'></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://hub.docker.com/u/fogemulator" target="_blank">
+                                  <i class='fab fa-docker'></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <button class='btn btn-success mt-n1'>Download</button>
+                                </a>
+                            </li>
+              </ul>
+            </div>
+    </div>
+</nav>
+<div class="container-fluid">
+            <div class="row">
+
+                <div class="docs-sidenav order-0 col-12 col-md-3 col-lg-2 col-xl-2 position-sticky border-right"><nav class="navbar navbar-expand-md navbar-light pl-0">
+    <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#sidenav-left-collapse" aria-controls="sidenav-left-collapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+     <div class="collapse navbar-collapse align-items-start flex-column" id="sidenav-left-collapse">
+            <form class="form-inline my-2 my-lg-0 searchbox">
+                <input class="form-control mr-sm-2 w-100" data-search-input id="search-by" type="text" placeholder="Search">
+            </form>
+         <ul class="navbar-nav flex-column pt-3">
+    <li data-nav-id="/fogify/installation.html" class="nav-item my-1 haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/installation.html"><h6>Installation</h6></a>
+        <ul class="list-unstyled ml-2">
+        <li data-nav-id="/fogify/installation/as-a-service.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/as-a-service.html" class="nav-link p-0">
+                    Fogify in Docker-compose
+                </a>
+        </li>
+        <li data-nav-id="/fogify/installation/bare-metal.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/bare-metal.html" class="nav-link p-0">
+                    Bare-metal Installation
+                </a>
+        </li>
+        </ul>
+    </li>
+    <li data-nav-id="/fogify/getting-started.html" class="nav-item my-1 parent active
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/getting-started.html"><h6>Getting started</h6></a>
+    </li>
+    <li data-nav-id="/fogify/services.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/services.html"><h6>Services</h6></a>
+    </li>
+    <li data-nav-id="/fogify/node-profiles.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/node-profiles.html"><h6>Node Profiles</h6></a>
+    </li>
+    <li data-nav-id="/fogify/network-qos.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS</h6></a>
+    </li>
+    <li data-nav-id="/fogify/blueprints.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/blueprints.html"><h6>Blueprints</h6></a>
+    </li>
+    <li data-nav-id="/fogify/actions-and-scenarios.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/actions-and-scenarios.html"><h6>Actions &amp; Scenarios</h6></a>
+    </li>
+    <li data-nav-id="/fogify/monitoring.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/monitoring.html"><h6>Monitoring</h6></a>
+    </li>
+    <li data-nav-id="/fogify/connection-3rd-parties.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/connection-3rd-parties.html"><h6>Connection with third parties and API</h6></a>
+    </li>
+    <li data-nav-id="/fogify/fogifysdk.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/fogifysdk.html"><h6>FogifySDK</h6></a>
+    </li>
+    <li data-nav-id="/fogify/faq.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/faq.html"><h6>Frequently Asked Questions (FAQs)</h6></a>
+    </li>
+        </ul>
+    </div>
+</nav>
+
+
+</div>
+                <div class="docs-toc large order-lg-2 order-md-0 order-xs-1 col-12 col-lg-2 col-xl-2 position-sticky border-left"><div class="docs-toc">
+	<nav id="TableOfContents">
+  <ul>
+    <li><a href="#prerequisites">Prerequisites</a>
+      <ul>
+        <li><a href="#jupyter-gui">Jupyter GUI</a></li>
+      </ul>
+    </li>
+    <li><a href="#step-1-create-the-application">Step 1: Create the Application</a></li>
+    <li><a href="#step-2-build-the-dockerfile">Step 2: Build the Dockerfile</a></li>
+    <li><a href="#step-3-create-the-compose-file">Step 3: Create the Compose file</a></li>
+    <li><a href="#step-4-introduce-the-fogify-model">Step 4: Introduce the Fogify Model</a>
+      <ul>
+        <li><a href="#nodes">Nodes</a></li>
+        <li><a href="#networks">Networks</a></li>
+        <li><a href="#topology">Topology</a></li>
+      </ul>
+    </li>
+    <li><a href="#step-5-deploy-the-topology">Step 5: Deploy the topology</a></li>
+    <li><a href="#step-6-retrieve-metrics">Step 6: Retrieve Metrics</a></li>
+    <li><a href="#step-7-run-an-ad-hoc-action">Step 7: Run an ad-hoc action</a></li>
+    <li><a href="#step-8-build-and-run-a-fogify-scenario">Step 8: Build and run a Fogify Scenario</a></li>
+    <li><a href="#step-9-representation-of-the-results">Step 9: Representation of the Results</a></li>
+    <li><a href="#step-10-undeploy-the-topology">Step 10: Undeploy the Topology</a></li>
+  </ul>
+</nav>
+</div>
+</div>
+                <div class="main col-12 order-1 col-md-9 col-lg-10 col-xl-8 py-3">
+                
+
+<h1>Getting started</h1>
+
+<p class="lead">
+    On this page you build a simple Python micro-service IoT application that is driven by <a href="https://on.nyc.gov/2OssELg">real-world data</a>
+to showcase a scenario of a taxi-cab company that collects and analyzes location-based data from its fleet.
+The application includes three services: a workload generator, an edge server and a cloud server, all utilize the Flask framework.
+Even if the example is written in Python, the concepts demonstrated are understandable even if you’re not familiar with it.
+</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Before start the tutorial, make sure that already follow the <a href="">installation guide of Fogify</a>.
+You do not need to install anything else, such as python, since it is provided as Docker image.
+If you are not familiar with docker, you can find some information at the section of <a href="">Services</a>
+and at the <a href="https://docs.docker.com/">Docker Official Documentation</a>.</p>
+<h3 id="jupyter-gui">Jupyter GUI</h3>
+<p>Even if Fogify exposes a REST API for interacting with the emulated testbed, it provides an extra python SDK
+with programming primitives.
+The FogifySDK gives us the opportunity to interconnect the Fogify with external systems like Jupyter.
+The integration with Jupyter, as described in <a href="">Fogify Docker-compose installation</a>, provides a GUI for Fogify and an
+interactive way to work with it.
+Users can submit IoT service descriptions adopting the Fogify model specification, manipulate service execution by applying actions
+and submitting &ldquo;what-if&rdquo; scenarios, extract real-time monitoring data and assess running deployments.
+Furthermore, the Fogify SDK has a set of built-in analytics functions
+applicable on monitoring data, as well as, plotting functionality for easing metric examination.</p>
+<p>Next image provides a snapshot of the Jupyter interface integrated with FogifySDK.</p>
+<p></p>
+<div class="row">
+    <div class="col-md-8 offset-2">
+        <img class="img-fluid" src="get-started-images/IDE.png" />
+    </div>
+</div>
+<p></p>
+<p>Users can use the editor provided by <code>Jupyter</code> to write the configuration yaml files,
+while interact with Fogify through the <code>Jupyter Notebooks</code>. We suggest the use of <code>JupyterLab</code> as Jupyter GUI,
+since it provides many coding IDE features that the developers are familiar with.
+For more information about how can you reach the Jupyter Web GUI check the <a href="">Fogify&rsquo;s Docker-compose installation guide</a>.</p>
+<p>Next we describe step-by-step an application deployment on Fogify system.</p>
+<h2 id="step-1-create-the-application">Step 1: Create the Application</h2>
+<p>Since the focus of this tutorial is not the coding, you will find the demonstration code on github <a href="https://github.com/UCY-LINC-LAB/fogify-demo">https://github.com/UCY-LINC-LAB/fogify-demo</a> .
+Specifically, you have only to download the repository and navigate to <code>application</code> folder and execute the <code>build-image.sh</code> script.
+The script builds the <code>Image</code> that we will describe in the following section.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_2a01a4f6c5">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_2a01a4f6c5">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+├── application
+│   ├── build-image.sh
+│   ├── docker-compose.yaml
+│   └── taxi_exp
+│       ├── code
+│       │   ├── collect_metrics.py
+│       │   ├── cronjobs
+│       │   ├── edge_server.py
+│       │   ├── entrypoint.sh
+│       │   ├── __init__.py
+│       │   ├── send_metrics_to_server.py
+│       │   ├── server.py
+│       │   └── utils
+│       │       ├── edge_fuctionality.py
+│       │       └── __init__.py
+│       ├── Dockerfile
+│       └── requirements.txt
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<h2 id="step-2-build-the-dockerfile">Step 2: Build the Dockerfile</h2>
+<p>The repository provides the following <code>Dockerfile</code>, however, it is reasonable to describe it.
+The first line describes that <code>dockerfile</code> is based on <code>python:3.6</code>.
+Next, it install a set of tools that is required from Fogify (<code>cpulimit</code> and <code>stress</code> tools).
+At the next step, <code>Dockerfile</code> introduces the example&rsquo;s code and configures the <code>cron</code> jobs (essential for this example).
+Finally, <code>Dockerfile</code> configures the <code>entrypoint</code> of the image. For more information about <code>dockerfiles</code>,
+you can read the docker&rsquo;s <a href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices/">official documentation</a> about <code>dockerfiles</code>.</p>
+
+
+<div class="card my-3 border-top-0 border-right-0 border-bottom-0 border-left border-info rounded" style="border-width:4px !important;">
+    <div class="wrap border border-left-0 rounded">
+        
+        <div class="card-body pt-1">
+            If the <code>cpulimit</code> and <code>stress</code> are not installed on the docker image, Fogify will only not provide <code>stress</code> actions.
+However, the rest Fogify functionalities will be provided and not effect Fogify&rsquo;s execution.
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_6c8eda93e1">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_6c8eda93e1">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+<span style="color:#75715e"># Pull base image of Python</span>
+FROM python:3.6
+
+<span style="color:#75715e"># Set environment variables</span>
+ENV PYTHONDONTWRITEBYTECODE <span style="color:#ae81ff">1</span>
+ENV PYTHONUNBUFFERED <span style="color:#ae81ff">1</span>
+
+<span style="color:#75715e"># Install the cpu-limit and stress tool pre-requirements for fully functional Fogify</span>
+RUN git clone https://github.com/opsengine/cpulimit/
+WORKDIR cpulimit
+RUN make <span style="color:#f92672">&amp;&amp;</span> cp src/cpulimit /usr/bin
+RUN apt-get update <span style="color:#f92672">&amp;&amp;</span> apt-get install -y stress <span style="color:#f92672">&amp;&amp;</span> apt-get -y install cron rsyslog
+
+<span style="color:#75715e"># Add the python code</span>
+RUN mkdir /code
+WORKDIR /code
+ADD requirements.txt /code/
+RUN pip install -r requirements.txt
+
+EXPOSE <span style="color:#ae81ff">8000</span>
+
+ADD ./code/ /code/
+
+<span style="color:#75715e"># Install cron tab</span>
+RUN chmod <span style="color:#ae81ff">0644</span> /code/cronjobs
+RUN <span style="color:#111">echo</span> <span style="color:#d88200">&#34;cron.* /var/log/cron.log&#34;</span> &gt;&gt; /etc/rsyslog.conf
+RUN service rsyslog start
+
+<span style="color:#75715e"># Insert and execute entrypoint</span>
+RUN chmod +x /code/entrypoint.sh
+CMD <span style="color:#f92672">[</span><span style="color:#d88200">&#34;/bin/bash&#34;</span>, <span style="color:#d88200">&#34;/code/entrypoint.sh&#34;</span><span style="color:#f92672">]</span>
+
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<h2 id="step-3-create-the-compose-file">Step 3: Create the Compose file</h2>
+<p>This is the initial docker-compose file of the project. This file includes four services, namely,
+<code>cloud-server</code>, <code>mec-svc-1</code>, <code>mec-svc-2</code>, <code>car-workload</code>. Each service executes a different part of code, specifically:</p>
+<ul>
+<li><strong>cloud-server</strong>: gathers the results of all MECs and stores them</li>
+<li><strong>mec-svc-1 &amp; mec-svc-2</strong>: should be deployed on different regions, capture the regional data and preprocess them</li>
+<li><strong>car-workload</strong>: this service generates the streams of regional data</li>
+</ul>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_7a720aba3b">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_7a720aba3b">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
+<span style="color:#f92672">version</span><span style="color:#111">:</span> <span style="color:#d88200">&#39;3.7&#39;</span>
+<span style="color:#f92672">services</span><span style="color:#111">:</span>
+  <span style="color:#f92672">cloud-server</span><span style="color:#111">:</span>
+    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">taxi-exp:0.0.1</span>
+    <span style="color:#f92672">environment</span><span style="color:#111">:</span>
+      <span style="color:#f92672">NODE_TYPE</span><span style="color:#111">:</span> <span style="color:#ae81ff">CLOUD_NODE</span>
+  <span style="color:#f92672">car-workload</span><span style="color:#111">:</span>
+    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">taxi-exp:0.0.1</span>
+    <span style="color:#f92672">environment</span><span style="color:#111">:</span>
+      <span style="color:#f92672">NODE_TYPE</span><span style="color:#111">:</span> <span style="color:#ae81ff">IOT_NODE</span>
+    <span style="color:#f92672">volumes</span><span style="color:#111">:</span>
+      - <span style="color:#ae81ff">/home/ubuntu/data:/data</span>
+  <span style="color:#f92672">mec-svc-1</span><span style="color:#111">:</span>
+    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">taxi-exp:0.0.1</span>
+    <span style="color:#f92672">environment</span><span style="color:#111">:</span>
+      <span style="color:#f92672">NODE_TYPE</span><span style="color:#111">:</span> <span style="color:#ae81ff">EDGE_NODE</span>
+      <span style="color:#f92672">REGION</span><span style="color:#111">:</span> <span style="color:#ae81ff">bronx</span>
+  <span style="color:#f92672">mec-svc-2</span><span style="color:#111">:</span>
+    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">taxi-exp:0.0.1</span>
+    <span style="color:#f92672">environment</span><span style="color:#111">:</span>
+      <span style="color:#f92672">NODE_TYPE</span><span style="color:#111">:</span> <span style="color:#ae81ff">EDGE_NODE</span>
+      <span style="color:#f92672">REGION</span><span style="color:#111">:</span> <span style="color:#ae81ff">brooklyn</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<h2 id="step-4-introduce-the-fogify-model">Step 4: Introduce the Fogify Model</h2>
+<p>When the <code>docker-compose</code> is ready, user can extend it to capture the extra features of the Fogify Framework.
+The following part of the extend <code>docker-compose</code> yaml file illustrates three required components of the model: <code>nodes</code>, <code>networks</code> and <code>topology</code>.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_ee93854701">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_ee93854701">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
+<span style="color:#111">...</span>
+
+<span style="color:#f92672">x-fogify</span><span style="color:#111">:</span>
+    <span style="color:#f92672">nodes</span><span style="color:#111">:</span>
+        <span style="color:#ae81ff">...</span>
+    <span style="color:#f92672">networks</span><span style="color:#111">:</span>
+        <span style="color:#ae81ff">...</span>
+    <span style="color:#f92672">topology</span><span style="color:#111">:</span>
+        <span style="color:#ae81ff">...</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<h3 id="nodes">Nodes</h3>
+<p><code>Nodes</code> template is used to define Fog resources. In our scenario we have 3 different types of nodes
+(<code>car-node</code>, <code>cloud-server-node</code>, and <code>edge-node</code>).
+The <code>Node</code> template allows users to describe the resource characteristics of a physical or virtual host,
+including properties for the <code>Processor</code>, <code>Memory</code>, and <code>Storage</code>.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_df0e7a4f57">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_df0e7a4f57">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
+  <span style="color:#f92672">nodes</span><span style="color:#111">:</span>
+    - <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">cloud-server-node</span>
+      <span style="color:#f92672">capabilities</span><span style="color:#111">:</span>
+        <span style="color:#f92672">processor</span><span style="color:#111">:</span>
+          <span style="color:#f92672">cores</span><span style="color:#111">:</span> <span style="color:#ae81ff">4</span>
+          <span style="color:#f92672">clock_speed</span><span style="color:#111">:</span> <span style="color:#ae81ff">1400</span>
+        <span style="color:#f92672">memory</span><span style="color:#111">:</span> <span style="color:#ae81ff">4G</span>
+    - <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">edge-node</span>
+      <span style="color:#f92672">capabilities</span><span style="color:#111">:</span>
+        <span style="color:#f92672">processor</span><span style="color:#111">:</span>
+          <span style="color:#f92672">cores</span><span style="color:#111">:</span> <span style="color:#ae81ff">2</span>
+          <span style="color:#f92672">clock_speed</span><span style="color:#111">:</span> <span style="color:#ae81ff">1400</span>
+        <span style="color:#f92672">memory</span><span style="color:#111">:</span> <span style="color:#ae81ff">2G</span>
+    - <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">car-node</span>
+      <span style="color:#f92672">capabilities</span><span style="color:#111">:</span>
+        <span style="color:#f92672">processor</span><span style="color:#111">:</span>
+          <span style="color:#f92672">cores</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span>
+          <span style="color:#f92672">clock_speed</span><span style="color:#111">:</span> <span style="color:#ae81ff">700</span>
+        <span style="color:#f92672">memory</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.</span><span style="color:#ae81ff">5G</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<p>For more details about nodes you can visit the node profile <a href="">documentation page</a>.</p>
+<h3 id="networks">Networks</h3>
+<p><code>Networks</code> template is used  to define inter-connecting mesh networks and links among Fog nodes.
+Fog nodes can be directly connected via an emulated physical link and/or belong to the same network administrative domain.
+Furthermore, network template provides a wide variety of properties like <code>bandwidth</code>, <code>network delay</code>, <code>drop rate</code>, etc.
+The following networks sub-section describes the networks that exist at our example.
+Starting from the <code>internet</code> network definition, we can identify different network characteristics for uplink and downlink properties.
+Furthermore, we described two extra regional networks, namely <code>edge-net-1</code> and <code>edge-net-2</code> that only characterized by
+<code>bidirectional</code> characteristics. The <code>bidirectional</code> property defines the same network characteristics for both <code>uplink</code> and <code>downlink</code> directions.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_ce187a1f5f">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_ce187a1f5f">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
+  <span style="color:#f92672">networks</span><span style="color:#111">:</span>
+    - <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">internet</span>
+      <span style="color:#f92672">uplink</span><span style="color:#111">:</span>
+        <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">10Mbps</span>
+        <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+          <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">50ms</span>
+        <span style="color:#f92672">drop</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.1</span><span style="color:#ae81ff">%</span>
+      <span style="color:#f92672">downlink</span><span style="color:#111">:</span>
+        <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">5Mbps</span>
+        <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+          <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">50ms</span>
+    - <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">edge-net-1</span>
+      <span style="color:#f92672">bidirectional</span><span style="color:#111">:</span>
+        <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">100Mbps</span>
+        <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+          <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">5ms</span>
+        <span style="color:#f92672">drop</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.1</span><span style="color:#ae81ff">%</span>
+    - <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">edge-net-2</span>
+      <span style="color:#f92672">bidirectional</span><span style="color:#111">:</span>
+        <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">100Mbps</span>
+        <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+          <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">5ms</span>
+        <span style="color:#f92672">drop</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.1</span><span style="color:#ae81ff">%</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<p>For more details about networks you can visit the network profile <a href="">documentation page</a>.</p>
+<h3 id="topology">Topology</h3>
+<p><code>Services</code>, <code>Nodes</code> and <code>Networks</code> only describe the provisioning of services and resources, lacking information on
+how a fog topology is realised and interconnected and where services are placed.
+So, Fogify provides the  <code>Topology</code> primitive, enabling users to specify a set of <code>Blueprints</code>,
+which is a combination of a <code>Node</code>, <code>Service</code>, set of <code>Networks</code>, <code>replicas</code> and a <code>label</code>.</p>
+<p>For instance, the <code>Blueprint</code> of the following code part materializes two vehicles (<code>replicas: 2</code>) that are connected to
+the <code>mec-net-1</code> and <code>internet</code> networks, and run the <code>car-workload</code> service.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_9606d96eb5">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_9606d96eb5">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
+    - <span style="color:#f92672">node</span><span style="color:#111">:</span> <span style="color:#ae81ff">car-node</span>
+      <span style="color:#f92672">service</span><span style="color:#111">:</span> <span style="color:#ae81ff">car-workload</span>
+      <span style="color:#f92672">label</span><span style="color:#111">:</span> <span style="color:#ae81ff">car-workload-1</span>
+      <span style="color:#f92672">replicas</span><span style="color:#111">:</span> <span style="color:#ae81ff">2</span>
+      <span style="color:#f92672">networks</span><span style="color:#111">:</span>
+        - <span style="color:#ae81ff">edge-net-1</span>
+        - <span style="color:#ae81ff">internet</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<p>Similarly, the user describes all components from the application scenario illustrated as are depicted on the following code snippet.
+The combination of services, nodes and templates allows users to create more complex topologies.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_ea84a0e856">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_ea84a0e856">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
+  <span style="color:#f92672">topology</span><span style="color:#111">:</span>
+    - <span style="color:#f92672">node</span><span style="color:#111">:</span> <span style="color:#ae81ff">cloud-server-node</span>
+      <span style="color:#f92672">service</span><span style="color:#111">:</span> <span style="color:#ae81ff">cloud-server</span>
+      <span style="color:#f92672">label</span><span style="color:#111">:</span> <span style="color:#ae81ff">cloud-server</span>
+      <span style="color:#f92672">replicas</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span>
+      <span style="color:#f92672">networks</span><span style="color:#111">:</span>
+        - <span style="color:#ae81ff">internet</span>
+    - <span style="color:#f92672">node</span><span style="color:#111">:</span> <span style="color:#ae81ff">edge-node</span>
+      <span style="color:#f92672">service</span><span style="color:#111">:</span> <span style="color:#ae81ff">mec-svc-1</span>
+      <span style="color:#f92672">label</span><span style="color:#111">:</span> <span style="color:#ae81ff">mec-svc-1</span>
+      <span style="color:#f92672">replicas</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span>
+      <span style="color:#f92672">networks</span><span style="color:#111">:</span>
+        - <span style="color:#ae81ff">edge-net-1</span>
+        - <span style="color:#ae81ff">internet</span>
+    - <span style="color:#f92672">node</span><span style="color:#111">:</span> <span style="color:#ae81ff">edge-node</span>
+      <span style="color:#f92672">service</span><span style="color:#111">:</span> <span style="color:#ae81ff">mec-svc-2</span>
+      <span style="color:#f92672">label</span><span style="color:#111">:</span> <span style="color:#ae81ff">mec-svc-2</span>
+      <span style="color:#f92672">replicas</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span>
+      <span style="color:#f92672">networks</span><span style="color:#111">:</span>
+        - <span style="color:#ae81ff">edge-net-2</span>
+        - <span style="color:#ae81ff">internet</span>
+    - <span style="color:#f92672">node</span><span style="color:#111">:</span> <span style="color:#ae81ff">car-node</span>
+      <span style="color:#f92672">service</span><span style="color:#111">:</span> <span style="color:#ae81ff">car-workload</span>
+      <span style="color:#f92672">label</span><span style="color:#111">:</span> <span style="color:#ae81ff">car-workload-1</span>
+      <span style="color:#f92672">replicas</span><span style="color:#111">:</span> <span style="color:#ae81ff">2</span>
+      <span style="color:#f92672">networks</span><span style="color:#111">:</span>
+        - <span style="color:#ae81ff">edge-net-1</span>
+        - <span style="color:#ae81ff">internet</span>
+    - <span style="color:#f92672">node</span><span style="color:#111">:</span> <span style="color:#ae81ff">car-node</span>
+      <span style="color:#f92672">service</span><span style="color:#111">:</span> <span style="color:#ae81ff">car-workload</span>
+      <span style="color:#f92672">label</span><span style="color:#111">:</span> <span style="color:#ae81ff">car-workload-2</span>
+      <span style="color:#f92672">replicas</span><span style="color:#111">:</span> <span style="color:#ae81ff">2</span>
+      <span style="color:#f92672">networks</span><span style="color:#111">:</span>
+        - <span style="color:#ae81ff">edge-net-2</span>
+        - <span style="color:#ae81ff">internet</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<p>For more details about topologies and blueprints you can visit the <a href="">documentation page</a>.</p>
+<h2 id="step-5-deploy-the-topology">Step 5: Deploy the topology</h2>
+<p>Even if users can use a <a href="">RESTful API</a> to deploy topologies on Fogify,
+the easiest way is by utilizing the FogifySDK (integrated with Jupyter). The following lines of code illustrate the use of FogifySDK.
+Specifically, the user imports the SDK, instantiates a fogify object that includes information about the controller&rsquo;s url
+and the topology description file, and, finally, executes the <code>deploy</code> function that submits the topology to the fogify&rsquo;s Controller.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_e7895899ec">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_e7895899ec">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">
+<span style="color:#f92672">from</span> <span style="color:#111">FogifySDK</span> <span style="color:#f92672">import</span> <span style="color:#111">FogifySDK</span>
+<span style="color:#111">fogify</span> <span style="color:#f92672">=</span> <span style="color:#111">FogifySDK</span><span style="color:#111">(</span><span style="color:#d88200">&#34;http://controller:5000&#34;</span><span style="color:#111">,</span><span style="color:#d88200">&#34;docker-compose.yaml&#34;</span><span style="color:#111">)</span>
+
+<span style="color:#111">fogify</span><span style="color:#f92672">.</span><span style="color:#111">deploy</span><span style="color:#111">()</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<p>While the Fogify is trying to deploy the topology, system displays a progress bar.</p>
+<p><img src="get-started-images/starting_deployment.png" alt="deployment process"></p>
+<p>At the end, when the deployment is over, the system generates a simple message to the end-users.</p>
+<p><img src="get-started-images/finish_deployment.png" alt="running deployment"></p>
+<h2 id="step-6-retrieve-metrics">Step 6: Retrieve Metrics</h2>
+<p>In order to retrieve the monitoring metrics from a specific service,
+users can just execute the following command.</p>
+<p>
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_0c17a4c6d3">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_0c17a4c6d3">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">
+<span style="color:#111">fogify</span><span style="color:#f92672">.</span><span style="color:#111">get_metrics_from</span><span style="color:#111">(</span><span style="color:#d88200">&#39;mec-svc-1.1&#39;</span><span style="color:#111">)</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+Especially, users only need to determine the service&rsquo;s <code>label</code> along with
+the instance&rsquo;s number. For instance, the service&rsquo;s label at the following example is the <code>mec-svc-1</code> and the instance number is the <code>1</code>.
+The results of the above command will produce the following table on Jupyter Notebook.</p>
+<p><img src="get-started-images/metrics.png" alt="metrics table"></p>
+<p>The above table is a <code>pandas</code> dataframe, so, users can generate a wide rage of plots from it.
+For instance, a user can generate the plot of CPU utilization by executing the following command.</p>
+<p><img src="get-started-images/metrics-2.png" alt="metrics table"></p>
+<h2 id="step-7-run-an-ad-hoc-action">Step 7: Run an ad-hoc action</h2>
+<p>Fogify gives users the opportunity to execute ad-hoc actions (see <a href="">Actions &amp; Scenarios</a> section).
+The possible actions include <code>horizontal scaling</code>, <code>vertical scaling</code>, <code>network changes</code>, <code>stressing of resources</code>, and
+direct <code>commands</code> on emulated nodes. The following code snippet displays an example of the action&rsquo;s execution. Specifically,
+on the previous running topology we injected a <code>stress</code> action that fires a <code>70%</code> cpu intensive workload in <code>mec-svc-1.1</code> instance.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_361d060116">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_361d060116">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">
+
+<span style="color:#111">fogify</span><span style="color:#f92672">.</span><span style="color:#111">stress</span><span style="color:#111">(</span><span style="color:#d88200">&#39;mec-svc-1&#39;</span><span style="color:#111">,</span> <span style="color:#111">cpu</span><span style="color:#f92672">=</span><span style="color:#ae81ff">70</span><span style="color:#111">)</span>
+
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<p>In order to observe if the action has the desirable effects, we retrieve again the metrics of the instance
+and plot the cpu utilization. As you can see on the following image, the effect took place for one minute between 65-75 intervals.</p>
+<p><img src="get-started-images/metrics-3.png" alt="metrics table"></p>
+<h2 id="step-8-build-and-run-a-fogify-scenario">Step 8: Build and run a Fogify Scenario</h2>
+<p>With actions tested, let us introduce the <code>Scenarios</code>, which is a sequence of time-based actions. Following we describe
+a scenario that degrades the network connectivity of <code>mec-svc-1</code>. Specifically, after 5 seconds from the scenario beginning
+the network connectivity of <code>mec-svc-1</code> degrades with a network latency up to 50ms per request.
+Similarly, after 15 seconds the network get worse with 150ms and, finally, after 5 seconds the network delay reach 3000ms per request.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_6662dbd932">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_6662dbd932">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
+
+    <span style="color:#f92672">scenarios</span><span style="color:#111">:</span>
+    - <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">scenario_network_error</span>
+      <span style="color:#f92672">actions</span><span style="color:#111">:</span> 
+        - <span style="color:#f92672">time</span><span style="color:#111">:</span> <span style="color:#ae81ff">5</span>
+          <span style="color:#f92672">instance_type</span><span style="color:#111">:</span> <span style="color:#ae81ff">mec-svc-1</span>
+          <span style="color:#f92672">instances</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span>
+          <span style="color:#f92672">action</span><span style="color:#111">:</span>
+            <span style="color:#f92672">type</span><span style="color:#111">:</span> <span style="color:#ae81ff">network</span>
+            <span style="color:#f92672">parameters</span><span style="color:#111">:</span>
+                <span style="color:#f92672">network</span><span style="color:#111">:</span> <span style="color:#ae81ff">internet</span>
+                <span style="color:#f92672">uplink</span><span style="color:#111">:</span>
+                    <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+                      <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">50ms</span>
+        - <span style="color:#f92672">time</span><span style="color:#111">:</span> <span style="color:#ae81ff">15</span>
+          <span style="color:#f92672">instance_type</span><span style="color:#111">:</span> <span style="color:#ae81ff">mec-svc-1</span>
+          <span style="color:#f92672">instances</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span>
+          <span style="color:#f92672">action</span><span style="color:#111">:</span>
+            <span style="color:#f92672">type</span><span style="color:#111">:</span> <span style="color:#ae81ff">network</span>
+            <span style="color:#f92672">parameters</span><span style="color:#111">:</span>
+                <span style="color:#f92672">network</span><span style="color:#111">:</span> <span style="color:#ae81ff">internet</span>
+                <span style="color:#f92672">uplink</span><span style="color:#111">:</span>
+                    <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+                      <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">150ms</span>
+        - <span style="color:#f92672">time</span><span style="color:#111">:</span> <span style="color:#ae81ff">5</span>
+          <span style="color:#f92672">instance_type</span><span style="color:#111">:</span> <span style="color:#ae81ff">mec-svc-1</span>
+          <span style="color:#f92672">instances</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span>
+          <span style="color:#f92672">action</span><span style="color:#111">:</span>
+            <span style="color:#f92672">type</span><span style="color:#111">:</span> <span style="color:#ae81ff">network</span>
+            <span style="color:#f92672">parameters</span><span style="color:#111">:</span>
+                <span style="color:#f92672">network</span><span style="color:#111">:</span> <span style="color:#ae81ff">internet</span>
+                <span style="color:#f92672">uplink</span><span style="color:#111">:</span>
+                    <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+                      <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">3000ms</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<p>In order to execute the scenario, FogifySDK provides the <code>scenario_execution</code> function that submits a scenario to Fogify.
+Next snippet of code executes a pipeline of actions. Especially, user submits the scenario and, then, Fogify executes
+the scenario by executing one-by-one all the actions. Furthermore, Fogify displays a progress bar of the scenario execution.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_d0acc78392">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_d0acc78392">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">
+<span style="color:#111">start</span><span style="color:#111">,</span> <span style="color:#111">end</span> <span style="color:#f92672">=</span> <span style="color:#111">fogify</span><span style="color:#f92672">.</span><span style="color:#111">scenario_execution</span><span style="color:#111">(</span><span style="color:#d88200">&#39;scenario_1&#39;</span><span style="color:#111">)</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<p>Next, we demonstrate the results of the previous code execution.</p>
+<p><img src="get-started-images/scenario-execution.png" alt="metrics table"></p>
+<h2 id="step-9-representation-of-the-results">Step 9: Representation of the Results</h2>
+<p>In order to have an overview about the scenario&rsquo;s execution, Fogify gives to the users specific methods of results representation.
+For instance, after the previous scenario&rsquo;s execution, the user retrieves the generated data by filtering by scenario&rsquo;s time-range.
+Furthermore, Fogify provides the timestamp of the events and user is able to combine them.
+In the following code part, user retrieves the data of mec-svc-1 service, generates the edge network-out and network-in
+timelines, and, also, depicts the timestamp ( vertical lines ) of the scenario&rsquo;s actions.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_f47a609972">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_f47a609972">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">
+
+<span style="color:#f92672">import</span> <span style="color:#111">matplotlib.pyplot</span> <span style="color:#f92672">as</span> <span style="color:#111">plt</span>
+<span style="color:#f92672">import</span> <span style="color:#111">pandas</span> <span style="color:#f92672">as</span> <span style="color:#111">pd</span>
+<span style="color:#111">fig</span><span style="color:#111">,</span> <span style="color:#111">ax</span> <span style="color:#f92672">=</span> <span style="color:#111">plt</span><span style="color:#f92672">.</span><span style="color:#111">subplots</span><span style="color:#111">()</span>
+
+<span style="color:#111">data</span> <span style="color:#f92672">=</span> <span style="color:#111">fogify</span><span style="color:#f92672">.</span><span style="color:#111">get_metrics_from</span><span style="color:#111">(</span><span style="color:#d88200">&#39;mec-svc-1.1&#39;</span><span style="color:#111">)</span>
+<span style="color:#111">data</span> <span style="color:#f92672">=</span> <span style="color:#111">data</span><span style="color:#111">[</span><span style="color:#111">data</span><span style="color:#f92672">.</span><span style="color:#111">index</span><span style="color:#f92672">&gt;</span><span style="color:#111">start</span><span style="color:#111">]</span>
+<span style="color:#111">data</span> <span style="color:#f92672">=</span> <span style="color:#111">data</span><span style="color:#111">[</span><span style="color:#111">data</span><span style="color:#f92672">.</span><span style="color:#111">index</span><span style="color:#f92672">&lt;</span><span style="color:#111">end</span><span style="color:#111">]</span>
+
+<span style="color:#111">data</span><span style="color:#111">[</span><span style="color:#d88200">&#39;network_tx_edge-net-1&#39;</span><span style="color:#111">]</span><span style="color:#f92672">.</span><span style="color:#111">diff</span><span style="color:#111">()</span><span style="color:#f92672">.</span><span style="color:#111">plot</span><span style="color:#111">(</span><span style="color:#111">ax</span><span style="color:#f92672">=</span><span style="color:#111">ax</span><span style="color:#111">,</span><span style="color:#111">label</span><span style="color:#f92672">=</span><span style="color:#d88200">&#34;network-out&#34;</span><span style="color:#111">)</span>
+<span style="color:#111">data</span><span style="color:#111">[</span><span style="color:#d88200">&#39;network_rx_edge-net-1&#39;</span><span style="color:#111">]</span><span style="color:#f92672">.</span><span style="color:#111">diff</span><span style="color:#111">()</span><span style="color:#f92672">.</span><span style="color:#111">plot</span><span style="color:#111">(</span><span style="color:#111">ax</span><span style="color:#f92672">=</span><span style="color:#111">ax</span><span style="color:#111">,</span><span style="color:#111">label</span><span style="color:#f92672">=</span><span style="color:#d88200">&#34;network-in&#34;</span><span style="color:#111">)</span>
+<span style="color:#111">ax</span><span style="color:#f92672">.</span><span style="color:#111">legend</span><span style="color:#111">()</span>
+<span style="color:#111">fogify</span><span style="color:#f92672">.</span><span style="color:#111">plot_annotations</span><span style="color:#111">(</span><span style="color:#111">ax</span><span style="color:#111">,</span> <span style="color:#111">start</span><span style="color:#f92672">=</span><span style="color:#111">start</span><span style="color:#111">,</span> <span style="color:#111">stop</span><span style="color:#f92672">=</span><span style="color:#111">end</span><span style="color:#111">,</span> <span style="color:#111">colors_gist</span><span style="color:#f92672">=</span><span style="color:#111">[</span><span style="color:#d88200">&#39;gray&#39;</span><span style="color:#111">,</span><span style="color:#d88200">&#39;darkgray&#39;</span><span style="color:#111">,</span> <span style="color:#d88200">&#39;gray&#39;</span><span style="color:#111">,</span> <span style="color:#d88200">&#39;black&#39;</span><span style="color:#111">])</span>
+
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<p>The results of the previous lines are illustrated on the following image:</p>
+<p><img src="get-started-images/scenario-plot.png" alt="metrics table"></p>
+<h2 id="step-10-undeploy-the-topology">Step 10: Undeploy the Topology</h2>
+<p>Finally, the user undeploys the emulated infrastructure by executing the <code>undeploy</code> method.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_4e394c34b6">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_4e394c34b6">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">
+<span style="color:#111">fogify</span><span style="color:#f92672">.</span><span style="color:#111">undeploy</span><span style="color:#111">()</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<p>The Fogify provides a process bar during the undeployment process.
+When all instances are destroyed, system visualizes a representative message.</p>
+<p><img src="get-started-images/undeploy.png" alt="metrics table"></p>
+
+
+    
+
+
+                    
+                    <div class="row"><div class="position-relative mx-auto col-lg-9">
+                          <div class="bg-primary overflow-hidden p-3 mt-5 shadow">
+
+    <h4 class="text-white text-center">Read more</h4>
+
+    <div class="d-flex justify-content-center"><a class="p-1 mr-3 d-inline-block text-white" href="/fogify/installation/bare-metal.html" title="Bare-metal Installation"><i class="fas fa-chevron-left p-1"></i>Bare-metal Installation</a>
+        <a class="p-1 ml-3 d-inline-block text-white text-right" href="/fogify/services.html" title="Services">Services<i class="fas fa-chevron-right p-1"></i></a>
+    </div>
+</div>
+
+
+                        </div></div> 
+
+                </div>
+
+            </div> 
+
+        </div> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/jquery.min.js"></script> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/popper.min.js"></script> 
+
+<script src="https://ucy-linc-lab.github.io/fogify/js/bootstrap.min.js"></script> 
+
+
+<script type="text/javascript" src="/fogify/plugins/lunr.min.js"></script>
+<script type="text/javascript" src="/fogify/plugins/auto-complete.js"></script>
+<link href="/fogify/plugins/auto-complete.css" rel="stylesheet">
+<script type="text/javascript">
+  
+      var baseurl = "https:\/\/ucy-linc-lab.github.io\/fogify\/";
+  
+</script>
+<script type="text/javascript" src="/fogify/plugins/search.js"></script>
+
+
+<script type="text/javascript" src="/fogify/plugins/clipboard.js"></script>
+<script>
+  new ClipboardJS('.btn');
+</script>
+</body>
+</html>

@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html><head>
+
+    <meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="canonical" href="https://ucy-linc-lab.github.io/fogify/actions-and-scenarios.html">
+
+    <title>
+        
+        Actions &amp; Scenarios | Fogify: A Fog Computing Emulator Framework
+        
+    </title>
+
+    
+    <link href="https://ucy-linc-lab.github.io/fogify/css/fontawesome.min.css" rel="stylesheet">
+
+    
+    <link rel="stylesheet" href="https://ucy-linc-lab.github.io/fogify/css/ace.min.css">
+
+    
+    
+        
+    
+
+</head>
+<body><nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow sticky-top" id="navbarMain">
+    <div class="container">
+        <div>
+            <a class="navbar-brand" href="/fogify">
+                Fogify: A Fog Computing Emulator Framework
+            </a>
+        </div>
+        
+            <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#navbarMainCollapse" aria-controls="navbarMainCollapse" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMainCollapse">
+              <ul class="navbar-nav ml-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="http://linc.ucy.ac.cy/" target="_blank">
+                                  More from us
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <i class='fab fa-github'></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://hub.docker.com/u/fogemulator" target="_blank">
+                                  <i class='fab fa-docker'></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <button class='btn btn-success mt-n1'>Download</button>
+                                </a>
+                            </li>
+              </ul>
+            </div>
+    </div>
+</nav>
+<div class="container-fluid">
+            <div class="row">
+
+                <div class="docs-sidenav order-0 col-12 col-md-3 col-lg-2 col-xl-2 position-sticky border-right"><nav class="navbar navbar-expand-md navbar-light pl-0">
+    <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#sidenav-left-collapse" aria-controls="sidenav-left-collapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+     <div class="collapse navbar-collapse align-items-start flex-column" id="sidenav-left-collapse">
+            <form class="form-inline my-2 my-lg-0 searchbox">
+                <input class="form-control mr-sm-2 w-100" data-search-input id="search-by" type="text" placeholder="Search">
+            </form>
+         <ul class="navbar-nav flex-column pt-3">
+    <li data-nav-id="/fogify/installation.html" class="nav-item my-1 haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/installation.html"><h6>Installation</h6></a>
+        <ul class="list-unstyled ml-2">
+        <li data-nav-id="/fogify/installation/as-a-service.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/as-a-service.html" class="nav-link p-0">
+                    Fogify in Docker-compose
+                </a>
+        </li>
+        <li data-nav-id="/fogify/installation/bare-metal.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/bare-metal.html" class="nav-link p-0">
+                    Bare-metal Installation
+                </a>
+        </li>
+        </ul>
+    </li>
+    <li data-nav-id="/fogify/getting-started.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/getting-started.html"><h6>Getting started</h6></a>
+    </li>
+    <li data-nav-id="/fogify/services.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/services.html"><h6>Services</h6></a>
+    </li>
+    <li data-nav-id="/fogify/node-profiles.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/node-profiles.html"><h6>Node Profiles</h6></a>
+    </li>
+    <li data-nav-id="/fogify/network-qos.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS</h6></a>
+    </li>
+    <li data-nav-id="/fogify/blueprints.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/blueprints.html"><h6>Blueprints</h6></a>
+    </li>
+    <li data-nav-id="/fogify/actions-and-scenarios.html" class="nav-item my-1 parent active
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/actions-and-scenarios.html"><h6>Actions &amp; Scenarios</h6></a>
+    </li>
+    <li data-nav-id="/fogify/monitoring.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/monitoring.html"><h6>Monitoring</h6></a>
+    </li>
+    <li data-nav-id="/fogify/connection-3rd-parties.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/connection-3rd-parties.html"><h6>Connection with third parties and API</h6></a>
+    </li>
+    <li data-nav-id="/fogify/fogifysdk.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/fogifysdk.html"><h6>FogifySDK</h6></a>
+    </li>
+    <li data-nav-id="/fogify/faq.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/faq.html"><h6>Frequently Asked Questions (FAQs)</h6></a>
+    </li>
+        </ul>
+    </div>
+</nav>
+
+
+</div>
+                <div class="docs-toc large order-lg-2 order-md-0 order-xs-1 col-12 col-lg-2 col-xl-2 position-sticky border-left"><div class="docs-toc">
+	<nav id="TableOfContents">
+  <ul>
+    <li><a href="#actions">Actions</a>
+      <ul>
+        <li><a href="#horizontal-scaling">Horizontal Scaling</a></li>
+        <li><a href="#vertical-scaling">Vertical Scaling</a></li>
+        <li><a href="#network">Network</a></li>
+        <li><a href="#stress">Stress</a></li>
+        <li><a href="#command">Command</a></li>
+      </ul>
+    </li>
+    <li><a href="#scenarios">Scenarios</a></li>
+  </ul>
+</nav>
+</div>
+</div>
+                <div class="main col-12 order-1 col-md-9 col-lg-10 col-xl-8 py-3">
+                
+
+<h1>Actions &amp; Scenarios</h1>
+
+<p>The Fogify&rsquo;s model abstractions enable the rapid prototyping of emulated Fog deployments.
+However, Fog deployments are usually neither statically provisioned nor stable.
+This instability highly impacts the execution of IoT services, especially in uncontrollable domains.
+Fogify addresses this challenge by providing runtime <code>Actions</code> &amp; <code>Scenarios</code>.
+<code>Action</code> is a process that changes properties of a running Fog Topology while
+<code>Scenario</code> allows the repeatable execution of a series of <code>Actions</code> written in a yaml format.</p>
+<h2 id="actions">Actions</h2>
+<p>The user can execute various actions at runtime that can alter the underlying infrastructure.
+To achieve that a user can execute <code>POST</code> call to <code>&lt;manager&gt;:5000/action/&lt;action_type&gt;</code> or can utilize the <a href="">FogifySDK</a>.
+For <code>action_type</code>, we have various types, namely: <code>horizontal_scaling</code>, <code>vertical_scaling</code>, <code>network</code>, <code>command</code> and <code>stress</code>.
+Users can determine either a <code>blueprint</code> <code>label</code> and the <code>number</code> of instances that the action would like to affect or
+the label along with the number of a specific node, e.g. <code>supervisor.5</code>.</p>
+<h3 id="horizontal-scaling">Horizontal Scaling</h3>
+<p>For horizontal scaling actions, we have to select the instance type (<code>label</code>),
+the number of instances and the action that will be applied (<code>up</code> or <code>down</code>)
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_2f427b7114">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_2f427b7114">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">
+<span style="color:#111">{</span> 
+  <span style="color:#f92672">&#34;params&#34;</span><span style="color:#111">:{</span>
+    <span style="color:#f92672">&#34;instance_type&#34;</span> <span style="color:#111">:</span> <span style="color:#d88200">&#34;supervisor-1&#34;</span><span style="color:#111">,</span> 
+    <span style="color:#f92672">&#34;instances&#34;</span><span style="color:#111">:</span> <span style="color:#ae81ff">2</span><span style="color:#111">,</span> 
+    <span style="color:#f92672">&#34;type&#34;</span><span style="color:#111">:</span><span style="color:#d88200">&#34;up&#34;</span>
+    <span style="color:#111">}</span> 
+
+<span style="color:#111">}</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+</p>
+
+
+<div class="card my-3 border-top-0 border-right-0 border-bottom-0 border-left border-info rounded" style="border-width:4px !important;">
+    <div class="wrap border border-left-0 rounded">
+        
+        <div class="card-body pt-1">
+            Currently, Fogify does not guarantee that the horizontal scaling action will be apply, user has to be sure about the extra resources.
+        </div>
+    </div>
+</div>
+
+<h3 id="vertical-scaling">Vertical Scaling</h3>
+<p>For vertical scaling actions, we have to select the instance type (<code>label</code>), and the action that will be applied.
+For <code>CPU</code> power, user can define a cpu percent of increase (<code>+&lt;percent&gt;</code>) or decrease (<code>-&lt;percent&gt;</code>).
+For <code>memory</code>, one defines the new memory limit. We can not define both cpu and memory vertical scaling at once.
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_43702327d1">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_43702327d1">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">
+<span style="color:#111">{</span> 
+  <span style="color:#f92672">&#34;params&#34;</span><span style="color:#111">:{</span>
+    <span style="color:#f92672">&#34;instance_type&#34;</span> <span style="color:#111">:</span> <span style="color:#d88200">&#34;supervisor-1.1&#34;</span><span style="color:#111">,</span> 
+    <span style="color:#f92672">&#34;cpu&#34;</span><span style="color:#111">:</span><span style="color:#d88200">&#34;+20&#34;</span><span style="color:#111">,</span>
+    <span style="color:#f92672">&#34;memory&#34;</span><span style="color:#111">:</span> <span style="color:#d88200">&#34;3G&#34;</span>
+    <span style="color:#111">}</span> 
+
+<span style="color:#111">}</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+</p>
+
+
+<div class="card my-3 border-top-0 border-right-0 border-bottom-0 border-left border-info rounded" style="border-width:4px !important;">
+    <div class="wrap border border-left-0 rounded">
+        
+        <div class="card-body pt-1">
+            Currently, Fogify does not guarantee that the vertical scaling action will be apply, user has to be sure about the extra resources.
+        </div>
+    </div>
+</div>
+
+<h3 id="network">Network</h3>
+<p>This action updates the network connectivity of a node. Again, the user selects the instance type (<code>label</code>)
+and the action object that contains various network parameter like <code>delay</code>, <code>bandwidth</code>, <code>drop</code> etc. Furthermore, a user
+selects a specific network. At the following example, we apply our action to the <code>supervisor-1</code> to the  <code>internet</code> network connection.
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_28a38baf53">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_28a38baf53">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">
+<span style="color:#111">{</span> <span style="color:#f92672">&#34;params&#34;</span><span style="color:#111">:{</span>
+	<span style="color:#f92672">&#34;instance_type&#34;</span> <span style="color:#111">:</span> <span style="color:#d88200">&#34;supervisor-1&#34;</span><span style="color:#111">,</span> 
+	<span style="color:#f92672">&#34;instances&#34;</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span><span style="color:#111">,</span> 
+	<span style="color:#f92672">&#34;action&#34;</span><span style="color:#111">:{</span>
+		<span style="color:#f92672">&#34;uplink&#34;</span><span style="color:#111">:{</span>
+			<span style="color:#f92672">&#34;latency&#34;</span><span style="color:#111">:{</span><span style="color:#f92672">&#34;delay&#34;</span><span style="color:#111">:</span><span style="color:#d88200">&#34;100ms&#34;</span><span style="color:#111">},</span> 
+			<span style="color:#f92672">&#34;bandwidth&#34;</span><span style="color:#111">:</span> <span style="color:#d88200">&#34;100Mbps&#34;</span><span style="color:#111">,</span> 
+			<span style="color:#f92672">&#34;drop&#34;</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.0001</span><span style="color:#111">},</span>
+		<span style="color:#f92672">&#34;downlink&#34;</span><span style="color:#111">:{</span>
+			<span style="color:#f92672">&#34;latency&#34;</span><span style="color:#111">:{</span><span style="color:#f92672">&#34;delay&#34;</span><span style="color:#111">:</span><span style="color:#d88200">&#34;100ms&#34;</span><span style="color:#111">},</span> 
+			<span style="color:#f92672">&#34;bandwidth&#34;</span><span style="color:#111">:</span> <span style="color:#d88200">&#34;100Mbps&#34;</span><span style="color:#111">,</span> 
+			<span style="color:#f92672">&#34;drop&#34;</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.0001</span><span style="color:#111">},</span> 
+	<span style="color:#f92672">&#34;network&#34;</span><span style="color:#111">:</span><span style="color:#d88200">&#34;internet&#34;</span><span style="color:#111">}}</span> 
+	<span style="color:#111">}</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+</p>
+<h3 id="stress">Stress</h3>
+<p>Fogify can inject extra workload to specific node(s) in order to simulate the interferences of colocated service
+on a node. For instance, with the following json object, Fogify will inject a 50% cpu-intensive workload for 300s to one instance
+of the node <code>supervisor-1</code>.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_c44d5a8b1f">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_c44d5a8b1f">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">
+    <span style="color:#111">{</span> 
+    <span style="color:#f92672">&#34;params&#34;</span><span style="color:#111">:{</span>
+        <span style="color:#f92672">&#34;instance_type&#34;</span> <span style="color:#111">:</span> <span style="color:#d88200">&#34;supervisor-1&#34;</span><span style="color:#111">,</span> 
+        <span style="color:#f92672">&#34;instances&#34;</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span><span style="color:#111">,</span> 
+        <span style="color:#f92672">&#34;action&#34;</span><span style="color:#111">:{</span>
+            <span style="color:#f92672">&#34;cpu&#34;</span><span style="color:#111">:</span><span style="color:#ae81ff">50</span><span style="color:#111">,</span>
+            <span style="color:#f92672">&#34;duration&#34;</span><span style="color:#111">:</span> <span style="color:#d88200">&#34;300s&#34;</span>
+            <span style="color:#111">}</span>	
+        <span style="color:#111">}</span> 
+    <span style="color:#111">}</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<h3 id="command">Command</h3>
+<p>Fogify can inject terminal command to specific node(s). The latter helps users to execute even user-defined actions on running fog nodes.
+For instance, with the following json object, Fogify will inject a submission command on <code>nimbus</code> node.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_447b30676b">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_447b30676b">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">
+    <span style="color:#111">{</span> 
+    <span style="color:#f92672">&#34;params&#34;</span><span style="color:#111">:{</span>
+        <span style="color:#f92672">&#34;instance_type&#34;</span> <span style="color:#111">:</span> <span style="color:#d88200">&#34;nimbus&#34;</span><span style="color:#111">,</span> 
+        <span style="color:#f92672">&#34;instances&#34;</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span><span style="color:#111">,</span> 
+        <span style="color:#f92672">&#34;action&#34;</span><span style="color:#111">:{</span>
+            <span style="color:#f92672">&#34;command&#34;</span><span style="color:#111">:</span> <span style="color:#d88200">&#34;/bin/storm jar test.jar test-topology&#34;</span>
+            <span style="color:#111">}</span>	
+        <span style="color:#111">}</span> 
+    <span style="color:#111">}</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+<h2 id="scenarios">Scenarios</h2>
+<p>With the Scenarios, a user will be able to define predefined series of actions at specific time.
+For instance, at the <code>scenario_1</code> the first action will be executed at 5th minute from the started point of the experiment.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_a753418cc2">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_a753418cc2">
+    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
+<span style="color:#f92672">scenarios</span><span style="color:#111">:</span>
+- <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">scenario_1</span>
+  <span style="color:#f92672">actions</span><span style="color:#111">:</span> 
+    - <span style="color:#f92672">time</span><span style="color:#111">:</span> <span style="color:#ae81ff">30</span>
+      <span style="color:#f92672">position</span><span style="color:#111">:</span> <span style="color:#ae81ff">0</span>
+      <span style="color:#f92672">instance_type</span><span style="color:#111">:</span> <span style="color:#ae81ff">supervisor-1</span>
+      <span style="color:#f92672">instances</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span>
+      <span style="color:#f92672">action</span><span style="color:#111">:</span>
+        <span style="color:#f92672">type</span><span style="color:#111">:</span> <span style="color:#ae81ff">network</span>
+        <span style="color:#f92672">parameters</span><span style="color:#111">:</span>
+            <span style="color:#f92672">network</span><span style="color:#111">:</span> <span style="color:#ae81ff">edge-net-1</span>
+            <span style="color:#f92672">bidirectional</span><span style="color:#111">:</span>
+              <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">100Mbps</span>
+              <span style="color:#f92672">drop</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.1</span><span style="color:#ae81ff">%</span>
+              <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+                <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">1000ms</span>
+    - <span style="color:#f92672">time</span><span style="color:#111">:</span> <span style="color:#ae81ff">....</span>
+
+</code></pre></div>
+    </div>
+</div>
+
+
+
+
+
+
+    
+
+
+                    
+                    <div class="row"><div class="position-relative mx-auto col-lg-9">
+                          <div class="bg-primary overflow-hidden p-3 mt-5 shadow">
+
+    <h4 class="text-white text-center">Read more</h4>
+
+    <div class="d-flex justify-content-center"><a class="p-1 mr-3 d-inline-block text-white" href="/fogify/blueprints.html" title="Blueprints"><i class="fas fa-chevron-left p-1"></i>Blueprints</a>
+        <a class="p-1 ml-3 d-inline-block text-white text-right" href="/fogify/monitoring.html" title="Monitoring">Monitoring<i class="fas fa-chevron-right p-1"></i></a>
+    </div>
+</div>
+
+
+                        </div></div> 
+
+                </div>
+
+            </div> 
+
+        </div> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/jquery.min.js"></script> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/popper.min.js"></script> 
+
+<script src="https://ucy-linc-lab.github.io/fogify/js/bootstrap.min.js"></script> 
+
+
+<script type="text/javascript" src="/fogify/plugins/lunr.min.js"></script>
+<script type="text/javascript" src="/fogify/plugins/auto-complete.js"></script>
+<link href="/fogify/plugins/auto-complete.css" rel="stylesheet">
+<script type="text/javascript">
+  
+      var baseurl = "https:\/\/ucy-linc-lab.github.io\/fogify\/";
+  
+</script>
+<script type="text/javascript" src="/fogify/plugins/search.js"></script>
+
+
+<script type="text/javascript" src="/fogify/plugins/clipboard.js"></script>
+<script>
+  new ClipboardJS('.btn');
+</script>
+</body>
+</html>
