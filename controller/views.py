@@ -249,6 +249,7 @@ class ActionsAPI(MethodView):
 
                 action_url = 'http://%s:5500/actions/'
                 for i in selected_instances:
+                    print(i)
                     requests.post(
                         action_url%socket.gethostbyname(i), json={
                             'instances': selected_instances[i],
@@ -260,8 +261,15 @@ class ActionsAPI(MethodView):
 
 class ControlAPI(MethodView):
     """ This API is only for internal use between Agents and Controller"""
-    def get(self):
-        return {"swarm-command": Status.query.filter_by(name="swarm-ca").first().value}
+    def get(self, service):
+        if service.lower() == "controller-properties":
+            try:
+                return {"credits": SwarmConnector().get_manager_info()}
+            except Exception as ex:
+                print(ex)
+                return {"credits": ""}
+        else:
+            return {"message": "error"}
 
     def post(self, service):
         for ser in service.split("|"):

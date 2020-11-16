@@ -7,6 +7,8 @@ from time import sleep
 from flask_api import exceptions
 import yaml
 
+from utils.host_info import HostInfo
+
 
 class BasicConnector(object):
 
@@ -18,6 +20,7 @@ class BasicConnector(object):
 
     def get_network(self):
         pass
+
     def scale(self, service, instances):
         pass
 
@@ -35,6 +38,14 @@ class BasicConnector(object):
 
     def deploy(self):
         pass
+
+    def inject_labels(self, labels={}):
+        pass
+
+    def initialize(self, **kwargs):
+        pass
+
+
 
 class SwarmConnector(BasicConnector):
     """
@@ -136,6 +147,20 @@ class SwarmConnector(BasicConnector):
         :param node: The specific node as described in Docker-swarm
         :return: The resource's template for docker-compose
         """
+        real_specs = list({"node.labels."+i for i in node.node_specifications})
+        res = { "placement": {"constraints": []} }
+        if len(real_specs) > 0:
+            res = {
+                "placement": {
+                    "constraints": real_specs
+                }
+            }
+
+        for i in real_specs:
+            if i == "node.labels.main_cluster_node!=True" or i == "node.labels.main_cluster_node==False":
+                print(i)
+                return res
+        res["placement"]["constraints"].append("node.labels.main_cluster_node==True")
         if str(node.capabilities['memory'])[-1]=="G":
             memory = float(str(node.capabilities['memory'])[:-1])
         elif str(node.capabilities['memory'])[-1]=="M":
@@ -145,9 +170,7 @@ class SwarmConnector(BasicConnector):
         lower_memory_bound = memory-memory*self.ram_oversubscription/100
         cpu = node.capabilities['processor']['cores']*node.capabilities['processor']['clock_speed']/self.frequency
         lower_cpu_bound = cpu - cpu*self.cpu_oversubscription/100
-
-        return {
-                'resources': {
+        res['resources'] = {
                     'limits':{
                         'cpus': "{0:.1f}".format(cpu),
                         'memory': str(memory)+"G"
@@ -157,7 +180,7 @@ class SwarmConnector(BasicConnector):
                         'memory': str(lower_memory_bound)+"G"
                     }
                 }
-        }
+        return res
 
     def scale(self, service, instances):
         """ Executes a scaling action for specific instance's number
@@ -308,3 +331,50 @@ class SwarmConnector(BasicConnector):
             com.append('--gateway')
             com.append(network['gateway'])
         subprocess.check_output(com)
+
+    def inject_labels(self, labels={}, **kwargs):
+        import docker
+        # name = socket.gethostname()
+        client = docker.from_env()
+        for node in client.nodes.list():
+            if node.attrs['Status']['Addr'] == kwargs['HOST_IP']:
+                break
+        labels.update(HostInfo.get_all_properties())
+        labels['cpu_architecture'] = node.attrs["Description"]["Platform"]["Architecture"]
+        labels['os'] = node.attrs["Description"]["Platform"]["OS"]
+
+        if int(1000*float(labels["cpu_hz_advertised_friendly"].split(" ")[0])) == self.frequency \
+                and 'main_cluster_node' not in labels:
+            labels['main_cluster_node'] = 'True'
+        else:
+            labels['main_cluster_node'] = 'False'
+
+        node_spec = {'availability': node.attrs["Spec"]["Availability"],
+                     # 'name': node.attrs["Spec"]['name'],
+                     'role': 'manager',
+                     'Labels': labels
+                     }
+
+        node.update(node_spec)
+
+
+    def initialize(self, **kwargs):
+        import docker
+        client = docker.from_env()
+        if kwargs['MANAGER_IP'] == kwargs['HOST_IP']:
+            try:
+                client.swarm.init(kwargs['advertise_addr'])
+            except Exception as ex:
+                pass
+        else:
+            client = docker.from_env()
+            try:
+                client.swarm.join(remote_addrs=[kwargs['MANAGER_IP']], join_token=kwargs['join_token'])
+            except Exception as ex:
+                client.swarm.leave(force=True)
+                client.swarm.join(remote_addrs=[kwargs['MANAGER_IP']], join_token=kwargs['join_token'])
+
+    def get_manager_info(self):
+        import docker
+        client = docker.from_env()
+        return client.swarm.attrs['JoinTokens']['Manager']

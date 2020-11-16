@@ -16,11 +16,11 @@ class BaseModel(object):
 
 class Node(BaseModel):
     name = ''
-    capabilities={}
-
+    capabilities = {}
+    node_specifications = []
 
     def __str__(self):
-        return "cpu: %s, memory: %s"%(self.capabilities['processor'], self.capabilities['memory'])
+        return "cpu: %s, memory: %s, node specifications: %s" %(self.capabilities['processor'], self.capabilities['memory'], self.node_specifications)
 
 
 

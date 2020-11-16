@@ -1,35 +1,6 @@
 version: '3.7'
 
 services:
-
-  ui:
-    build: ./FogifySDK
-    image: fogify-jupiter
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /usr/bin/docker:/usr/bin/docker
-    ports:
-      - 8888:8888
-    environment:
-      - "JUPYTER_ENABLE_LAB=yes"
-      - "GRANT_SUDO=yes"
-    user: root
-  controller:
-    build: .
-    image: fogify #name the image and give it a tag [name:tag]
-    entrypoint: [ "python", "/code/fogify/main.py", "--controller"]
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /usr/bin/docker:/usr/bin/docker
-    ports:
-      - 5000:5000
-    extra_hosts:
-      - ${MANAGER_NAME}:${MANAGER_IP}
-      - raspberrypi:192.168.7.2
-    environment:
-      CPU_OVERPROVISIONING_PERCENTAGE: ${CPU_OVERPROVISIONING_PERCENTAGE}
-      RAM_OVERPROVISIONING_PERCENTAGE: ${RAM_OVERPROVISIONING_PERCENTAGE}
-      CPU_FREQ: ${CPU_FREQ}
   agent:
     build: .
     image: fogify #name the image and give it a tag [name:tag]
@@ -39,7 +10,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/bin/docker:/usr/bin/docker
-      - /proc/:${NAMESPACE_PATH}
+      - /proc:${NAMESPACE_PATH}
       - /var/run/docker/:/var/run/docker/
       - /sys/class/net/:/sys/class/net/
       - /usr/bin/nsenter:/usr/bin/nsenter
@@ -51,7 +22,6 @@ services:
       - ALL
     depends_on:
       - cadvisor
-      - controller
     ports:
       - 5500:5500
     environment:
@@ -60,7 +30,7 @@ services:
       CPU_FREQ: ${CPU_FREQ}
       NAMESPACE_PATH: ${NAMESPACE_PATH}
   cadvisor:
-    image: gcr.io/google-containers/cadvisor:v0.35.0
+    image: budry/cadvisor-arm:latest
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
