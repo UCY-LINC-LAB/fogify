@@ -65,27 +65,27 @@ class FogifySDK(object):
                     'x-fogify'] else []
         self.services = [i for i in self.docker_swarm_rep["services"]]
 
-    @property
-    def upload_file(self):
+    def upload_file(self, remove_file=True):
         if self.docker_compose:
             self.docker_swarm_rep["x-fogify"] = {
-                "networks": self.networks,
-                "topology": self.topology,
-                "nodes": self.nodes,
-                "scenarios": self.scenarios
+                "networks": self.networks if hasattr(self, 'networks') else [],
+                "topology": self.topology if hasattr(self, 'topology') else [],
+                "nodes": self.nodes if hasattr(self, 'nodes') else [],
+                "scenarios": self.scenarios if hasattr(self, 'scenarios') else []
             }
             f = open("fogified-docker-compose.yaml", "w")
             f.write(yaml.dump(self.docker_swarm_rep))
             f.close()
             self.fogify_yaml = open("fogified-docker-compose.yaml", "rb")
-            os.remove("fogified-docker-compose.yaml")
+            if remove_file:
+                os.remove("fogified-docker-compose.yaml")
         return self.fogify_yaml
 
     def deploy(self, timeout=120):
         url = self.get_url("/topology/")
         self.clean_metrics()
         self.clean_annotations()
-        response = requests.post(url, files={"file": self.upload_file}, headers={}).json()
+        response = requests.post(url, files={"file": self.upload_file()}, headers={}).json()
 
         if 'success' not in response:
             raise Exception("The deployment is failed")

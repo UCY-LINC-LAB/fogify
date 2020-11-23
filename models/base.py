@@ -65,7 +65,7 @@ class Network(BaseModel):
         elif hasattr(self, 'bidirectional'):
             return self.get_bidirectional_links(copy.deepcopy(self.bidirectional))
         else:
-            raise Exception("You have to specify uplink or bidirectional characteristics")
+            raise Exception("You have to specify uplink or bidirectional characteristics (%s)"%self.__dict__)
 
     def get_downlink(self):
         if self.downlink != {}:
@@ -73,7 +73,7 @@ class Network(BaseModel):
         elif hasattr(self, 'bidirectional'):
             return self.get_bidirectional_links(copy.deepcopy(self.bidirectional))
         else:
-            raise Exception("You have to specify uplink or bidirectional characteristics")
+            raise Exception("You have to specify uplink or bidirectional characteristics (%s)"%self.__dict__)
     def __str__(self):
         return "uplink: %s , downlink: %s "%(self.get_uplink(),self.get_uplink())
 
