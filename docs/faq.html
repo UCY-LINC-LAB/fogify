@@ -153,10 +153,14 @@
                 <div class="docs-toc large order-lg-2 order-md-0 order-xs-1 col-12 col-lg-2 col-xl-2 position-sticky border-left"><div class="docs-toc">
 	<nav id="TableOfContents">
   <ul>
-    <li><a href="#how-can-i-install-the-fogify-framework">How can I install the Fogify Framework?</a></li>
-    <li><a href="#do-i-need-any-extra-knowledge">Do I need any extra knowledge?</a></li>
-    <li><a href="#how-does-fogify-work">How does Fogify work?</a></li>
-    <li><a href="#is-fogify-open-source-project">Is Fogify open-source project?</a></li>
+    <li>
+      <ul>
+        <li><a href="#does-fogify-provide-workload-generators-for-iot-devices">Does Fogify provide workload generators for IoT devices?</a></li>
+        <li><a href="#how-fogify-achieves-the-mobility-of-fog-computing-deployments">How Fogify achieves the mobility of Fog Computing Deployments?</a></li>
+        <li><a href="#where-can-i-find-examples-of-a-fogify-deployment">Where can I find examples of a Fogify deployment?</a></li>
+        <li><a href="#is-the-fogifys-emulation-accurate-and-near-to-real-world-deployments">Is the Fogify&rsquo;s emulation accurate and near to real-world deployments?</a></li>
+      </ul>
+    </li>
   </ul>
 </nav>
 </div>
@@ -170,11 +174,41 @@
     This section demonstrate the most frequent questions along with their answers
 </p>
 
-<h2 id="how-can-i-install-the-fogify-framework">How can I install the Fogify Framework?</h2>
-<h2 id="do-i-need-any-extra-knowledge">Do I need any extra knowledge?</h2>
-<h2 id="how-does-fogify-work">How does Fogify work?</h2>
-<h2 id="is-fogify-open-source-project">Is Fogify open-source project?</h2>
-<p>[TODO]</p>
+<h3 id="does-fogify-provide-workload-generators-for-iot-devices">Does Fogify provide workload generators for IoT devices?</h3>
+<p>No, Fogify only offers emulation at the infrastructure layer.
+Users are responsible to provide workload generators as containerized services.</p>
+<h3 id="how-fogify-achieves-the-mobility-of-fog-computing-deployments">How Fogify achieves the mobility of Fog Computing Deployments?</h3>
+<p>Currently, Fogify provides users the ability to define scenarios for time-scheduled network alterations,
+so user should provide the network changes that a Fog node will experience at the execution of the experiment.</p>
+<h3 id="where-can-i-find-examples-of-a-fogify-deployment">Where can I find examples of a Fogify deployment?</h3>
+<p>Currently, we provide an end-to-end example of Fogify usage at the demo repository (<a href="https://github.com/UCY-LINC-LAB/fogify-demo)">https://github.com/UCY-LINC-LAB/fogify-demo)</a>.
+However, we will provide a wide range of applications described with Fogify in near future.</p>
+<h3 id="is-the-fogifys-emulation-accurate-and-near-to-real-world-deployments">Is the Fogify&rsquo;s emulation accurate and near to real-world deployments?</h3>
+<p>According to the emulation accuracy, we compare real deployments and emulated deployments for the same architectures.</p>
+<p>Our experiments show the following results:</p>
+<div class="row">
+    <p></p>
+    <div class="col-lg-3 offset-1" style="margin-top: 40px">
+        <img class="img-fluid" src="results/processing.png" />
+         <p style="text-align: justify">
+         The emulated computing resources has only a small performance degradation for workloads approaching 100% CPU usage
+        </p>
+    </div>
+    <div class="col-lg-3 " style="margin-top: 40px">
+        <img class="img-fluid" src="results/network.png" />
+        <p style="text-align: justify">
+        Fogify achieves near to real-world network link capabilities, with only outliers not captured and a slight overhead in low-latency connections
+        </p>
+    </div>
+    <div class="col-lg-4 " style="margin-top: 40px">
+        <img class="img-fluid" src="results/application.png" />
+        <p style="text-align: justify">
+        The emulation results closely follow the real measurements with a 5%-8% deviation of the overall experiment time.
+        The picture illustrates a image recognition algorithm in two deployments. A Cloud-only deployment and an Edge-Cloud deployment.
+        </p>
+    </div>
+</div>
+<p>You can find more information about our experiments in the <a href="http://www.cs.ucy.ac.cy/mdd/docs/2020-SEC-Fogify.pdf">Fogify&rsquo;s paper</a></p>
 
 
     
