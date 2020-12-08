@@ -77,7 +77,7 @@ class MetricCollector(object):
                         r.count = count
                         r.instance_name = instance_name
                         cpu_specs = instance['spec']['cpu']
-                        mem_specs = instance['spec']['memory']['limit']
+                        mem_specs = instance['spec']['memory']['limit'] if 'limit' in instance['spec']['memory'] else machine['memory_capacity']
                         if last_cpu_record:
                             timedif = abs(millis_interval(r.timestamp.replace(tzinfo=None),
                                                           record.timestamp.replace(tzinfo=None)))
