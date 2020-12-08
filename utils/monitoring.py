@@ -81,6 +81,8 @@ class MetricCollector(object):
                         if last_cpu_record:
                             timedif = abs(millis_interval(r.timestamp.replace(tzinfo=None),
                                                           record.timestamp.replace(tzinfo=None)))
+                            if timedif == 0 :
+                                timedif = 1
                             rate = (float(last_stat['cpu']['usage']['total']) - float(last_cpu_record.value)) / timedif
 
                             cpu_util_val = rate / (float(cpu_specs['quota'] if 'quota' in cpu_specs else int(cpu_specs['mask'].split("-")[-1])+1) / float(cpu_specs['period'] if 'period' in cpu_specs else 1.0))
@@ -121,6 +123,8 @@ class MetricCollector(object):
 
                             if conf is None:
                                 eth_ip = get_container_ip_property(instance["id"], cadv_net["name"])
+                                if not eth_ip:
+                                    continue
                                 ip = eth_ip[eth_ip.find("inet ") + len("inet "):eth_ip.rfind("/")]
 
                                 Status.update_config(ip, instance["id"] + "|" + cadv_net["name"])

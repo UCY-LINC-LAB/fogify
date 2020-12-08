@@ -35,7 +35,7 @@ class Network(BaseModel):
         if 'latency' in res:
             if 'delay' in res['latency']:
                 latency = res['latency']['delay']
-                latency = latency.strip()
+                latency = str(latency).strip()
                 latency_metric = "ms"
                 if latency.endswith('ms'):
                     latency = latency[:-2]
@@ -200,21 +200,21 @@ class FogifyModel(object):
             raise Exception("Model Error: the node specs do not exist")
         return real_node
 
-    def network_object(self, network_name):
+    def network_object(self, network_object):
         real_node = None
         extra_name = ""
-        if type(network_name) == dict:
-            if 'uplink' not in network_name or 'downlink' not in network_name:
-                if 'name' in network_name:
-                    extra_name = network_name['name']
-        if type(network_name) == str:
-            extra_name = network_name
+        if type(network_object) == dict:
+            if ('uplink' not in network_object or 'downlink' not in network_object) and 'bidirectional' not in network_object:
+                if 'name' in network_object:
+                    extra_name = network_object['name']
+        if type(network_object) == str:
+            extra_name = network_object
         for node in self.networks:
             if node.name == extra_name:
                 real_node = node
                 break
-        if real_node is None and type(network_name) != str:
-            return Network(network_name)
+        if real_node is None and type(network_object) != str:
+            return Network(network_object)
 
         if real_node is None:
             raise Exception("Model Error: the network specs do not exist")
