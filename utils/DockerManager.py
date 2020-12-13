@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 
 
@@ -19,20 +20,32 @@ def get_pid_from_container(container_id):
     except Exception as ex:
         print(ex)
 
-def get_container_ip_property(container_id, property):
+def get_container_ip_property(container_id, property,
+                              namespace_path=os.environ['NAMESPACE_PATH'] if 'NAMESPACE_PATH' in os.environ else "proc"):
     container = get_pid_from_container(container_id)
     pid = get_pid_from_container(container).split(" ")[-1]
+    if str(pid) == "0":
+        return None
+    namespace_path = namespace_path[1:] if namespace_path.startswith("/") else namespace_path
+    namespace_path = namespace_path[:-1] if namespace_path.endswith("/") else namespace_path
     eth = subprocess.check_output(
-        ['/bin/sh', '-c', 'nsenter -t %s -n ip a | grep %s | tail -n 1' % (pid, property)]).decode()
+        ['/bin/sh', '-c', 'nsenter -n/%s/%s/ns/net ip a | grep %s | tail -n 1' % (namespace_path, pid, property)]).decode() #-n/%s/%s/ns/net
     return eth
-def get_containers_adapter_for_network(container_id, network):
+
+def get_containers_adapter_for_network(container_id, network,
+                                       namespace_path=os.environ['NAMESPACE_PATH'] if 'NAMESPACE_PATH' in os.environ else "proc"):
     try:
+
         networks = json.loads(subprocess.getoutput(
             "docker inspect --format='{{json .NetworkSettings.Networks}}' %s"%container_id))
+        ip = None
         if network in networks:
             ip = networks[network]['IPAMConfig']['IPv4Address']
         # container = client.containers.get(container_id)
-        eth = get_container_ip_property(container_id, ip).split()[-1]
+        eth = get_container_ip_property(container_id, ip, namespace_path=namespace_path)
+        if not eth:
+            return None
+        eth = eth.split()[-1]
         return eth
     except Exception as ex:
         print(ex)

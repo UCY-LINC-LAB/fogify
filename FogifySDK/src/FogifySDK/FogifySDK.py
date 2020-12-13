@@ -18,7 +18,7 @@ import pandas as pd
 class FogifySDK(object):
     url = None
     docker_compose = None
-    devices = []
+    nodes = []
     networks = []
     topology = []
     services = []
@@ -57,7 +57,7 @@ class FogifySDK(object):
             if self.docker_swarm_rep['x-fogify']:
                 self.networks = self.docker_swarm_rep['x-fogify']['networks'] if 'networks' in self.docker_swarm_rep[
                     'x-fogify'] else []
-                self.devices = self.docker_swarm_rep['x-fogify']['nodes'] if 'nodes' in self.docker_swarm_rep[
+                self.nodes = self.docker_swarm_rep['x-fogify']['nodes'] if 'nodes' in self.docker_swarm_rep[
                     'x-fogify'] else []
                 self.scenarios = self.docker_swarm_rep['x-fogify']['scenarios'] if 'scenarios' in self.docker_swarm_rep[
                     'x-fogify'] else []
@@ -65,27 +65,27 @@ class FogifySDK(object):
                     'x-fogify'] else []
         self.services = [i for i in self.docker_swarm_rep["services"]]
 
-    @property
-    def upload_file(self):
+    def upload_file(self, remove_file=True):
         if self.docker_compose:
             self.docker_swarm_rep["x-fogify"] = {
-                "networks": self.networks,
-                "topology": self.topology,
-                "nodes": self.devices,
-                "scenarios": self.scenarios
+                "networks": self.networks if hasattr(self, 'networks') else [],
+                "topology": self.topology if hasattr(self, 'topology') else [],
+                "nodes": self.nodes if hasattr(self, 'nodes') else [],
+                "scenarios": self.scenarios if hasattr(self, 'scenarios') else []
             }
             f = open("fogified-docker-compose.yaml", "w")
             f.write(yaml.dump(self.docker_swarm_rep))
             f.close()
             self.fogify_yaml = open("fogified-docker-compose.yaml", "rb")
-            os.remove("fogified-docker-compose.yaml")
+            if remove_file:
+                os.remove("fogified-docker-compose.yaml")
         return self.fogify_yaml
 
     def deploy(self, timeout=120):
         url = self.get_url("/topology/")
         self.clean_metrics()
         self.clean_annotations()
-        response = requests.post(url, files={"file": self.upload_file}, headers={}).json()
+        response = requests.post(url, files={"file": self.upload_file()}, headers={}).json()
 
         if 'success' not in response:
             raise Exception("The deployment is failed")
@@ -346,12 +346,12 @@ class FogifySDK(object):
             self.get_metrics()
         return start, stop
 
-    def add_device(self, name, cpu_cores, cpu_freq, memory, disk=""):
+    def add_node(self, name, cpu_cores, cpu_freq, memory, disk=""):
         self.check_docker_swarm_existence()
-        for i in self.devices:
+        for i in self.nodes:
             if i['name'] == name:
                 raise Exception("The device already exists")
-        self.devices.append(
+        self.nodes.append(
             dict(
                 name=name,
                 capabilities=dict(
@@ -364,7 +364,7 @@ class FogifySDK(object):
             )
         )
 
-    def add_network(self, name, uplink, downlink, capacity):
+    def add_network(self, name, uplink, downlink, capacity=None):
         self.check_docker_swarm_existence()
         for i in self.networks:
             if i['name'] == name:
@@ -378,6 +378,47 @@ class FogifySDK(object):
             )
         )
 
+    def add_network(self, name, bidirectional, capacity=None):
+        self.check_docker_swarm_existence()
+        for i in self.networks:
+            if i['name'] == name:
+                raise Exception("The network already exists")
+        self.networks.append(
+            dict(
+                name=name,
+                bidirectional=bidirectional,
+                capacity=capacity
+            )
+        )
+
+
+    def add_link(self, network_name, from_node, to_node, properties, bidirectional=True):
+        self.check_docker_swarm_existence()
+        exists = False
+        for i in self.networks:
+            if network_name == i["name"]:
+                exists = True
+                break
+        if not exists:
+            raise Exception("The network does not exist")
+
+        links = i['links'] if 'links' in i else []
+        links.append({
+            "from_node": from_node,
+            "to_node": to_node,
+            "bidirectional": bidirectional,
+            "properties": properties
+        })
+
+        i['links'] = links
+        res = []
+        for j in self.networks:
+            if network_name == j["name"]:
+                res.append(i)
+            else:
+                res.append(j)
+        self.networks = res
+
     def add_deployment_node(self, label, service, device, networks=[], replicas=1):
         self.check_docker_swarm_existence()
         if service not in self.services:
@@ -389,7 +430,7 @@ class FogifySDK(object):
                 node=device,
                 networks=networks,
                 label=label,
-                replicas=1
+                replicas=replicas
             )
         )
 

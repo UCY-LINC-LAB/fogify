@@ -1,7 +1,13 @@
 import setuptools
+# from pip.req import parse_requirements
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+with open('./requirements.txt') as f:
+    reqs = f.read().strip().split('\n')
+# reqs = [str(ir.req) for ir in install_reqs]
+
 
 setuptools.setup(
     name="FogifySDK",
@@ -14,4 +20,5 @@ setuptools.setup(
     packages=setuptools.find_packages(where="src"),
     package_dir={'': 'src'},  # Optional
     python_requires='>=3.5',
+    install_requires=reqs
 )

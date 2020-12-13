@@ -1,7 +1,6 @@
 import os
 
 from flask_sqlalchemy import SQLAlchemy
-import subprocess
 
 
 class Controller(object):
@@ -9,13 +8,6 @@ class Controller(object):
 
     db = None
 
-    # def initiate_swarm_manager(self):
-    #    res = subprocess.getoutput("docker swarm init")
-    #    if res.split(" ")[0] == 'Error':
-    #       res = subprocess.getoutput("docker swarm join-token worker").split("\n")[-2].strip()
-    #    else:
-    #       res = [i for i in res.split("\n") if i.find("--token") > 0][0].strip()
-    #    return res
 
     def __init__(self, args, app):
         """

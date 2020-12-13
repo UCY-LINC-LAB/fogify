@@ -17,32 +17,41 @@ def generate_network_distribution(path, name="experimental"):
 def inject_network_distribution(trace_file):
     return subprocess.check_output(['/bin/sh', '-c', "cp %s /usr/lib/tc" % trace_file])
 
-def apply_network_rule(container, network, in_rule, out_rule, ifb_interface, create="TRUE", _ips={}):
+def apply_network_rule(container, network, in_rule, out_rule, ifb_interface, create="TRUE", _ips={},
+                       namespace_path=os.environ['NAMESPACE_PATH'] if 'NAMESPACE_PATH' in os.environ else "proc"):
     from utils import DockerManager
 
     pid = DockerManager.get_pid_from_container(container)
     adapter = None
     count = 0
-    while(adapter is None and count<20):
-        adapter = DockerManager.get_containers_adapter_for_network(container, network)
+
+    namespace_path = namespace_path[1:] if namespace_path.startswith("/") else namespace_path
+    namespace_path = namespace_path[:-1] if namespace_path.endswith("/") else namespace_path
+
+    while(adapter is None and count<3):
+        adapter = DockerManager.get_containers_adapter_for_network(container, network, namespace_path=namespace_path)
         time.sleep(1)
         count+=1
-    ifb_interface = ifb_interface + adapter[-1]
+    if not adapter:
+        return
 
-    subprocess.check_output(
-        [os.path.dirname(os.path.abspath(__file__)) + '/apply_rule.sh',
-            pid, adapter, in_rule, out_rule, ifb_interface, create])
+    ifb_interface = ifb_interface + adapter[-1]
+    commands = " ".join([os.path.dirname(os.path.abspath(__file__)) + '/apply_rule.sh',
+            pid, adapter, in_rule, out_rule, ifb_interface, str(create).lower(), namespace_path])+"\n"
+    print(pid, adapter, in_rule, out_rule, ifb_interface, str(create).lower(), namespace_path)
+
     counter = 12
     for ip in _ips:
         ips = ip.split("|")
-        subprocess.check_output(['/bin/sh', '-c',"nsenter -t %s -n tc class add dev %s parent 1:1 classid 1:%s htb rate 10000mbit" % (
-        pid, 'ifb'+ifb_interface, str(counter))])
-        subprocess.check_output(['/bin/sh', '-c',"nsenter -t %s -n tc qdisc add dev %s parent 1:%s handle %s: netem %s " % (pid, 'ifb'+ifb_interface,str(counter),str(counter), _ips[ip])])
-        for ip in ips:
-            subprocess.check_output(['/bin/sh', '-c',"nsenter -t %s -n tc filter add dev %s protocol ip prio 1 u32 match ip src %s flowid 1:%s \n" % (
-            pid, 'ifb'+ifb_interface, ip, str(counter))])
-        counter += 1
+        commands += 'nsenter -n/%s/%s/ns/net tc class add dev %s parent 1:1 classid 1:%s htb rate 10000mbit' % ( namespace_path, pid, 'ifb' + ifb_interface, str(counter)) + " \n"
+        commands += 'nsenter -n/%s/%s/ns/net tc qdisc add dev %s parent 1:%s handle %s: netem %s ' % (namespace_path, pid, 'ifb'+ifb_interface,str(counter),str(counter), _ips[ip]) + " \n"
 
+        for ip in ips:
+            commands += "nsenter -n/%s/%s/ns/net tc filter add dev %s protocol ip prio 1 u32 match ip src %s flowid 1:%s " % (
+            namespace_path, pid, 'ifb'+ifb_interface, ip, str(counter)) + " \n"
+        counter += 1
+    process = subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    out, err = process.communicate(commands.encode())
 
 def read_network_rules(path):
     f = open(os.path.join(path, "network.yaml"), "r")
@@ -131,7 +140,7 @@ class NetworkController(object):
                         #     threading.Thread(target=sniffer.sniff).start()
 
 
-            except KeyError as ex:
+            except Exception as ex:
                 print(ex)
                 continue
 
