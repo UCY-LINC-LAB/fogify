@@ -1,6 +1,8 @@
 import os
 import subprocess
+# import threading
 import time
+# from collections import deque
 
 import docker
 import requests
@@ -75,6 +77,12 @@ class NetworkController(object):
 
     def submition(self, path):
 
+        # from utils.store import DummyStorage
+        # buffer = deque()
+        # storage = DummyStorage(buffer)
+        # t2 = threading.Thread(target=storage.store_data)
+        # t2.start()
+
         client = docker.from_env()
         for event in client.events(decode=True):
 
@@ -106,6 +114,21 @@ class NetworkController(object):
                         action_url = 'http://%s:5000/control/%s/'%(os.environ['CONTROLLER_IP'] if 'CONTROLLER_IP' in os.environ else '0.0.0.0', str_set)
                         requests.post(action_url, headers={'Content-Type': "application/json"} )
                         # update network rules to controller
+
+                        # from nsenter import Namespace
+                        #  network monitoring
+                        # from utils import DockerManager
+                        # pid = DockerManager.get_pid_from_container(container_id)
+                        # print(pid)
+                        # adapters = []
+                        # from utils.sniffer import Sniffer
+                        # for net in net_rules:
+                        #     adapter = DockerManager.get_containers_adapter_for_network(container_id, net)
+                        #     adapters.append(adapter)
+                        #
+                        # with Namespace(pid, 'net', os.environ("NAMESPACE_PATH") if "NAMESPACE_PATH" in os.environ else "/proc/"):
+                        #     sniffer = Sniffer(buffer, adapters)
+                        #     threading.Thread(target=sniffer.sniff).start()
 
 
             except KeyError as ex:

@@ -5,3 +5,5 @@ docker
 Flask-SQLAlchemy
 pyyaml
 python-dateutil
+netifaces
+nsenter==0.2

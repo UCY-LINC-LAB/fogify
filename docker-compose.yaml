@@ -41,7 +41,7 @@ services:
       - /proc/:/proc/
       - /var/run/docker/:/var/run/docker/
       - /sys/class/net/:/sys/class/net/
-      - /usr/bin/nsenter:/usr/bin/nsenter
+#      - /usr/bin/nsenter:/usr/bin/nsenter
       - /lib/modules:/lib/modules
       - /sbin/modprobe:/sbin/modprobe
       - /usr/lib/tc:/usr/lib/tc
