@@ -20,8 +20,8 @@ def get_pid_from_container(container_id):
     except Exception as ex:
         print(ex)
 
-def get_container_ip_property(container_id, property,
-                              namespace_path=os.environ['NAMESPACE_PATH'] if 'NAMESPACE_PATH' in os.environ else "proc"):
+def get_container_ip_property(container_id, property):
+    namespace_path = os.environ['NAMESPACE_PATH'] if 'NAMESPACE_PATH' in os.environ else "proc"
     container = get_pid_from_container(container_id)
     pid = get_pid_from_container(container).split(" ")[-1]
     if str(pid) == "0":
@@ -32,8 +32,7 @@ def get_container_ip_property(container_id, property,
         ['/bin/sh', '-c', 'nsenter -n/%s/%s/ns/net ip a | grep %s | tail -n 1' % (namespace_path, pid, property)]).decode() #-n/%s/%s/ns/net
     return eth
 
-def get_containers_adapter_for_network(container_id, network,
-                                       namespace_path=os.environ['NAMESPACE_PATH'] if 'NAMESPACE_PATH' in os.environ else "proc"):
+def get_containers_adapter_for_network(container_id, network):
     try:
 
         networks = json.loads(subprocess.getoutput(
@@ -42,13 +41,13 @@ def get_containers_adapter_for_network(container_id, network,
         if network in networks:
             ip = networks[network]['IPAMConfig']['IPv4Address']
         # container = client.containers.get(container_id)
-        eth = get_container_ip_property(container_id, ip, namespace_path=namespace_path)
+        eth = get_container_ip_property(container_id, ip)
         if not eth:
             return None
         eth = eth.split()[-1]
         return eth
     except Exception as ex:
-        print(ex)
+        print("get_containers_adapter_for_network", ex)
 
 
 def get_ips_for_service(service):

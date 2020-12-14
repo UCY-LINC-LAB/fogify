@@ -18,9 +18,9 @@ def generate_network_distribution(path, name="experimental"):
 def inject_network_distribution(trace_file):
     return subprocess.check_output(['/bin/sh', '-c', "cp %s /usr/lib/tc" % trace_file])
 
-def apply_network_rule(container, network, in_rule, out_rule, ifb_interface, create="TRUE", _ips={},
-                       namespace_path=os.environ['NAMESPACE_PATH'] if 'NAMESPACE_PATH' in os.environ else "proc"):
+def apply_network_rule(container, network, in_rule, out_rule, ifb_interface, create="TRUE", _ips={}):
     from utils import DockerManager
+    namespace_path = os.environ['NAMESPACE_PATH'] if 'NAMESPACE_PATH' in os.environ else "proc"
 
     pid = DockerManager.get_pid_from_container(container)
     adapter = None
@@ -30,16 +30,18 @@ def apply_network_rule(container, network, in_rule, out_rule, ifb_interface, cre
     namespace_path = namespace_path[:-1] if namespace_path.endswith("/") else namespace_path
 
     while(adapter is None and count<3):
-        adapter = DockerManager.get_containers_adapter_for_network(container, network, namespace_path=namespace_path)
+        adapter = DockerManager.get_containers_adapter_for_network(container, network)
         time.sleep(1)
         count+=1
     if not adapter:
         return
 
     ifb_interface = ifb_interface + adapter[-1]
-    commands = " ".join([os.path.dirname(os.path.abspath(__file__)) + '/apply_rule.sh',
-            pid, adapter, in_rule, out_rule, ifb_interface, str(create).lower(), namespace_path])+"\n"
-    print(pid, adapter, in_rule, out_rule, ifb_interface, str(create).lower(), namespace_path)
+    subprocess.check_output(
+        [os.path.dirname(os.path.abspath(__file__)) + '/apply_rule.sh',
+            pid, adapter, in_rule, out_rule, ifb_interface, str(create).lower(), namespace_path])
+
+    commands = " "
 
     counter = 12
     for ip in _ips:
