@@ -14,6 +14,7 @@ def get_pid_from_container(container_id):
     try:
         res = subprocess.getoutput(
             "docker inspect %s --format '{{.State.Pid}}' " % container_id)
+
         if res.split(" ")[-1].startswith("State"):
             raise Exception("Failure due to the state of the container", res)
         return res
@@ -29,7 +30,7 @@ def get_container_ip_property(container_id, property):
     namespace_path = namespace_path[1:] if namespace_path.startswith("/") else namespace_path
     namespace_path = namespace_path[:-1] if namespace_path.endswith("/") else namespace_path
     eth = subprocess.check_output(
-        ['/bin/sh', '-c', 'nsenter -n/%s/%s/ns/net ip a | grep %s | tail -n 1' % (namespace_path, pid, property)]).decode() #-n/%s/%s/ns/net
+        ['/bin/sh', '-c', 'ip a | grep %s | tail -n 1' % property]).decode() #-n/%s/%s/ns/net
     return eth
 
 def get_containers_adapter_for_network(container_id, network):

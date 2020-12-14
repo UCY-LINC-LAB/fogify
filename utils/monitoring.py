@@ -1,3 +1,4 @@
+import os
 import subprocess
 from time import sleep
 import docker
@@ -6,9 +7,11 @@ import requests
 from os.path import exists
 import json
 
+from nsenter import Namespace
+
 from agent.models import Status, Metric, db, Record
 from utils import DockerManager
-from utils.DockerManager import get_container_ip_property
+from utils.DockerManager import get_container_ip_property, get_pid_from_container
 
 
 class MetricCollector(object):
@@ -122,7 +125,11 @@ class MetricCollector(object):
                             conf = Status.query.filter_by(name=instance["id"] + "|" + cadv_net["name"]).first()
 
                             if conf is None:
-                                eth_ip = get_container_ip_property(instance["id"], cadv_net["name"])
+                                eth_ip = None
+                                proc = os.environ["NAMESPACE_PATH"] if "NAMESPACE_PATH" in os.environ else "/proc/"
+                                pid = get_pid_from_container(container.attrs['Name'][1:]).split(" ")[-1]
+                                with Namespace(proc + "/" + str(pid) + "/ns/net", 'net'):
+                                    eth_ip = get_container_ip_property(instance["id"], cadv_net["name"])
                                 if not eth_ip:
                                     continue
                                 ip = eth_ip[eth_ip.find("inet ") + len("inet "):eth_ip.rfind("/")]

@@ -40,4 +40,17 @@ class Metric(db.Model):
     value = db.Column(db.Float())
     record_id = db.Column(db.Integer, db.ForeignKey('record.id'))
 
+class Packet(db.Model):
+    packet_id = db.Column(db.String(250), primary_key=True)
+    network_interface = db.Column(db.String(250))
+    src_mac = db.Column(db.String(250))
+    dest_mac = db.Column(db.String(250))
+    src_ip = db.Column(db.String(250))
+    dest_ip = db.Column(db.String(250))
+    src_port = db.Column(db.String(250))
+    dest_port = db.Column(db.String(250))
+    protocol = db.Column(db.String(250))
+    size = db.Column(db.Integer())
+    out = db.Column(db.Boolean())
+    timestamp = db.Column(db.DateTime())
 db.create_all()

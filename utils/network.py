@@ -4,10 +4,14 @@ import subprocess
 import threading
 import time
 # from collections import deque
-
+from collections import deque
+from nsenter import Namespace
 import docker
 import requests
 import yaml
+
+from utils.DockerManager import get_pid_from_container
+
 
 def generate_network_distribution(path, name="experimental"):
     subprocess.check_output(['/bin/sh', '-c',"cat %s | grep icmp_seq | cut -d'=' -f4 | cut -d' ' -f1 >  %s"%(os.path.join(path, "rttdata.txt"), os.path.join(path, "rttdata2.txt"))])
@@ -46,12 +50,12 @@ def apply_network_rule(container, network, in_rule, out_rule, ifb_interface, cre
     counter = 12
     for ip in _ips:
         ips = ip.split("|")
-        commands += 'nsenter -n/%s/%s/ns/net tc class add dev %s parent 1:1 classid 1:%s htb rate 10000mbit' % ( namespace_path, pid, 'ifb' + ifb_interface, str(counter)) + " \n"
-        commands += 'nsenter -n/%s/%s/ns/net tc qdisc add dev %s parent 1:%s handle %s: netem %s ' % (namespace_path, pid, 'ifb'+ifb_interface,str(counter),str(counter), _ips[ip]) + " \n"
+        commands += 'tc class add dev %s parent 1:1 classid 1:%s htb rate 10000mbit' % ( 'ifb' + ifb_interface, str(counter)) + " \n"
+        commands += 'tc qdisc add dev %s parent 1:%s handle %s: netem %s ' % ('ifb'+ifb_interface,str(counter),str(counter), _ips[ip]) + " \n"
 
         for ip in ips:
-            commands += "nsenter -n/%s/%s/ns/net tc filter add dev %s protocol ip prio 1 u32 match ip src %s flowid 1:%s " % (
-            namespace_path, pid, 'ifb'+ifb_interface, ip, str(counter)) + " \n"
+            commands += "tc filter add dev %s protocol ip prio 1 u32 match ip src %s flowid 1:%s " % (
+             'ifb'+ifb_interface, ip, str(counter)) + " \n"
         counter += 1
     process = subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out, err = process.communicate(commands.encode())
@@ -89,11 +93,11 @@ class NetworkController(object):
 
     def submition(self, path):
 
-        # from utils.store import DummyStorage
-        # buffer = deque()
-        # storage = DummyStorage(buffer)
-        # t2 = threading.Thread(target=storage.store_data)
-        # t2.start()
+        from utils.store import DummyStorage
+        buffer = deque()
+        storage = DummyStorage(buffer)
+        t2 = threading.Thread(target=storage.store_data)
+        t2.start()
 
         client = docker.from_env()
         for event in client.events(decode=True):
@@ -109,8 +113,11 @@ class NetworkController(object):
                             service_name = attrs['com.docker.swarm.service.name']
                             container_id = attrs['com.docker.swarm.task.id']
                             container_name = attrs['com.docker.swarm.task.name']
-                            apply_default_rules(infra, service_name, container_name, container_id)
-                            print(service_name, container_name, container_id)
+                            proc = os.environ["NAMESPACE_PATH"] if "NAMESPACE_PATH" in os.environ else "/proc/"
+                            pid = get_pid_from_container(container_name).split(" ")[-1]
+                            if str(pid).isnumeric() and str(pid) != "0":
+                                with Namespace(proc + "/" + str(pid) + "/ns/net", 'net'):
+                                    apply_default_rules(infra, service_name, container_name, container_id)
 
                             # update containers for new links
                             update_for_services_needed = set()
@@ -128,23 +135,26 @@ class NetworkController(object):
 
                         threading.Thread(target=apply_net_qos, args=(attrs, infra)).start()
                         # update network rules to controller
-
-                        # from nsenter import Namespace
-                        #  network monitoring
-                        # from utils import DockerManager
-                        # pid = DockerManager.get_pid_from_container(container_id)
-                        # print(pid)
-                        # adapters = []
-                        # from utils.sniffer import Sniffer
-                        # for net in net_rules:
-                        #     adapter = DockerManager.get_containers_adapter_for_network(container_id, net)
-                        #     adapters.append(adapter)
-                        #
-                        # with Namespace(pid, 'net', os.environ("NAMESPACE_PATH") if "NAMESPACE_PATH" in os.environ else "/proc/"):
-                        #     sniffer = Sniffer(buffer, adapters)
-                        #     threading.Thread(target=sniffer.sniff).start()
+                        def network_sniffing(attrs,infra):
+                            service_name = attrs['com.docker.swarm.service.name']
+                            container_id = attrs['com.docker.swarm.task.id']
+                            container_name = attrs['com.docker.swarm.task.name']
 
 
+                            from utils.sniffer import Sniffer
+                            #  network monitoring
+                            from utils import DockerManager
+
+
+                            pid = get_pid_from_container(container_name).split(" ")[-1]
+                            if str(pid).isnumeric() and str(pid) != "0":
+                                proc = os.environ["NAMESPACE_PATH"] if "NAMESPACE_PATH" in os.environ else "/proc/"
+                                with Namespace(proc+"/"+str(pid)+"/ns/net",'net'):
+                                    sniffer = Sniffer(buffer, container_name)
+                                    # threading.Thread(target=sniffer.sniff).start()
+                                    sniffer.sniff()
+
+                        threading.Thread(target=network_sniffing, args=(attrs, infra)).start()
             except Exception as ex:
                 print(ex)
                 continue
