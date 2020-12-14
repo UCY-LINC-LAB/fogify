@@ -1,6 +1,7 @@
 import os
 import subprocess
 # import threading
+import threading
 import time
 # from collections import deque
 
@@ -102,26 +103,28 @@ class NetworkController(object):
                     attrs = event['Actor']['Attributes']
                     infra = read_network_rules(path)
                     if attrs['com.docker.stack.namespace']=='fogify':
+                        def apply_net_qos(attrs, infra):
+                            service_name = attrs['com.docker.swarm.service.name']
+                            container_id = attrs['com.docker.swarm.task.id']
+                            container_name = attrs['com.docker.swarm.task.name']
+                            apply_default_rules(infra, service_name, container_name, container_id)
+                            print(service_name, container_name, container_id)
 
-                        service_name = attrs['com.docker.swarm.service.name']
-                        container_id = attrs['com.docker.swarm.task.id']
-                        container_name = attrs['com.docker.swarm.task.name']
-                        apply_default_rules(infra, service_name, container_name, container_id)
+                            # update containers for new links
+                            update_for_services_needed = set()
+                            net_rules = infra[service_name.replace("fogify_","")]
+                            f_name = service_name.replace("fogify_", "")
+                            for net in net_rules:
+                                for i in net_rules[net]['links']:
+                                    for j in net_rules[net]['links'][i]:
+                                        if j == f_name:
+                                            update_for_services_needed.add(i)
+                            # for i in update_for_services_needed:
+                            str_set="|".join(update_for_services_needed)
+                            action_url = 'http://%s:5000/control/%s/'%(os.environ['CONTROLLER_IP'] if 'CONTROLLER_IP' in os.environ else '0.0.0.0', str_set)
+                            requests.post(action_url, headers={'Content-Type': "application/json"} )
 
-
-                        # update containers for new links
-                        update_for_services_needed = set()
-                        net_rules = infra[service_name.replace("fogify_","")]
-                        f_name = service_name.replace("fogify_", "")
-                        for net in net_rules:
-                            for i in net_rules[net]['links']:
-                                for j in net_rules[net]['links'][i]:
-                                    if j == f_name:
-                                        update_for_services_needed.add(i)
-                        # for i in update_for_services_needed:
-                        str_set="|".join(update_for_services_needed)
-                        action_url = 'http://%s:5000/control/%s/'%(os.environ['CONTROLLER_IP'] if 'CONTROLLER_IP' in os.environ else '0.0.0.0', str_set)
-                        requests.post(action_url, headers={'Content-Type': "application/json"} )
+                        threading.Thread(target=apply_net_qos, args=(attrs, infra)).start()
                         # update network rules to controller
 
                         # from nsenter import Namespace

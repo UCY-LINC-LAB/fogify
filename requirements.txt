@@ -7,5 +7,3 @@ pyyaml
 python-dateutil
 psutil
 py-cpuinfo
-netifaces
-nsenter==0.2
