@@ -39,7 +39,7 @@ class Agent(object):
         if 'LABELS' in os.environ:
             for i in os.environ['LABELS'].split(","):
                 label = i.split(":")
-                if len(label)==2:
+                if len(label) == 2:
                     node_labels[label[0]] = label[1]
         connector.inject_labels(node_labels, HOST_IP=os.environ['HOST_IP'])
 
@@ -54,12 +54,13 @@ class Agent(object):
         if not os.path.exists(os.getcwd() + app.config['UPLOAD_FOLDER']):
             os.mkdir(os.getcwd() + app.config['UPLOAD_FOLDER'])
         from utils.monitoring import MetricCollector
-        from agent.views import MonitoringAPI, ActionAPI, TopologyAPI, DistributionAPI
+        from agent.views import MonitoringAPI, ActionAPI, TopologyAPI, DistributionAPI, SnifferAPI
 
         # Add the api routes
         app.add_url_rule('/topology/', view_func=TopologyAPI.as_view('Topology'))
         app.add_url_rule('/monitorings/', view_func=MonitoringAPI.as_view('Monitoring'))
         app.add_url_rule('/actions/', view_func=ActionAPI.as_view('Action'))
+        app.add_url_rule('/packets/', view_func=SnifferAPI.as_view('Packet'))
         app.add_url_rule('/generate-network-distribution/<string:name>/',
                          view_func=DistributionAPI.as_view('NetworkDistribution'))
 

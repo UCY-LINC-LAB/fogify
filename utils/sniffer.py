@@ -13,18 +13,18 @@ import argparse
 
 buffer = deque()
 
+
 class Sniffer(object):
 
-    def __init__(self, buffer: deque, id_prefix = ""):
+    def __init__(self, buffer: deque, id_prefix=""):
         self.buffer = buffer
-        self.pid = 0
         self.id_prefix = id_prefix
-
 
     # Unpacks ethernet frame
     def ethernet_frame(self, data_tuple):
         dest_mac, src_mac, proto = struct.unpack('! 6s 6s H', data_tuple[0][:14])
-        return len(data_tuple[0]), data_tuple[1][0], self.get_mac_addr(dest_mac), self.get_mac_addr(src_mac), socket.htons(proto), data_tuple[0][14:]
+        return len(data_tuple[0]), data_tuple[1][0], self.get_mac_addr(dest_mac), self.get_mac_addr(
+            src_mac), socket.htons(proto), data_tuple[0][14:]
 
     # fromats mac address
     def get_mac_addr(self, byte_addr):
@@ -50,7 +50,8 @@ class Sniffer(object):
 
     # Unpacks TCP segment
     def tcp_segment(self, data):
-        (src_port, dest_port, sequence, acknowledgement, offset_reserved_flags) = struct.unpack('! H H L L H', data[:14] )
+        (src_port, dest_port, sequence, acknowledgement, offset_reserved_flags) = struct.unpack('! H H L L H',
+                                                                                                data[:14])
         offset = (offset_reserved_flags >> 12) * 4
         flag_urg = (offset_reserved_flags & 32) >> 5
         flag_ack = (offset_reserved_flags & 16) >> 4
@@ -58,7 +59,8 @@ class Sniffer(object):
         flag_rst = (offset_reserved_flags & 4) >> 2
         flag_syn = (offset_reserved_flags & 2) >> 1
         flag_fin = offset_reserved_flags & 1
-        return src_port, dest_port, sequence, acknowledgement, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin, data[offset:]
+        return src_port, dest_port, sequence, acknowledgement, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin, data[
+                                                                                                                           offset:]
 
     # Unpacks UDP segment
     def udp_segment(self, data):
@@ -88,28 +90,29 @@ class Sniffer(object):
 
     def sniff(self):
         conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
+        mac_addresses = self.get_my_macs()
         while True:
             raw_data, address = conn.recvfrom(65535)
-            self.buffer.appendleft(
-                self.create_packet(raw_data, address)
-            )
+            packet = self.create_packet(raw_data, address, mac_addresses)
+            if packet is not None:
+                self.buffer.appendleft(
+                    packet
+                )
 
-    def create_packet(self, raw_data, address):
+    def create_packet(self, raw_data, address, mac_addresses):
 
-        mac_addresses = self.get_my_macs()
         s, network_interface, dest_mac, src_mac, eth_proto, data = self.ethernet_frame((raw_data, address))
 
         # Skip non selected network interfaces
-        # if network_interface not in self.selected_interfaces:
-        #     return None
+        if network_interface == 'lo':
+            return None
 
         # pid is also a counter
-        self.pid += 1
         is_outgoing = (str(src_mac) in mac_addresses)
-        src_ip, dest_ip, src_port, dest_port, size = None, None, None, None, None
+        src_ip, dest_ip, src_port, dest_port, size, payload = None, None, None, None, None, None
         # 8 for IPv4
         if eth_proto == 8:
-            version, header_length, ttl, proto, src, target, data = self.ipv4_packet(data)
+            version, header_length, ttl, proto, src_ip, dest_ip, data = self.ipv4_packet(data)
 
             # 6 for TCP
             if proto == 6:
@@ -132,9 +135,10 @@ class Sniffer(object):
 
         else:
             protocol = str(eth_proto)
+            return None
 
         return {
-            "packet_id": self.id_prefix +"_"+ str(self.pid),
+            "packet_id": self.id_prefix,
             "network_interface": network_interface,
             "src_mac": src_mac,
             "dest_mac": dest_mac,
@@ -143,26 +147,21 @@ class Sniffer(object):
             "src_port": src_port,
             "dest_port": dest_port,
             "protocol": protocol,
-            "size": size,
-            "out": is_outgoing,
-            "timestamp": datetime.now()
+            "size": len(payload) if payload else size,
+            "out": is_outgoing
         }
-
 
         # outbound_traffic.appendleft(x) if out else inbound_traffic.appendleft(x)
         # update_json(x, OUTBOUND) if out else update_json(x, INBOUND)
-
-
 
     def get_ip_address(self, ifname):
         s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
         return socket.inet_ntoa(fcntl.ioctl(s.fileno(), bytes(0x8915), struct.pack('256s', ifname[:15]))[20:24])
 
-
     def controller(self):
-        parser=argparse.ArgumentParser(fromfile_prefix_chars='=', add_help=False)
-        parser.add_argument('-ni','--network-interface', action='store_true')
-        parser.add_argument('--help', action='store_true', dest = 'help')
+        parser = argparse.ArgumentParser(fromfile_prefix_chars='=', add_help=False)
+        parser.add_argument('-ni', '--network-interface', action='store_true')
+        parser.add_argument('--help', action='store_true', dest='help')
         known, unknown = parser.parse_known_args()
         return known, unknown
 
@@ -177,20 +176,19 @@ class Sniffer(object):
         nic = ni.interfaces()
         for i in selected_interfaces:
             if i not in nic:
-                print("Interface",i, "does not exist")
+                print("Interface", i, "does not exist")
                 quit()
 
     def display_info(self):
         nic = ni.interfaces()
         for item in nic:
             try:
-                print("Network interface:",str(item))
-                print("IP in", item, "network interface:",ni.ifaddresses(str(item))[ni.AF_INET][0]['addr'])
+                print("Network interface:", str(item))
+                print("IP in", item, "network interface:", ni.ifaddresses(str(item))[ni.AF_INET][0]['addr'])
                 print("MAC in", item, "network interface:", ni.ifaddresses(str(item))[ni.AF_LINK][0]['addr'])
                 print("--------------\n")
             except Exception as e:
                 print(e)
-
 
 # Triggers the Sniffer
 # def main():
@@ -221,10 +219,9 @@ class Sniffer(object):
 #         print(selected_interfaces)
 
 
+# t3 = threading.Thread(target=sniffer.sniff)
 
-        # t3 = threading.Thread(target=sniffer.sniff)
-
-        # t3.start()
+# t3.start()
 
 #
 # if __name__ == "__main__":

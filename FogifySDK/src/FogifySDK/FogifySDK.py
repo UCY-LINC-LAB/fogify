@@ -172,6 +172,19 @@ class FogifySDK(object):
                 self.data[i].sort(key=lambda k: k['count'])
         return self
 
+    def get_network_packets_from(self, service, from_timestamp=None, to_timestamp=None, packet_type=None):
+
+        query = ""
+        query += "from_timestamp=" + str(
+            int(datetime.datetime.timestamp(from_timestamp))) + "&" if from_timestamp else ""
+        query += "to_timestamp=" + str(int(datetime.datetime.timestamp(to_timestamp))) + "&" if to_timestamp else ""
+        query += "packet_type=" + str(packet_type) + "&" if packet_type else ""
+        query += "service=" + service
+        data = requests.get(self.get_url("/packets/") + "?" + query).json()
+        res = pd.DataFrame.from_records(data["res"])
+
+        return res
+
     def get_metrics_from(self, service):
         if hasattr(self, 'data') and service in self.data:
             self.get_metrics(service=service,
@@ -182,9 +195,8 @@ class FogifySDK(object):
             self.get_metrics()
         res = pd.DataFrame.from_records(self.data[service])
         res.timestamp = pd.to_datetime(res['timestamp']).dt.tz_localize(None)
-        res.set_index('timestamp',inplace=True)
+        res.set_index('timestamp', inplace=True)
         return res
-
 
     def clean_metrics(self):
         self.clean_annotations()
@@ -212,9 +224,9 @@ class FogifySDK(object):
         if cpu and memory:
             raise Exception("You can not scale-up both cpu and memory at once.")
         if cpu:
-            if type(cpu)!=str:
+            if type(cpu) != str:
                 raise Exception("cpu parameter should be string")
-            if cpu[0] not in ['-','+']:
+            if cpu[0] not in ['-', '+']:
                 raise Exception("Select +/- to increase or decrease the cpu processing power")
             try:
                 int(cpu[1:])
@@ -391,7 +403,6 @@ class FogifySDK(object):
             )
         )
 
-
     def add_link(self, network_name, from_node, to_node, properties, bidirectional=True):
         self.check_docker_swarm_existence()
         exists = False
@@ -434,7 +445,6 @@ class FogifySDK(object):
             )
         )
 
-
     def plot(self, ax, service=None, metric=None, func=None, label=None, duration={}, style={}):
 
         df = self.get_metrics_from(service)
@@ -468,7 +478,6 @@ class FogifySDK(object):
         for xc, c, annot in zip(dates, colors, ad[label]):
             ax.axvline(x=xc, color=c, label=annot, linestyle=linestyle)
         return self
-
 
     def info(self):
         url = self.get_url("/topology/")

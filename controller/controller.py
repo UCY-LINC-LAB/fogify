@@ -8,7 +8,6 @@ class Controller(object):
 
     db = None
 
-
     def __init__(self, args, app):
         """
         It instantiates the Controller server
@@ -31,11 +30,13 @@ class Controller(object):
             ActionsAPI, \
             ControlAPI, \
             AnnotationAPI, \
-            DistributionAPI
+            DistributionAPI, \
+            SnifferAPI
 
         # Introduce the routes of the API
         app.add_url_rule('/topology/', view_func=TopologyAPI.as_view('Topology'))
         app.add_url_rule('/monitorings/', view_func=MonitoringAPI.as_view('Monitoring'))
+        app.add_url_rule('/packets/', view_func=SnifferAPI.as_view('Packets'))
         app.add_url_rule('/annotations/', view_func=AnnotationAPI.as_view('Annotations'))
         app.add_url_rule('/actions/<string:action_type>/', view_func=ActionsAPI.as_view('Action'))
         app.add_url_rule('/control/<string:service>/', view_func=ControlAPI.as_view('control'))

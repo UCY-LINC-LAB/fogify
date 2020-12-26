@@ -31,6 +31,8 @@ services:
       RAM_OVERSUBSCRIPTION_PERCENTAGE: ${RAM_OVERSUBSCRIPTION_PERCENTAGE}
       CPU_FREQ: ${CPU_FREQ}
       NAMESPACE_PATH: ${NAMESPACE_PATH}
+      SNIFFING_ENABLED: ${SNIFFING_ENABLED}
+      SNIFFING_PERIOD: ${SNIFFING_PERIOD}
   agent:
     build: .
     image: fogify #name the image and give it a tag [name:tag]
@@ -60,6 +62,8 @@ services:
       HOST_IP: ${HOST_IP}
       CPU_FREQ: ${CPU_FREQ}
       NAMESPACE_PATH: ${NAMESPACE_PATH}
+      SNIFFING_ENABLED: ${SNIFFING_ENABLED}
+      SNIFFING_PERIODICITY: ${SNIFFING_PERIODICITY}
   cadvisor:
     image: gcr.io/google-containers/cadvisor:v0.35.0
     volumes:

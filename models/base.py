@@ -20,16 +20,16 @@ class Node(BaseModel):
     node_specifications = []
 
     def __str__(self):
-        return "cpu: %s, memory: %s, node specifications: %s" %(self.capabilities['processor'], self.capabilities['memory'], self.node_specifications)
-
+        return "cpu: %s, memory: %s, node specifications: %s" % (
+            self.capabilities['processor'], self.capabilities['memory'], self.node_specifications)
 
 
 class Network(BaseModel):
     """ This class is the intermediate model of the network model"""
-    capacity=None
-    uplink={}
-    downlink={}
-    links=[]
+    capacity = None
+    uplink = {}
+    downlink = {}
+    links = []
 
     def get_bidirectional_links(self, res):
         if 'latency' in res:
@@ -42,7 +42,7 @@ class Network(BaseModel):
                 if latency.endswith('s'):
                     latency = latency[:-1]
                     latency_metric = "s"
-                res['latency']['delay'] = "%.2f" %(float(latency)/2) + latency_metric
+                res['latency']['delay'] = "%.2f" % (float(latency) / 2) + latency_metric
                 if 'deviation' in res['latency']:
                     deviation = res['latency']['deviation']
                     deviation = deviation.strip()
@@ -52,11 +52,11 @@ class Network(BaseModel):
                     if deviation.endswith('s'):
                         deviation = deviation[:-1]
                         deviation_metric = "s"
-                    res['latency']['deviation'] =  "%.2f" %(float(deviation)/2) + deviation_metric
+                    res['latency']['deviation'] = "%.2f" % (float(deviation) / 2) + deviation_metric
         if 'drop' in res:
             drop = res['drop'].strip()
             drop = drop[:-1] if drop.endswith('%') else drop
-            res['drop'] = "%.2f" %(float(drop)/2) + '%'
+            res['drop'] = "%.2f" % (float(drop) / 2) + '%'
         return NetworkAction(**res)
 
     def get_uplink(self):
@@ -65,7 +65,7 @@ class Network(BaseModel):
         elif hasattr(self, 'bidirectional'):
             return self.get_bidirectional_links(copy.deepcopy(self.bidirectional))
         else:
-            raise Exception("You have to specify uplink or bidirectional characteristics (%s)"%self.__dict__)
+            raise Exception("You have to specify uplink or bidirectional characteristics (%s)" % self.__dict__)
 
     def get_downlink(self):
         if self.downlink != {}:
@@ -73,9 +73,10 @@ class Network(BaseModel):
         elif hasattr(self, 'bidirectional'):
             return self.get_bidirectional_links(copy.deepcopy(self.bidirectional))
         else:
-            raise Exception("You have to specify uplink or bidirectional characteristics (%s)"%self.__dict__)
+            raise Exception("You have to specify uplink or bidirectional characteristics (%s)" % self.__dict__)
+
     def __str__(self):
-        return "uplink: %s , downlink: %s "%(self.get_uplink(),self.get_uplink())
+        return "uplink: %s , downlink: %s " % (self.get_uplink(), self.get_uplink())
 
     def get_links(self):
         temp = {}
@@ -87,8 +88,10 @@ class Network(BaseModel):
                         temp[i['from_node']] = {}
                     if i['to_node'] not in temp:
                         temp[i['to_node']] = {}
-                    temp[i['from_node']][i['to_node']] = self.get_bidirectional_links(copy.deepcopy(i['properties'])).get_command()
-                    temp[i['to_node']][i['from_node']] = self.get_bidirectional_links(copy.deepcopy(i['properties'])).get_command()
+                    temp[i['from_node']][i['to_node']] = self.get_bidirectional_links(
+                        copy.deepcopy(i['properties'])).get_command()
+                    temp[i['to_node']][i['from_node']] = self.get_bidirectional_links(
+                        copy.deepcopy(i['properties'])).get_command()
                 else:
                     if i['from_node'] not in temp:
                         temp[i['from_node']] = {}
@@ -97,7 +100,7 @@ class Network(BaseModel):
 
     @property
     def network_record(self):
-        res={}
+        res = {}
         if self.capacity is not None:
             res['capacity'] = self.capacity
         res['uplink'] = self.get_uplink().get_command()
@@ -108,21 +111,24 @@ class Network(BaseModel):
 
 class Topology(object):
     """ This class represents a topology object capable to be translated to the underlying container orchestrator"""
+
     def __init__(self, node, service, label, replicas=1, networks=[]):
-        self.node=node
-        self.service=service
-        self.label=label
-        self.replicas=replicas
-        self.networks=networks
+        self.node = node
+        self.service = service
+        self.label = label
+        self.replicas = replicas
+        self.networks = networks
+
     def __str__(self):
-        return "node: %s, service: %s, replicas: %s, networks: %s " %( self.node,
-                    self.service,
-                    self.replicas,
-                    self.networks)
+        return "node: %s, service: %s, replicas: %s, networks: %s " % (self.node,
+                                                                       self.service,
+                                                                       self.replicas,
+                                                                       self.networks)
 
     @property
     def service_name(self):
-        return "%s"%(self.label)
+        return "%s" % (self.label)
+
 
 class Deployment(BaseModel):
     """
@@ -131,7 +137,6 @@ class Deployment(BaseModel):
     """
 
     topology = []
-
 
     def get_topologies(self):
         return [Topology(**i) for i in self.topology]
@@ -150,20 +155,20 @@ class FogifyModel(object):
     deployments = []
 
     def __init__(self, data):
-        fogify=data["x-fogify"]
+        fogify = data["x-fogify"]
         self.services = data["services"] if "services" in data else []
         self.nodes = [Node(i) for i in fogify['nodes']] if 'nodes' in fogify else []
         self.networks = [Network(i) for i in fogify['networks']] if 'networks' in fogify else []
         self.deployment = Deployment({"topology": fogify['topology']}) if 'topology' in fogify else None
 
-            # [Deployment(i) for i in fogify['deployments']] if 'deployments' in fogify else []
+        # [Deployment(i) for i in fogify['deployments']] if 'deployments' in fogify else []
 
     @property
     def all_networks(self):
         res = []
         for network in self.networks:
             cur = {'name': network.name}
-            if hasattr( network, 'subnet') and hasattr(network,'gateway'):
+            if hasattr(network, 'subnet') and hasattr(network, 'gateway'):
                 cur['subnet'] = network.subnet
                 cur['gateway'] = network.gateway
             res.append(cur)
@@ -183,12 +188,11 @@ class FogifyModel(object):
         return self.deployment.get_topologies()
 
     def __repr__(self):
-        return "Nodes: %s , Networks: %s , Deployment: %s , Services: %s"%(
+        return "Nodes: %s , Networks: %s , Deployment: %s , Services: %s" % (
             self.nodes,
             self.networks,
             self.deployment,
             self.services)
-
 
     def node_object(self, node_name):
         real_node = None
@@ -204,7 +208,8 @@ class FogifyModel(object):
         real_node = None
         extra_name = ""
         if type(network_object) == dict:
-            if ('uplink' not in network_object or 'downlink' not in network_object) and 'bidirectional' not in network_object:
+            if (
+                    'uplink' not in network_object or 'downlink' not in network_object) and 'bidirectional' not in network_object:
                 if 'name' in network_object:
                     extra_name = network_object['name']
         if type(network_object) == str:
@@ -223,12 +228,13 @@ class FogifyModel(object):
     def service_count(self):
         sum = 0
         for i in self.topology:
-            sum+=i.replicas
+            sum += i.replicas
         return sum
 
     @property
     def topology(self):
         return self.deployment.get_topologies()
+
 
 class NetworkGenerator(object):
     """
