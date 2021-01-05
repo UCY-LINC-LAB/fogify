@@ -82,7 +82,7 @@ class TopologyAPI(MethodView):
         t = AsyncTask(self, 'submition', [connector, path, model.all_networks])
         t.start()
         return {
-            "success": True,
+            "message": "OK",
             "swarm": swarm,
             "networks": networks
         }
