@@ -95,3 +95,6 @@ series    = {SEC ’20}
 ### Acknowledgements
 This work is partially supported by the EU Commission through [RAINBOW](https://rainbow-h2020.eu/)  871403 (ICT-15-2019-2020) project 
 and by the Cyprus Research and Innovation Foundation through COMPLEMENTARY/0916/0916/0171 project.
+
+### License
+The framework is open-sourced under the Apache 2.0 License base. The codebase of the framework is maintained by the authors for academic research and is therefore provided "as is".
