@@ -1,3 +1,4 @@
+import os
 import subprocess
 from time import sleep
 import docker
@@ -6,9 +7,11 @@ import requests
 from os.path import exists
 import json
 
+from nsenter import Namespace
+
 from agent.models import Status, Metric, db, Record
 from utils import DockerManager
-from utils.DockerManager import get_container_ip_property
+from utils.DockerManager import get_container_ip_property, get_pid_from_container
 
 
 class MetricCollector(object):
@@ -46,7 +49,11 @@ class MetricCollector(object):
             else:
                 count = int(count.value)
 
-            docker_instances = requests.get("http://%s:9090/api/v1.3/docker/" % agent_ip).json()
+            try:
+                docker_instances = requests.get("http://%s:9090/api/v1.3/docker/" % agent_ip).json()
+            except:
+                docker_instances = []
+
             for i in docker_instances:
                 try:
                     instance = docker_instances[i]
@@ -73,12 +80,18 @@ class MetricCollector(object):
                         r.count = count
                         r.instance_name = instance_name
                         cpu_specs = instance['spec']['cpu']
-                        mem_specs = instance['spec']['memory']['limit']
+                        mem_specs = instance['spec']['memory']['limit'] if 'limit' in instance['spec']['memory'] else \
+                            machine['memory_capacity']
                         if last_cpu_record:
                             timedif = abs(millis_interval(r.timestamp.replace(tzinfo=None),
                                                           record.timestamp.replace(tzinfo=None)))
+                            if timedif == 0:
+                                timedif = 1
                             rate = (float(last_stat['cpu']['usage']['total']) - float(last_cpu_record.value)) / timedif
-                            cpu_util_val = rate / (float(cpu_specs['quota']) / float(cpu_specs['period']))
+
+                            cpu_util_val = rate / (float(cpu_specs['quota'] if 'quota' in cpu_specs else int(
+                                cpu_specs['mask'].split("-")[-1]) + 1) / float(
+                                cpu_specs['period'] if 'period' in cpu_specs else 1.0))
                             cpu_util_val /= 10000
                         else:
                             cpu_util_val = 0
@@ -111,20 +124,28 @@ class MetricCollector(object):
 
                         client = docker.from_env()
                         container = client.containers.get(instance["id"])
+                        nets = {container.attrs["NetworkSettings"]["Networks"][network]['IPAMConfig'][
+                                    'IPv4Address']: network
+                                for network in container.attrs["NetworkSettings"]["Networks"]}
                         for cadv_net in last_stat['network']['interfaces']:
-                            conf = Status.query.filter_by(name=instance["id"] + "|" + cadv_net["name"]).first()
+                            search = "%{}%".format(container.name + "|" + cadv_net["name"] + "|")
+                            conf = Status.query.filter(Status.name.like(search)).first()
 
                             if conf is None:
-                                eth_ip = get_container_ip_property(instance["id"], cadv_net["name"])
+                                eth_ip = None
+                                proc = os.environ["NAMESPACE_PATH"] if "NAMESPACE_PATH" in os.environ else "/proc/"
+                                pid = get_pid_from_container(container.attrs['Name'][1:]).split(" ")[-1]
+                                with Namespace(proc + "/" + str(pid) + "/ns/net", 'net'):
+                                    eth_ip = get_container_ip_property(instance["id"], cadv_net["name"])
+                                if not eth_ip:
+                                    continue
                                 ip = eth_ip[eth_ip.find("inet ") + len("inet "):eth_ip.rfind("/")]
-
-                                Status.update_config(ip, instance["id"] + "|" + cadv_net["name"])
+                                if ip in nets:
+                                    Status.update_config(ip, container.name + "|" + cadv_net["name"] + "|" + nets[ip])
+                                else:
+                                    Status.update_config(ip, container.name + "|" + cadv_net["name"] + "|")
                             else:
                                 ip = conf.value
-
-                            nets = {container.attrs["NetworkSettings"]["Networks"][network]['IPAMConfig'][
-                                        'IPv4Address']: network
-                                    for network in container.attrs["NetworkSettings"]["Networks"]}
 
                             if ip in nets and nets[ip] != 'ingress':
                                 net_in = Metric(metric_name="network_rx_" + nets[ip], value=int(cadv_net['rx_bytes']))

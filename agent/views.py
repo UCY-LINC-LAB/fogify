@@ -7,10 +7,51 @@ from flask.views import MethodView
 
 from flask import current_app as app
 
-from agent.models import Status, Record, Metric
+from agent.models import Status, Record, Metric, Packet
 from utils.monitoring import MetricCollector
 from utils.network import apply_network_rule, read_network_rules, apply_default_rules, \
     inject_network_distribution
+
+
+class SnifferAPI(MethodView):
+    ip_to_info = {}
+
+    def ip_to_info_helper(self, ip):
+        if ip not in self.ip_to_info:
+            ip_to_info = Status.query.filter_by(value=ip).first()
+            self.ip_to_info[ip] = ip_to_info.name.split("|") if ip_to_info else None
+        return self.ip_to_info[ip]
+
+    def get(self):
+        query = Packet.query
+        from_timestamp = request.args.get('from_timestamp')
+        to_timestamp = request.args.get('to_timestamp')
+        service = request.args.get('service')
+        packet_type = request.args.get('packet_type')
+        if from_timestamp:
+            query = query.filter(Packet.timestamp > datetime.fromtimestamp(int(from_timestamp)))
+        if to_timestamp:
+            query = query.filter(Packet.timestamp < datetime.fromtimestamp(int(to_timestamp)))
+        if service is not None:
+            search = "%{}%".format(service)
+            query = query.filter(Packet.service_id.ilike(search))
+        if packet_type:
+            query = query.filter(Packet.packet_type == packet_type)
+        row2dict = lambda r: {c.name: str(getattr(r, c.name)) for c in r.__table__.columns}
+        res = [row2dict(r) for r in query.all()]
+        for r in res:
+            src_obj = self.ip_to_info_helper(r['src_ip'])
+            dest_obj = self.ip_to_info_helper(r['dest_ip'])
+            r['src_instance'] = src_obj[0] if src_obj else r['src_ip']
+            r['dest_instance'] = dest_obj[0] if dest_obj else r['dest_ip']
+            r['network'] = None if src_obj is None else src_obj[2]
+            if r['network'] is None:
+                r['network'] = None if dest_obj is None else dest_obj[2]
+        return res
+
+    def delete(self):
+        Packet.query.delete()
+        return {"message": "The packets are empty now"}
 
 
 class MonitoringAPI(MethodView):
@@ -75,6 +116,7 @@ class TopologyAPI(MethodView):
 
 class ActionAPI(MethodView):
     """ Fogify Controller send ad-hoc actions through ActionAPI """
+
     def post(self):
         client = docker.from_env()
         instances = []
@@ -128,6 +170,7 @@ class ActionAPI(MethodView):
 
 class DistributionAPI(MethodView):
     """ Through this API controller disseminates a new network delay distribution """
+
     def post(self, name):
         path = os.getcwd() + app.config['UPLOAD_FOLDER']
 

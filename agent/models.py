@@ -5,6 +5,7 @@ from agent.agent import Agent
 
 db = Agent.db
 
+
 class Status(db.Model):
     """
     This class saves status of crucial parameters of Agent's Execution
@@ -17,6 +18,7 @@ class Status(db.Model):
         status = Status(name=name, value=value)
         db.session.merge(status)
         db.session.commit()
+
 
 class Record(db.Model):
     """
@@ -31,6 +33,7 @@ class Record(db.Model):
         db.Index('timestamp_service', timestamp.desc(), instance_name),
     )
 
+
 class Metric(db.Model):
     """
     Metric is combination of a metric name and a measurement at a specific timestamp
@@ -39,5 +42,20 @@ class Metric(db.Model):
     metric_name = db.Column(db.String(250))
     value = db.Column(db.Float())
     record_id = db.Column(db.Integer, db.ForeignKey('record.id'))
+
+
+class Packet(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    service_id = db.Column(db.String(250))
+    src_ip = db.Column(db.String(250))
+    dest_ip = db.Column(db.String(250))
+    # src_port = db.Column(db.String(250))
+    # dest_port = db.Column(db.String(250))
+    protocol = db.Column(db.String(250))
+    size = db.Column(db.Integer())
+    count = db.Column(db.Integer())
+    out = db.Column(db.Boolean())
+    timestamp = db.Column(db.DateTime())
+
 
 db.create_all()

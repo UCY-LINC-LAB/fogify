@@ -1,0 +1,44 @@
+version: '3.7'
+
+services:
+  agent:
+    build: .
+    image: fogify #name the image and give it a tag [name:tag]
+    entrypoint: [ "python", "/code/fogify/main.py", "--agent", "--agent-ip", "${HOST_IP}"]
+    extra_hosts:
+      - ${MANAGER_NAME}:${MANAGER_IP}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+      - /proc:${NAMESPACE_PATH}
+      - /var/run/docker/:/var/run/docker/
+      - /sys/class/net/:/sys/class/net/
+      - /usr/bin/nsenter:/usr/bin/nsenter
+      - /lib/modules:/lib/modules
+      - /sbin/modprobe:/sbin/modprobe
+      - /usr/lib/tc:/usr/lib/tc
+    privileged: true
+    cap_add:
+      - ALL
+    depends_on:
+      - cadvisor
+    ports:
+      - 5500:5500
+    environment:
+      CONTROLLER_IP: ${MANAGER_IP}
+      HOST_IP: ${HOST_IP}
+      CPU_FREQ: ${CPU_FREQ}
+      NAMESPACE_PATH: ${NAMESPACE_PATH}
+  cadvisor:
+    image: budry/cadvisor-arm:latest
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - 9090:8080
+    expose:
+      - 8080
+      - 9090

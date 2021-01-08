@@ -1,0 +1,161 @@
+services:
+  car-workload:
+    environment:
+      NODE_TYPE: IOT_NODE
+    image: taxi-exp:0.0.1
+    volumes:
+    - /home/ubuntu/data:/data
+  cloud-server:
+    environment:
+      NODE_TYPE: CLOUD_NODE
+    image: taxi-exp:0.0.1
+  mec-svc-1:
+    environment:
+      NODE_TYPE: EDGE_NODE
+      REGION: bronx
+    image: taxi-exp:0.0.1
+  mec-svc-2:
+    environment:
+      NODE_TYPE: EDGE_NODE
+      REGION: brooklyn
+    image: taxi-exp:0.0.1
+version: '3.7'
+x-fogify:
+  networks:
+  - downlink:
+      bandwidth: 5Mbps
+      latency:
+        delay: 50ms
+    name: internet
+    uplink:
+      bandwidth: 10Mbps
+      drop: 0.1%
+      latency:
+        delay: 50ms
+  - bidirectional:
+      bandwidth: 100Mbps
+      drop: 0.1%
+      latency:
+        delay: 5ms
+    name: edge-net-1
+  - bidirectional:
+      bandwidth: 100Mbps
+      drop: 0.1%
+      latency:
+        delay: 5ms
+    name: edge-net-2
+  nodes:
+  - capabilities:
+      memory: 4G
+      processor:
+        clock_speed: 1400
+        cores: 4
+    name: cloud-server-node
+  - capabilities:
+      memory: 2G
+      processor:
+        clock_speed: 1400
+        cores: 2
+    name: edge-node
+  - capabilities:
+      memory: 0.5G
+      processor:
+        clock_speed: 700
+        cores: 1
+    name: car-node
+  topology:
+  - label: cloud-server
+    networks:
+    - internet
+    node: cloud-server-node
+    replicas: 1
+    service: cloud-server
+  - label: mec-svc-1
+    networks:
+    - edge-net-1
+    - internet
+    node: edge-node
+    replicas: 1
+    service: mec-svc-1
+  - label: mec-svc-2
+    networks:
+    - edge-net-2
+    - internet
+    node: edge-node
+    replicas: 1
+    service: mec-svc-2
+  - label: car-workload-1
+    networks:
+    - edge-net-1
+    - internet
+    node: car-node
+    replicas: 2
+    service: car-workload
+  - label: car-workload-2
+    networks:
+    - edge-net-2
+    - name: internet
+      ip: 10.15.0.3
+    node: car-node
+    replicas: 1
+    service: car-workload
+  scenarios:
+  - name: scenario_1
+    actions:
+    - time: 30
+      position: 0
+      instance_type: mec-svc-1
+      instances: 1
+      action:
+        type: network
+        parameters:
+            network: edge-net-1
+            bidirectional:
+              bandwidth: 100Mbps
+              drop: 0.1%
+              latency:
+                delay: 1000ms
+    - time: 20
+      position: 1
+      instance_type: mec-svc-1
+      instances: 1
+      action:
+        type: network
+        parameters:
+            network: edge-net-1
+            bidirectional:
+              bandwidth: 100Mbps
+              drop: 0.1%
+              latency:
+                delay: 5ms
+    - time: 30
+      position: 2
+      instance_type: mec-svc-1
+      instances: 1
+      action:
+        type: network
+        parameters:
+            network: edge-net-1
+            bidirectional:
+              bandwidth: 100Mbps
+              drop: 0.1%
+              latency:
+                delay: 11000ms
+    - time: 20
+      position: 3
+      instance_type: mec-svc-1
+      instances: 1
+      action:
+        type: network
+        parameters:
+            network: edge-net-1
+            bidirectional:
+              bandwidth: 100Mbps
+              drop: 0.1%
+              latency:
+                delay: 5ms
+    - time: 30
+      position: 4
+      instance_type: mec-svc-1
+      instances: 1
+      action: "NOOP"

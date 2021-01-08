@@ -5,3 +5,7 @@ docker
 Flask-SQLAlchemy
 pyyaml
 python-dateutil
+psutil
+py-cpuinfo
+netifaces
+nsenter

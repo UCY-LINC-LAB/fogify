@@ -5,37 +5,37 @@ RULE=${3}
 RULE_OUT=${4}
 ext_ingress=ifb${5}
 CREATE=${6}
-#IPS_FILTERS=${7}
+NSPATH=${7}
 #fogify_edge-node-bronx.1.wkxorku5pi2l52z78d4tfwdx9 internet  delay 15ms  rate 10Mbps  loss 0.0001   delay 15ms  rate 10Mbps  loss 0.0001  wkxorku5pi TRUE
 
-if [ $CREATE = 'TRUE' ]
+if [ "$CREATE" = "true" ]
 then
     #create virtual interface
-    nsenter -t $PID -n modprobe ifb
+    modprobe ifb
     echo 1
-    nsenter -t $PID -n ip link add $ext_ingress type ifb
+    ip link add "$ext_ingress" type ifb
     echo 2
-    nsenter -t $PID -n ifconfig $ext_ingress up # begin the virtual interface
+    ifconfig "$ext_ingress" up # begin the virtual interface
     echo 3
     # Create ingress on external interface
-    nsenter -t $PID -n tc qdisc add dev $INTERFACE handle ffff: ingress
+    tc qdisc add dev "$INTERFACE" handle ffff: ingress
     echo 4
     #redirect traffic to ext_ingress
-    nsenter -t $PID -n tc filter add dev $INTERFACE parent ffff: protocol ip u32 match u32 0 0 action mirred egress redirect dev $ext_ingress
+    tc filter add dev "$INTERFACE" parent ffff: protocol ip u32 match u32 0 0 action mirred egress redirect dev "$ext_ingress"
     echo 5
     # nsenter -t $PID -n tc qdisc add dev $ext_ingress root handle 1: htb default 11
 
 fi
 echo 6
-nsenter -t $PID -n tc qdisc del dev $INTERFACE root  #fogify_edge-node-bronx.1.fkmb32v61bzkeutddjhr7ujpl region_bronx  'delay 5ms  rate 100Mbps  loss 0.0001'   'delay 5ms  rate 100Mbps' loss 0.0001'  fkmb32v61b TRUE
+tc qdisc del dev "$INTERFACE" root  #fogify_edge-node-bronx.1.fkmb32v61bzkeutddjhr7ujpl region_bronx  'delay 5ms  rate 100Mbps  loss 0.0001'   'delay 5ms  rate 100Mbps' loss 0.0001'  fkmb32v61b TRUE
 echo 7
-nsenter -t $PID -n tc qdisc del dev $ext_ingress root
+tc qdisc del dev "$ext_ingress" root
 
 #########
 # INGRESS
 #########
 echo 8
-nsenter -t $PID -n tc qdisc add dev $INTERFACE root netem $RULE
+tc qdisc add dev "$INTERFACE" root netem $RULE
 echo 9
 #########
 # EGRESS
@@ -43,14 +43,14 @@ echo 9
 
 #nsenter -t $PID -n tc qdisc add dev $ext_ingress root
 
-nsenter -t $PID -n tc qdisc add dev $ext_ingress handle 1: root htb direct_qlen 100000
+tc qdisc add dev "$ext_ingress" handle 1: root htb direct_qlen 100000
 echo 10
 
-nsenter -t $PID -n tc class add dev $ext_ingress parent 1: classid 1:1 htb rate 10000mbit
+tc class add dev "$ext_ingress" parent 1: classid 1:1 htb rate 10000mbit
 echo 11
-nsenter -t $PID -n tc class add dev $ext_ingress parent 1:1 classid 1:11 htb rate 10000mbit
+tc class add dev "$ext_ingress" parent 1:1 classid 1:11 htb rate 10000mbit
 echo 12
-nsenter -t $PID -n tc qdisc add dev $ext_ingress parent 1:11 handle 10: netem $RULE_OUT
+tc qdisc add dev "$ext_ingress" parent 1:11 handle 10: netem $RULE_OUT
 echo 13
 
 

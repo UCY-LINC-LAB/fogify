@@ -4,6 +4,7 @@ from controller.controller import Controller
 
 db = Controller.db
 
+
 class Status(db.Model):
     """
     This class saves status of crucial parameters of Agent's Execution
@@ -18,10 +19,9 @@ class Status(db.Model):
         db.session.commit()
 
 
-
-
 class Annotation(db.Model):
     """ Model for the annotations. Annotations capture the actions that the Users apply to the Fogify"""
+
     class TYPES(Enum):
         START = "START"
         DEPLOY = "DEPLOY"
@@ -49,7 +49,7 @@ class Annotation(db.Model):
         }
 
     @classmethod
-    def create(cls, annotation ,instance_names="Topology", params=None):
+    def create(cls, annotation, instance_names="Topology", params=None):
         if type(instance_names) == list:
             for i in instance_names:
                 a = Annotation(annotation=annotation, instance_name=i, params=params)
@@ -58,6 +58,7 @@ class Annotation(db.Model):
             a = Annotation(annotation=annotation, instance_name=instance_names, params=params)
             db.session.add(a)
         db.session.commit()
+
 
 db.create_all()
 Status.update_config('available')

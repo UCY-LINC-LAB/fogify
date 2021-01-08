@@ -16,7 +16,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.agent:
-        agent = Agent(args,app)
+        agent = Agent(args, app)
         sys.exit(0)
 
     if args.controller:

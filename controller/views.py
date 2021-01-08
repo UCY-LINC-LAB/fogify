@@ -18,12 +18,14 @@ from utils.network import generate_network_distribution
 
 class AnnotationAPI(MethodView):
     """ Stores and returns the capture action's timestamps for a deployment"""
+
     def get(self):
         return [annotation.to_dict() for annotation in Annotation.query.all()]
 
     def delete(self):
         Annotation.query.delete()
-        return {"message":"Annotations are clear"}
+        return {"message": "Annotations are clear"}
+
 
 class TopologyAPI(MethodView):
     """ This class is responsible for topology deployment API calls"""
@@ -60,7 +62,6 @@ class TopologyAPI(MethodView):
         f = open(os.path.join(path, "docker-compose.yaml"), "r")
         infra = yaml.load(f)
 
-
         # application = infra.copy()
         from models.base import FogifyModel
         model = FogifyModel(infra)
@@ -68,18 +69,20 @@ class TopologyAPI(MethodView):
         connector = SwarmConnector(model,
                                    path=path,
                                    frequency=int(os.environ['CPU_FREQ']) if 'CPU_FREQ' in os.environ else 2400,
-                                   cpu_oversubscription=int(os.environ['CPU_OVERSUBSCRIPTION_PERCENTAGE']) if 'CPU_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0,
-                                   ram_oversubscription=int(os.environ['RAM_OVERSUBSCRIPTION_PERCENTAGE']) if 'RAM_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0
-        )
+                                   cpu_oversubscription=int(os.environ[
+                                                                'CPU_OVERSUBSCRIPTION_PERCENTAGE']) if 'CPU_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0,
+                                   ram_oversubscription=int(os.environ[
+                                                                'RAM_OVERSUBSCRIPTION_PERCENTAGE']) if 'RAM_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0
+                                   )
         swarm = connector.generate_files()
 
         networks = NetworkGenerator(model).generate_network_rules()
         yaml.dump(networks, open(path + "fogified-network.yaml", 'w'), default_flow_style=False)
 
-        t = AsyncTask(self, 'submition', [connector, path , model.all_networks])
+        t = AsyncTask(self, 'submition', [connector, path, model.all_networks])
         t.start()
         return {
-            "success": True,
+            "message": "OK",
             "swarm": swarm,
             "networks": networks
         }
@@ -90,13 +93,11 @@ class TopologyAPI(MethodView):
         swarmController.down()
         Annotation.create(Annotation.TYPES.UNDEPLOY.value)
 
-
-
     def submition(self, connector, path, networks):
         """ A utility function that deploys a topology """
 
         nodes = connector.get_nodes()
-        #add network rules
+        # add network rules
         for i in nodes:
             r = requests.post('http://' + nodes[i] + ':5500/topology/',
                               files={'file': open(path + "fogified-network.yaml", 'rb')})
@@ -107,7 +108,7 @@ class TopologyAPI(MethodView):
             except Exception:
                 pass
 
-        #submit the current deployment
+        # submit the current deployment
         try:
             connector.deploy()
         except Exception as ex:
@@ -132,9 +133,8 @@ class MonitoringAPI(MethodView):
                 r = requests.delete('http://' + nodes[i] + ':5500/monitorings/').json()
                 res.update(r)
             except ConnectionError as e:
-                print('The agent of node '+str(i)+' is offline')
+                print('The agent of node ' + str(i) + ' is offline')
         return {"message": "The monitorings are empty now"}
-
 
     def get(self):
         """ Returns the stored monitoring data """
@@ -143,8 +143,8 @@ class MonitoringAPI(MethodView):
             from_timestamp = request.args.get('from_timestamp')
             to_timestamp = request.args.get('to_timestamp')
             service = request.args.get('service')
-            query += "from_timestamp="+from_timestamp+"&" if from_timestamp else ""
-            query += "to_timestamp=" + to_timestamp+"&" if to_timestamp else ""
+            query += "from_timestamp=" + from_timestamp + "&" if from_timestamp else ""
+            query += "to_timestamp=" + to_timestamp + "&" if to_timestamp else ""
             query += "service=" + service if service else ""
             swarmController = SwarmConnector()
             nodes = swarmController.get_nodes()
@@ -152,19 +152,21 @@ class MonitoringAPI(MethodView):
             for i in nodes:
                 try:
                     url = 'http://' + nodes[i] + ':5500/monitorings/'
-                    url = url+"?"+query if query !="" else url
+                    url = url + "?" + query if query != "" else url
                     r = requests.get(url).json()
                     res.update(r)
                 except ConnectionError as e:
-                    print('The agent of node '+str(i)+' is offline')
+                    print('The agent of node ' + str(i) + ' is offline')
             return res
         except Exception as e:
             return {
                 "Error": "{0}".format(e)
             }
 
+
 class ActionsAPI(MethodView):
     """ This API class applies the actions to a running topology"""
+
     def instance_ids(self, params):
         docker_instances = SwarmConnector().get_all_instances()
         if 'instance_id' in params and params['instance_id'] in docker_instances:
@@ -176,10 +178,10 @@ class ActionsAPI(MethodView):
             instances = {}
             for node in docker_instances:
                 for i in docker_instances[node]:
-                    if i.find(instance_type)>=0:
+                    if i.find(instance_type) >= 0:
                         if node not in instances:
                             instances[node] = []
-                        instances[node]+=[i]
+                        instances[node] += [i]
             return instances
         return {}
 
@@ -196,27 +198,29 @@ class ActionsAPI(MethodView):
         # TODO check how to define the possible containers or services
         if 'params' in data:
             params = data['params']
-            if action_type=="horizontal_scaling":
+            if action_type == "horizontal_scaling":
 
-                    instances = int(params['instances'])
-                    if params['type'] == 'up':
-                        service_count = int(swarmController.count_services(params['instance_type'])) + instances
-                        Annotation.create(Annotation.TYPES.H_SCALE_UP.value, instance_names=params['instance_type'], params = "num of instances: " + str(instances))
-                    else:
-                        service_count = int(swarmController.count_services(params['instance_type'])) - instances
-                        service_count = 0 if service_count<0 else service_count
-                        Annotation.create(Annotation.TYPES.H_SCALE_DOWN.value, instance_names=params['instance_type'], params = "num of instances: " + str(instances))
-                    swarmController.scale(params['instance_type'], service_count)
+                instances = int(params['instances'])
+                if params['type'] == 'up':
+                    service_count = int(swarmController.count_services(params['instance_type'])) + instances
+                    Annotation.create(Annotation.TYPES.H_SCALE_UP.value, instance_names=params['instance_type'],
+                                      params="num of instances: " + str(instances))
+                else:
+                    service_count = int(swarmController.count_services(params['instance_type'])) - instances
+                    service_count = 0 if service_count < 0 else service_count
+                    Annotation.create(Annotation.TYPES.H_SCALE_DOWN.value, instance_names=params['instance_type'],
+                                      params="num of instances: " + str(instances))
+                swarmController.scale(params['instance_type'], service_count)
 
             else:
                 selected_instances = self.instance_ids(params)
                 commands = {}
-                if action_type=="vertical_scaling":
+                if action_type == "vertical_scaling":
                     vaction = VerticalScalingAction(**data['params']['action'])
-                    commands['vertical_scaling'] = {vaction.get_command() : vaction.get_value()}
+                    commands['vertical_scaling'] = {vaction.get_command(): vaction.get_value()}
                     Annotation.create(Annotation.TYPES.V_SCALE.value, instance_names=params['instance_type'],
                                       params="parameters: " + vaction.get_command() + "=>" + vaction.get_value())
-                if action_type=="network":
+                if action_type == "network":
                     action = data['params']
                     commands = Network(action).network_record
                     commands['network'] = action['network']
@@ -227,11 +231,13 @@ class ActionsAPI(MethodView):
                     service_cpu = None
                     if 'instance_type' in params:
                         service_cpu = swarmController.get_running_container_processing(
-                            params['instance_type'] if not params['instance_type'].split(".")[-1].isnumeric() else "".join(params['instance_type'].split(".")[:-1])
+                            params['instance_type'] if not params['instance_type'].split(".")[
+                                -1].isnumeric() else "".join(params['instance_type'].split(".")[:-1])
                         )
                     elif 'instance_id' in params:
                         service_cpu = swarmController.get_running_container_processing(
-                            params['instance_id'] if not params['instance_id'].split(".")[-1].isnumeric() else "".join(params['instance_id'].split(".")[:-1])
+                            params['instance_id'] if not params['instance_id'].split(".")[-1].isnumeric() else "".join(
+                                params['instance_id'].split(".")[:-1])
                         )
                     else:
                         service_cpu = 1
@@ -249,8 +255,9 @@ class ActionsAPI(MethodView):
 
                 action_url = 'http://%s:5500/actions/'
                 for i in selected_instances:
+                    print(i)
                     requests.post(
-                        action_url%socket.gethostbyname(i), json={
+                        action_url % socket.gethostbyname(i), json={
                             'instances': selected_instances[i],
                             'commands': commands
                         }, headers={'Content-Type': "application/json"}
@@ -258,17 +265,26 @@ class ActionsAPI(MethodView):
 
         return {"message": "OK"}
 
+
 class ControlAPI(MethodView):
     """ This API is only for internal use between Agents and Controller"""
-    def get(self):
-        return {"swarm-command": Status.query.filter_by(name="swarm-ca").first().value}
+
+    def get(self, service):
+        if service.lower() == "controller-properties":
+            try:
+                return {"credits": SwarmConnector().get_manager_info()}
+            except Exception as ex:
+                print(ex)
+                return {"credits": ""}
+        else:
+            return {"message": "error"}
 
     def post(self, service):
         for ser in service.split("|"):
             commands = {"instances": [ser], "network_reset": 'true'}
             action_url = 'http://%s:5500/actions/'
             docker_instances = SwarmConnector().get_all_instances()
-            selected_instances=[]
+            selected_instances = []
             for node in docker_instances:
                 for docker_instance in docker_instances[node]:
                     if service in docker_instance and node not in selected_instances:
@@ -282,6 +298,7 @@ class ControlAPI(MethodView):
                 )
 
         return {"message": "OK"}
+
 
 class DistributionAPI(MethodView):
     """This API generates a network delay distribution from a network delay trace file (ping)"""
@@ -301,13 +318,58 @@ class DistributionAPI(MethodView):
         res = {}
         for l in lines:
             line = l.split("=")
-            if len(line)==2:
+            if len(line) == 2:
                 res[line[0].strip()] = line[1].strip()
         connector = SwarmConnector()
         nodes = connector.get_nodes()
 
         for i in nodes:
-            r = requests.post('http://' + nodes[i] + ':5500/generate-network-distribution/%s/'%name,
-                              files={'file': open(os.path.join(path, name+".dist"), 'rb')})
+            r = requests.post('http://' + nodes[i] + ':5500/generate-network-distribution/%s/' % name,
+                              files={'file': open(os.path.join(path, name + ".dist"), 'rb')})
 
         return {"generated-distribution": res}
+
+
+class SnifferAPI(MethodView):
+    def delete(self):
+        """ Removes the stored monitoring data """
+        swarmController = SwarmConnector()
+        nodes = swarmController.get_nodes()
+        res = {}
+        for i in nodes:
+            try:
+                r = requests.delete('http://' + nodes[i] + ':5500/packets/').json()
+                res.update(r)
+            except ConnectionError as e:
+                print('The agent of node ' + str(i) + ' is offline')
+        return {"message": "The monitorings are empty now"}
+
+    def get(self):
+        """ Returns the stored monitoring data """
+        try:
+
+            query = ""
+            from_timestamp = request.args.get('from_timestamp')
+            to_timestamp = request.args.get('to_timestamp')
+            service = request.args.get('service')
+            packet_type = request.args.get('packet_type')
+            query += "from_timestamp=" + from_timestamp + "&" if from_timestamp else ""
+            query += "to_timestamp=" + to_timestamp + "&" if to_timestamp else ""
+            query += "service=" + service if service else ""
+            query += "packet_type=" + packet_type if packet_type else ""
+            swarmController = SwarmConnector()
+            nodes = swarmController.get_nodes()
+            res = []
+            for i in nodes:
+                try:
+                    url = 'http://' + nodes[i] + ':5500/packets/'
+                    url = url + "?" + query if query != "" else url
+                    r = requests.get(url).json()
+                    res.extend(r)
+                except ConnectionError as e:
+                    print('The agent of node ' + str(i) + ' is offline')
+            return {"res": res}
+        except Exception as e:
+            return {
+                "Error": "{0}".format(e)
+            }

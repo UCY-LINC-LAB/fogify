@@ -7,6 +7,8 @@ from time import sleep
 from flask_api import exceptions
 import yaml
 
+from utils.host_info import HostInfo
+
 
 class BasicConnector(object):
 
@@ -18,6 +20,7 @@ class BasicConnector(object):
 
     def get_network(self):
         pass
+
     def scale(self, service, instances):
         pass
 
@@ -35,6 +38,13 @@ class BasicConnector(object):
 
     def deploy(self):
         pass
+
+    def inject_labels(self, labels={}):
+        pass
+
+    def initialize(self, **kwargs):
+        pass
+
 
 class SwarmConnector(BasicConnector):
     """
@@ -60,7 +70,7 @@ class SwarmConnector(BasicConnector):
             def wrapper(*args, **kwargs):
                 options = ['available', 'running']
                 if not len(_args) > 0:
-                    raise exceptions.APIException('You have to select at least one option:'+str(options))
+                    raise exceptions.APIException('You have to select at least one option:' + str(options))
                 option = str(_args[0])
                 if option not in options:
                     raise exceptions.APIException('You have to select an option from:' + str(options))
@@ -74,7 +84,9 @@ class SwarmConnector(BasicConnector):
                         return func(*args, **kwargs)
                     else:
                         raise exceptions.APIException('The system is available.')
+
             return wrapper
+
         return decorator
 
     def generate_files(self):
@@ -83,28 +95,28 @@ class SwarmConnector(BasicConnector):
         :return:  The generated object as Json and store it as yaml file
         """
 
-        res = { 'version' : '3.7' }
+        res = {'version': '3.7'}
 
         # generate networks
-        res['networks']={
+        res['networks'] = {
             i.name: {
                 'external': True
             } for i in self.model.networks}
 
-        res['services']={}
+        res['services'] = {}
         deployment = self.model.topology
 
         for topology in deployment:
             if topology.service not in self.model.services:
-                raise Exception("Model error: There is no service with name %s"%topology.service)
+                raise Exception("Model error: There is no service with name %s" % topology.service)
             service = copy.deepcopy(self.model.services[topology.service])
             if 'networks' not in service:
-                service['networks']={}
+                service['networks'] = {}
             else:
-                service['networks'] = {i:{} for i in service['networks']}
+                service['networks'] = {i: {} for i in service['networks']}
             for network in topology.networks:
                 if type(network) == str:
-                    res['networks'][network]={
+                    res['networks'][network] = {
                         'external': True
                     }
                     service['networks'][network] = {}
@@ -122,13 +134,12 @@ class SwarmConnector(BasicConnector):
                         else:
                             service['networks'][network['name']] = {}
                         # service['networks'] += [obj]
-            temp_node=self.model.node_object(topology.node)
-            service['deploy']= self.node_representation(temp_node)
-            service['deploy']['replicas']=topology.replicas
-            res['services'][topology.service_name]=service
+            temp_node = self.model.node_object(topology.node)
+            service['deploy'] = self.node_representation(temp_node)
+            service['deploy']['replicas'] = topology.replicas
+            res['services'][topology.service_name] = service
         yaml.dump(res, open(self.path + "fogified-swarm.yaml", 'w'), default_flow_style=False)
         return res
-
 
     def node_representation(self, node):
         """ Generate the Node template of docker-compose spec
@@ -136,28 +147,40 @@ class SwarmConnector(BasicConnector):
         :param node: The specific node as described in Docker-swarm
         :return: The resource's template for docker-compose
         """
-        if str(node.capabilities['memory'])[-1]=="G":
+        real_specs = list({"node.labels." + i for i in node.node_specifications})
+        res = {"placement": {"constraints": []}}
+        if len(real_specs) > 0:
+            res = {
+                "placement": {
+                    "constraints": real_specs
+                }
+            }
+
+        for i in real_specs:
+            if i == "node.labels.main_cluster_node!=True" or i == "node.labels.main_cluster_node==False":
+                print(i)
+                return res
+        res["placement"]["constraints"].append("node.labels.main_cluster_node==True")
+        if str(node.capabilities['memory'])[-1] == "G":
             memory = float(str(node.capabilities['memory'])[:-1])
-        elif str(node.capabilities['memory'])[-1]=="M":
-            memory = float(str(node.capabilities['memory'])[:-1])/1024
+        elif str(node.capabilities['memory'])[-1] == "M":
+            memory = float(str(node.capabilities['memory'])[:-1]) / 1024
         else:
             raise Exception("Model does not provide other metrics than G or M")
-        lower_memory_bound = memory-memory*self.ram_oversubscription/100
-        cpu = node.capabilities['processor']['cores']*node.capabilities['processor']['clock_speed']/self.frequency
-        lower_cpu_bound = cpu - cpu*self.cpu_oversubscription/100
-
-        return {
-                'resources': {
-                    'limits':{
-                        'cpus': "{0:.1f}".format(cpu),
-                        'memory': str(memory)+"G"
-                    },
-                    'reservations':{
-                        'cpus': "{0:.1f}".format(lower_cpu_bound),
-                        'memory': str(lower_memory_bound)+"G"
-                    }
-                }
+        lower_memory_bound = memory - memory * self.ram_oversubscription / 100
+        cpu = node.capabilities['processor']['cores'] * node.capabilities['processor']['clock_speed'] / self.frequency
+        lower_cpu_bound = cpu - cpu * self.cpu_oversubscription / 100
+        res['resources'] = {
+            'limits': {
+                'cpus': "{0:.1f}".format(cpu),
+                'memory': str(memory) + "G"
+            },
+            'reservations': {
+                'cpus': "{0:.1f}".format(lower_cpu_bound),
+                'memory': str(lower_memory_bound) + "G"
+            }
         }
+        return res
 
     def scale(self, service, instances):
         """ Executes a scaling action for specific instance's number
@@ -167,7 +190,7 @@ class SwarmConnector(BasicConnector):
         :return: Returns the result of the command execution
         """
         return subprocess.getoutput(
-            'docker service scale fogify_'+service+"="+str(instances)
+            'docker service scale fogify_' + service + "=" + str(instances)
         )
 
     def get_running_container_processing(self, service):
@@ -177,8 +200,8 @@ class SwarmConnector(BasicConnector):
         :return: Return the number if the service exists otherwise None
         """
         try:
-            return int(subprocess.getoutput("""docker service inspect """+
-                     "fogify_"+service+""" --format '{{.Spec.TaskTemplate.Resources.Limits.NanoCPUs}}'"""))/1000000000
+            return int(subprocess.getoutput("""docker service inspect """ +
+                                            "fogify_" + service + """ --format '{{.Spec.TaskTemplate.Resources.Limits.NanoCPUs}}'""")) / 1000000000
         except Exception as ex:
             print(ex)
             return None
@@ -196,7 +219,7 @@ class SwarmConnector(BasicConnector):
             for i in res:
                 for j in i:
                     if i[j] not in fin_res:
-                        fin_res[i[j]]=[]
+                        fin_res[i[j]] = []
                     fin_res[i[j]].append(j)
             return fin_res
         except Exception:
@@ -212,10 +235,10 @@ class SwarmConnector(BasicConnector):
         try:
             com = 'docker stack ps fogify'
             if status:
-                com += ' | grep '+status
+                com += ' | grep ' + status
             if service_name:
                 com += 'grep fogify_' + str(service_name)
-            res = subprocess.getoutput(com+' | wc -l')
+            res = subprocess.getoutput(com + ' | wc -l')
             try:
                 return int(res.split(" ")[-1])
             except Exception:
@@ -248,7 +271,7 @@ class SwarmConnector(BasicConnector):
             print(e)
         # check the services
         finished = False
-        for i in range(int(timeout/5)):
+        for i in range(int(timeout / 5)):
             sleep(5)
             if self.count_services() == 0:
                 finished = True
@@ -258,7 +281,7 @@ class SwarmConnector(BasicConnector):
 
         # check the networks
         finished = False
-        for i in range(int(timeout/5)):
+        for i in range(int(timeout / 5)):
             sleep(5)
             if self.count_networks().endswith('0'):
                 finished = True
@@ -272,23 +295,23 @@ class SwarmConnector(BasicConnector):
         :return: A dictionary of <Node-id: Node-ip>
         """
         res = subprocess.check_output(
-            [os.path.dirname(os.path.abspath(__file__)) +'/nodes.sh'], shell=True
+            [os.path.dirname(os.path.abspath(__file__)) + '/nodes.sh'], shell=True
         )
         res = res.decode('utf8').strip().split("\n")
         return {keyval[0]: socket.gethostbyname(keyval[1]) for keyval in [line.split(" - ") for line in res]}
 
-    def deploy(self,  timeout=60):
+    def deploy(self, timeout=60):
         """Deploy the emulated infrastructure
         :param timeout: The maximum number of seconds that the system waits until set the deployment as faulty
         """
         count = self.model.service_count()
         subprocess.check_output(
-            ['docker', 'stack', 'deploy', '--prune', '--compose-file', self.path+self.file , 'fogify']
+            ['docker', 'stack', 'deploy', '--prune', '--compose-file', self.path + self.file, 'fogify']
         )
         if count is None:
             return
         finished = False
-        for i in range(int(timeout/5)):
+        for i in range(int(timeout / 5)):
             sleep(5)
             cur_count = self.count_services()
             if str(cur_count) == str(count):
@@ -308,3 +331,49 @@ class SwarmConnector(BasicConnector):
             com.append('--gateway')
             com.append(network['gateway'])
         subprocess.check_output(com)
+
+    def inject_labels(self, labels={}, **kwargs):
+        import docker
+        # name = socket.gethostname()
+        client = docker.from_env()
+        for node in client.nodes.list():
+            if node.attrs['Status']['Addr'] == kwargs['HOST_IP']:
+                break
+        labels.update(HostInfo.get_all_properties())
+        labels['cpu_architecture'] = node.attrs["Description"]["Platform"]["Architecture"]
+        labels['os'] = node.attrs["Description"]["Platform"]["OS"]
+
+        if int(1000 * float(labels["cpu_hz_advertised_friendly"].split(" ")[0])) == self.frequency \
+                and 'main_cluster_node' not in labels:
+            labels['main_cluster_node'] = 'True'
+        else:
+            labels['main_cluster_node'] = 'False'
+
+        node_spec = {'availability': node.attrs["Spec"]["Availability"],
+                     # 'name': node.attrs["Spec"]['name'],
+                     'role': 'manager',
+                     'Labels': labels
+                     }
+
+        node.update(node_spec)
+
+    def initialize(self, **kwargs):
+        import docker
+        client = docker.from_env()
+        if kwargs['MANAGER_IP'] == kwargs['HOST_IP']:
+            try:
+                client.swarm.init(kwargs['advertise_addr'])
+            except Exception as ex:
+                pass
+        else:
+            client = docker.from_env()
+            try:
+                client.swarm.join(remote_addrs=[kwargs['MANAGER_IP']], join_token=kwargs['join_token'])
+            except Exception as ex:
+                client.swarm.leave(force=True)
+                client.swarm.join(remote_addrs=[kwargs['MANAGER_IP']], join_token=kwargs['join_token'])
+
+    def get_manager_info(self):
+        import docker
+        client = docker.from_env()
+        return client.swarm.attrs['JoinTokens']['Manager']

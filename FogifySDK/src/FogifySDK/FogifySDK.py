@@ -1,28 +1,44 @@
+import datetime
 import os
-
-import yaml
-import requests
 import sys
 import time
 from enum import Enum
-import datetime
+
+import requests
+import yaml
 
 if sys.version_info[0] < 3:
-    from StringIO import StringIO
+    pass
 else:
-    from io import StringIO
+    pass
 
 import pandas as pd
 
 
+class ExceptionFogifySDK(Exception):
+    pass
+
+
 class FogifySDK(object):
-    url = None
-    docker_compose = None
-    devices = []
-    networks = []
-    topology = []
-    services = []
-    docker_swarm_rep = None
+
+    def __init__(self, url: str, docker_compose: str = None):
+        self.url = url
+
+        self.docker_compose = None
+        self.nodes = []
+        self.networks = []
+        self.topology = []
+        self.services = []
+        self.docker_swarm_rep = None
+
+        if docker_compose:
+            try:
+                file = open(docker_compose, "r")
+                self.docker_compose = file.read()
+                file.close()
+                self.parse_docker_swarm()
+            except FileNotFoundError:
+                raise ExceptionFogifySDK("No such file or directory: " + docker_compose)
 
     class Action_type(Enum):
         HORIZONTAL_SCALING = 'HORIZONTAL_SCALING'
@@ -31,33 +47,27 @@ class FogifySDK(object):
         STRESS = 'STRESS'
         COMMAND = "COMMAND"
 
-    def get_url(self, path=""):
+    def get_url(self, path: str = ""):
         if not self.url.startswith("http://"):
             return "http://" + self.url + path
         return self.url + path
 
     def check_docker_swarm_existence(self):
         if self.docker_compose is None:
-            raise Exception('You can not apply this functionality with fogify yaml')
-
-    def __init__(self, url, docker_compose=None):
-        self.url = url
-        if docker_compose:
-            self.docker_compose = open(docker_compose, "r").read()
-            self.parse_docker_swarm()
+            raise ExceptionFogifySDK('You can not apply this functionality with fogify yaml')
 
     def parse_docker_swarm(self):
         self.check_docker_swarm_existence()
         self.docker_swarm_rep = yaml.safe_load(self.docker_compose)
 
         if 'services' not in self.docker_swarm_rep:
-            raise Exception("The docker-compose should have at least services")
+            raise ExceptionFogifySDK("The docker-compose should have at least services")
 
         if 'x-fogify' in self.docker_swarm_rep:
             if self.docker_swarm_rep['x-fogify']:
                 self.networks = self.docker_swarm_rep['x-fogify']['networks'] if 'networks' in self.docker_swarm_rep[
                     'x-fogify'] else []
-                self.devices = self.docker_swarm_rep['x-fogify']['nodes'] if 'nodes' in self.docker_swarm_rep[
+                self.nodes = self.docker_swarm_rep['x-fogify']['nodes'] if 'nodes' in self.docker_swarm_rep[
                     'x-fogify'] else []
                 self.scenarios = self.docker_swarm_rep['x-fogify']['scenarios'] if 'scenarios' in self.docker_swarm_rep[
                     'x-fogify'] else []
@@ -65,30 +75,35 @@ class FogifySDK(object):
                     'x-fogify'] else []
         self.services = [i for i in self.docker_swarm_rep["services"]]
 
-    @property
-    def upload_file(self):
+    def upload_file(self, remove_file: bool = True):
         if self.docker_compose:
             self.docker_swarm_rep["x-fogify"] = {
-                "networks": self.networks,
-                "topology": self.topology,
-                "nodes": self.devices,
-                "scenarios": self.scenarios
+                "networks": self.networks if hasattr(self, 'networks') else [],
+                "topology": self.topology if hasattr(self, 'topology') else [],
+                "nodes": self.nodes if hasattr(self, 'nodes') else [],
+                "scenarios": self.scenarios if hasattr(self, 'scenarios') else []
             }
             f = open("fogified-docker-compose.yaml", "w")
             f.write(yaml.dump(self.docker_swarm_rep))
             f.close()
             self.fogify_yaml = open("fogified-docker-compose.yaml", "rb")
-            os.remove("fogified-docker-compose.yaml")
+            if remove_file:
+                os.remove("fogified-docker-compose.yaml")
         return self.fogify_yaml
 
-    def deploy(self, timeout=120):
+    def __del__(self):
+        if hasattr(self, 'fogify_yaml') and self.fogify_yaml:
+            self.fogify_yaml.close()
+        del self
+
+    def deploy(self, timeout: int = 120):
         url = self.get_url("/topology/")
         self.clean_metrics()
         self.clean_annotations()
-        response = requests.post(url, files={"file": self.upload_file}, headers={}).json()
+        response = requests.post(url, files={"file": self.upload_file()}, headers={}).json()
 
-        if 'success' not in response:
-            raise Exception("The deployment is failed")
+        if not ('message' in response and response['message'].upper() == "OK"):
+            raise ExceptionFogifySDK("The deployment is failed")
 
         service_count = {name: response['swarm']['services'][name]['deploy']['replicas'] for name in
                          response['swarm']['services']}
@@ -112,17 +127,18 @@ class FogifySDK(object):
         pbar.close()
         if current_iteration > timeout:
             self.undeploy()
-            raise Exception("The deployment is failed")
+            raise ExceptionFogifySDK("The deployment is failed")
 
         return {
             "message": "The services are deployed ( %s )" % str(service_count)
         }
 
-    def undeploy(self, timeout=120):
+    def undeploy(self, timeout: int = 120):
         url = self.get_url("/topology/")
+        print(url)
         response = requests.delete(url)
         if response.status_code != 200:
-            return response.json()
+            raise ExceptionFogifySDK("Server error ( %s )" % str(response.json()))
         response = requests.get(url, headers={}).json()
         total = 0
         for i in response:
@@ -145,13 +161,13 @@ class FogifySDK(object):
         self.data = {}
         pbar.close()
         if current_iteration > timeout:
-            raise Exception("The undeployment is failed")
+            raise ExceptionFogifySDK("The undeployment is failed")
 
         return {
             "message": "The %s services are undeployed" % str(total)
         }
 
-    def get_metrics(self, service=None, from_timestamp=None, to_timestamp=None):
+    def get_metrics(self, service: str = None, from_timestamp: str = None, to_timestamp: str = None):
         query = ""
         query += "from_timestamp=" + str(
             int(datetime.datetime.timestamp(from_timestamp))) + "&" if from_timestamp else ""
@@ -172,7 +188,23 @@ class FogifySDK(object):
                 self.data[i].sort(key=lambda k: k['count'])
         return self
 
-    def get_metrics_from(self, service):
+    def get_network_packets_from(self, service: str, from_timestamp: str = None, to_timestamp: str = None,
+                                 packet_type: str = None):
+
+        query = ""
+        query += "from_timestamp=" + str(
+            int(datetime.datetime.timestamp(from_timestamp))) + "&" if from_timestamp else ""
+        query += "to_timestamp=" + str(int(datetime.datetime.timestamp(to_timestamp))) + "&" if to_timestamp else ""
+        query += "packet_type=" + str(packet_type) + "&" if packet_type else ""
+        query += "service=" + service
+        data = requests.get(self.get_url("/packets/") + "?" + query).json()
+        if "res" not in data:
+            raise ExceptionFogifySDK("The API call for packets does not response readable object")
+        res = pd.DataFrame.from_records(data["res"])
+
+        return res
+
+    def get_metrics_from(self, service: str):
         if hasattr(self, 'data') and service in self.data:
             self.get_metrics(service=service,
                              from_timestamp=datetime.datetime.strptime(self.data[service][-1]['timestamp'],
@@ -182,17 +214,15 @@ class FogifySDK(object):
             self.get_metrics()
         res = pd.DataFrame.from_records(self.data[service])
         res.timestamp = pd.to_datetime(res['timestamp']).dt.tz_localize(None)
-        res.set_index('timestamp',inplace=True)
+        res.set_index('timestamp', inplace=True)
         return res
 
-
     def clean_metrics(self):
-        self.clean_annotations()
         if hasattr(self, 'data'):
             del self.data
         return requests.delete(self.get_url("/monitorings/")).json()
 
-    def horizontal_scaling_up(self, instance_type, num_of_instances=1):
+    def horizontal_scaling_up(self, instance_type: str, num_of_instances: int = 1):
         return self.action(
             FogifySDK.Action_type.HORIZONTAL_SCALING.value,
             instance_type=instance_type,
@@ -200,7 +230,7 @@ class FogifySDK(object):
             type="up"
         )
 
-    def horizontal_scaling_down(self, instance_type, num_of_instances=1):
+    def horizontal_scaling_down(self, instance_type: str, num_of_instances: int = 1):
         return self.action(
             FogifySDK.Action_type.HORIZONTAL_SCALING.value,
             instance_type=instance_type,
@@ -208,18 +238,20 @@ class FogifySDK(object):
             type="down"
         )
 
-    def vertical_scaling(self, instance_type, num_of_instances=1, cpu=None, memory=None):
+    def vertical_scaling(self, instance_type: str, num_of_instances: int = 1, cpu: str = None, memory: str = None):
         if cpu and memory:
-            raise Exception("You can not scale-up both cpu and memory at once.")
+            raise ExceptionFogifySDK("You can not scale-up both cpu and memory at once.")
+        if cpu is None and memory is None:
+            raise ExceptionFogifySDK("You did not select neither cpu nor memory for vertical scaling.")
         if cpu:
-            if type(cpu)!=str:
-                raise Exception("cpu parameter should be string")
-            if cpu[0] not in ['-','+']:
-                raise Exception("Select +/- to increase or decrease the cpu processing power")
+            if type(cpu) != str:
+                raise ExceptionFogifySDK("cpu parameter should be string")
+            if cpu[0] not in ['-', '+']:
+                raise ExceptionFogifySDK("Select +/- to increase or decrease the cpu processing power")
             try:
                 int(cpu[1:])
             except Exception:
-                raise Exception("The percent should be numeric")
+                raise ExceptionFogifySDK("The percent should be numeric")
             params = {'action': 'cpu', 'value': cpu}
         if memory:
             params = {'action': 'memory', 'value': memory}
@@ -230,7 +262,8 @@ class FogifySDK(object):
             **params
         )
 
-    def update_network(self, instance_type, network, network_characteristics={}, num_of_instances=1):
+    def update_network(self, instance_type: str, network: str, network_characteristics: dict = {},
+                       num_of_instances: int = 1):
         network_characteristics['network'] = network
         return self.action(
             FogifySDK.Action_type.NETWORK.value,
@@ -239,9 +272,10 @@ class FogifySDK(object):
             action=network_characteristics
         )
 
-    def stress(self, instance_type, duration=60, num_of_instances=1, cpu=None, io=None, vm=None, vm_bytes=None):
+    def stress(self, instance_type: str, duration: int = 60, num_of_instances: int = 1, cpu=None, io=None, vm=None,
+               vm_bytes=None):
         if all(v is None for v in [cpu, io, vm, vm_bytes]):
-            raise Exception("You can not set all stress parameters as None")
+            raise ExceptionFogifySDK("You can not set all stress parameters as None")
         res = {}
         if cpu:
             res['cpu'] = cpu
@@ -261,7 +295,7 @@ class FogifySDK(object):
             )
         )
 
-    def command(self, instance_type, command, num_of_instances=1):
+    def command(self, instance_type: str, command: str, num_of_instances: int = 1):
         res = {}
         res['command'] = command
         return self.action(
@@ -273,45 +307,29 @@ class FogifySDK(object):
             )
         )
 
-    def action(self, action_type, **kwargs):
+    def action(self, action_type: Action_type, **kwargs):
         headers = {'Content-Type': 'application/json; charset=utf-8'}
-        if FogifySDK.Action_type.HORIZONTAL_SCALING.value == action_type:
-            return requests.request("POST",
-                                    self.get_url("/actions/horizontal_scaling/"),
-                                    json={"params": kwargs}, headers=headers
-                                    ).json()
-        if FogifySDK.Action_type.VERTICAL_SCALING.value == action_type:
-            return requests.request("POST",
-                                    self.get_url("/actions/vertical_scaling/"),
-                                    json={"params": kwargs}, headers=headers
-                                    ).json()
-        if FogifySDK.Action_type.NETWORK.value == action_type:
-            return requests.request("POST",
-                                    self.get_url("/actions/network/"),
-                                    json={"params": kwargs}, headers=headers
-                                    ).json()
-        if FogifySDK.Action_type.STRESS.value == action_type:
-            return requests.request("POST",
-                                    self.get_url("/actions/stress/"),
-                                    json={"params": kwargs}, headers=headers
-                                    ).json()
-        if FogifySDK.Action_type.COMMAND.value == action_type:
-            return requests.request("POST",
-                                    self.get_url("/actions/command/"),
-                                    json={"params": kwargs}, headers=headers
-                                    ).json()
-        raise Exception("The action type %s is not defined." % action_type)
+        if action_type not in [e.value for e in FogifySDK.Action_type]:
+            raise ExceptionFogifySDK("The action type %s is not defined." % action_type)
+        res = requests.request("POST",
+                               self.get_url("/actions/horizontal_scaling/"),
+                               json={"params": kwargs}, headers=headers
+                               ).json()
+        if "message" in res and res["message"].upper() == "OK":
+            return res
+        else:
+            raise ExceptionFogifySDK("The API did not return proper response for that action (%S)" % str(res))
 
     def scenario_execution(self,
-                           name=None,
-                           remove_previous_metrics=True):
+                           name: str = None,
+                           remove_previous_metrics: bool = True):
         print("Scenario execution process: ")
         from tqdm import tqdm
         if remove_previous_metrics:
             self.clean_metrics()
 
         if len(self.scenarios) == 0:
-            raise Exception("There is no scenarios")
+            raise ExceptionFogifySDK("There is no scenarios")
         if name is None:
             selected_scenarios = self.scenarios[0]
         else:
@@ -346,12 +364,12 @@ class FogifySDK(object):
             self.get_metrics()
         return start, stop
 
-    def add_device(self, name, cpu_cores, cpu_freq, memory, disk=""):
+    def add_node(self, name: str, cpu_cores: int, cpu_freq: int, memory: str, disk=""):
         self.check_docker_swarm_existence()
-        for i in self.devices:
+        for i in self.nodes:
             if i['name'] == name:
-                raise Exception("The device already exists")
-        self.devices.append(
+                raise ExceptionFogifySDK("The device already exists")
+        self.nodes.append(
             dict(
                 name=name,
                 capabilities=dict(
@@ -364,11 +382,11 @@ class FogifySDK(object):
             )
         )
 
-    def add_network(self, name, uplink, downlink, capacity):
+    def add_network(self, name: str, uplink: dict, downlink: dict, capacity: int = None):
         self.check_docker_swarm_existence()
         for i in self.networks:
             if i['name'] == name:
-                raise Exception("The network already exists")
+                raise ExceptionFogifySDK("The network already exists")
         self.networks.append(
             dict(
                 name=name,
@@ -378,10 +396,63 @@ class FogifySDK(object):
             )
         )
 
-    def add_deployment_node(self, label, service, device, networks=[], replicas=1):
+    def add_bidirectional_network(self, name: str, bidirectional: dict, capacity: int = None):
+        self.check_docker_swarm_existence()
+        for i in self.networks:
+            if i['name'] == name:
+                raise ExceptionFogifySDK("The network already exists")
+        self.networks.append(
+            dict(
+                name=name,
+                bidirectional=bidirectional,
+                capacity=capacity
+            )
+        )
+
+    def add_link(self, network_name: str, from_node: str, to_node: str, properties: dict, bidirectional: bool = True):
+        self.check_docker_swarm_existence()
+        exists = False
+        for i in self.networks:
+            if network_name == i["name"]:
+                exists = True
+                break
+        if not exists:
+            raise ExceptionFogifySDK("The network does not exist")
+
+        links = i['links'] if 'links' in i else []
+        links.append({
+            "from_node": from_node,
+            "to_node": to_node,
+            "bidirectional": bidirectional,
+            "properties": properties
+        })
+
+        i['links'] = links
+        res = []
+        for j in self.networks:
+            if network_name == j["name"]:
+                res.append(i)
+            else:
+                res.append(j)
+        self.networks = res
+
+    def add_topology_node(self, label: str, service: str, device: str, networks: list = [], replicas: int = 1):
         self.check_docker_swarm_existence()
         if service not in self.services:
-            raise Exception('There is no service with name %s in swarm file.' % service)
+            raise ExceptionFogifySDK('There is no service with name %s in swarm file.' % service)
+
+        if label in [i['label'] for i in self.topology]:
+            raise ExceptionFogifySDK('There is another topology node with %s in your model.' % label)
+
+        if device not in [i['name'] for i in self.nodes]:
+            raise ExceptionFogifySDK('There is no device with name %s in your model.' % device)
+
+        for network in networks:
+            if network not in [i['name'] for i in self.networks]:
+                raise ExceptionFogifySDK('There is no network with name %s in your model.' % network)
+
+        if label in [i['label'] for i in self.topology]:
+            raise ExceptionFogifySDK('There is another topology node with %s in your model.' % label)
 
         self.topology.append(
             dict(
@@ -389,12 +460,12 @@ class FogifySDK(object):
                 node=device,
                 networks=networks,
                 label=label,
-                replicas=1
+                replicas=replicas
             )
         )
 
-
-    def plot(self, ax, service=None, metric=None, func=None, label=None, duration={}, style={}):
+    def plot(self, ax, service: str = None, metric: str = None, func=None, label: str = None, duration: dict = {},
+             style: dict = {}):
 
         df = self.get_metrics_from(service)
         df.timestamp = pd.to_datetime(df['timestamp'])
@@ -408,7 +479,8 @@ class FogifySDK(object):
         metric_line.plot(ax=ax, x='timestamp', label=label, **style)
         return self
 
-    def plot_annotations(self, ax, start=None, stop=None, label='annotation', colors_gist='gist_yarg', linestyle='--'):
+    def plot_annotations(self, ax, start=None, stop=None, label: str = 'annotation', colors_gist: str = 'gist_yarg',
+                         linestyle: str = '--'):
         import matplotlib.pyplot as plt
         ad = self.get_annotations().annotations
         ad.timestamp = pd.to_datetime(ad['timestamp']).dt.tz_localize(None)
@@ -427,7 +499,6 @@ class FogifySDK(object):
         for xc, c, annot in zip(dates, colors, ad[label]):
             ax.axvline(x=xc, color=c, label=annot, linestyle=linestyle)
         return self
-
 
     def info(self):
         url = self.get_url("/topology/")
