@@ -1,15 +1,11 @@
+import argparse
+import fcntl
 import socket
 import struct
 import textwrap
-
-import fcntl
-import struct
-from datetime import datetime
+from collections import deque
 
 import netifaces as ni
-from collections import deque
-import threading
-import argparse
 
 buffer = deque()
 
@@ -189,40 +185,3 @@ class Sniffer(object):
                 print("--------------\n")
             except Exception as e:
                 print(e)
-
-# Triggers the Sniffer
-# def main():
-#     from nsenter import Namespace
-#     from store import DummyStorage
-#     storage = DummyStorage(buffer)
-#     t2 = threading.Thread(target=storage.store_data)
-#     t2.start()
-#     with Namespace("281014", 'net'):
-#         selected_interfaces = ni.interfaces()
-#         # selected_interfaces = ["wlp0s20f3"]
-#
-#         sniffer = Sniffer(buffer, selected_interfaces)
-#
-#         print(selected_interfaces)
-#
-#
-#
-#         t1 = threading.Thread(target=sniffer.sniff)
-#
-#         t1.start()
-#     with Namespace("282980", 'net'):
-#         selected_interfaces = ni.interfaces()
-#         # selected_interfaces = ["wlp0s20f3"]
-#
-#         sniffer = Sniffer(buffer, selected_interfaces)
-#
-#         print(selected_interfaces)
-
-
-# t3 = threading.Thread(target=sniffer.sniff)
-
-# t3.start()
-
-#
-# if __name__ == "__main__":
-#     main()

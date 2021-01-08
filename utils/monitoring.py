@@ -1,17 +1,18 @@
-import os
-import subprocess
-from time import sleep
-import docker
-import dateutil.parser as p
-import requests
-from os.path import exists
 import json
+from os.path import exists
+from time import sleep
 
-from nsenter import Namespace
+import dateutil.parser as p
+import docker
+import requests
 
 from agent.models import Status, Metric, db, Record
+from connectors import get_connector_class
 from utils import DockerManager
-from utils.DockerManager import get_container_ip_property, get_pid_from_container
+from utils.DockerManager import get_container_ip_property, get_ip_from_network_object, \
+    ContainerNetworkNamespace
+
+ConnectorClass = get_connector_class()
 
 
 class MetricCollector(object):
@@ -63,7 +64,7 @@ class MetricCollector(object):
                             is_fogified = True
                             break
                     if is_fogified:
-                        instance_name = alias[len("fogify_"):alias.rfind(".")]
+                        instance_name = ConnectorClass.instance_name(alias)
 
                         record = Record.query.filter_by(instance_name=instance_name).order_by(
                             Record.count.desc()).limit(1).first()
@@ -124,19 +125,18 @@ class MetricCollector(object):
 
                         client = docker.from_env()
                         container = client.containers.get(instance["id"])
-                        nets = {container.attrs["NetworkSettings"]["Networks"][network]['IPAMConfig'][
-                                    'IPv4Address']: network
-                                for network in container.attrs["NetworkSettings"]["Networks"]}
+                        for network in container.attrs["NetworkSettings"]["Networks"]:
+                            ip = get_ip_from_network_object(container.attrs["NetworkSettings"]["Networks"][network])
+                            nets = {ip: network}
+
                         for cadv_net in last_stat['network']['interfaces']:
                             search = "%{}%".format(container.name + "|" + cadv_net["name"] + "|")
                             conf = Status.query.filter(Status.name.like(search)).first()
 
                             if conf is None:
-                                eth_ip = None
-                                proc = os.environ["NAMESPACE_PATH"] if "NAMESPACE_PATH" in os.environ else "/proc/"
-                                pid = get_pid_from_container(container.attrs['Name'][1:]).split(" ")[-1]
-                                with Namespace(proc + "/" + str(pid) + "/ns/net", 'net'):
-                                    eth_ip = get_container_ip_property(instance["id"], cadv_net["name"])
+
+                                with ContainerNetworkNamespace(container.id):
+                                    eth_ip = get_container_ip_property(cadv_net["name"])
                                 if not eth_ip:
                                     continue
                                 ip = eth_ip[eth_ip.find("inet ") + len("inet "):eth_ip.rfind("/")]

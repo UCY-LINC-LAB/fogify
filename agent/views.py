@@ -2,15 +2,14 @@ import os
 from datetime import datetime
 
 import docker
+from flask import current_app as app
 from flask import request
 from flask.views import MethodView
 
-from flask import current_app as app
-
 from agent.models import Status, Record, Metric, Packet
+from utils.DockerManager import ContainerNetworkNamespace
 from utils.monitoring import MetricCollector
-from utils.network import apply_network_rule, read_network_rules, apply_default_rules, \
-    inject_network_distribution
+from utils.network import apply_network_rule, inject_network_distribution
 
 
 class SnifferAPI(MethodView):
@@ -125,26 +124,26 @@ class ActionAPI(MethodView):
 
         commands = request.json['commands']
 
-        if 'network_reset' in commands and commands['network_reset'] == 'true':
-            infra = read_network_rules(os.getcwd() + app.config['UPLOAD_FOLDER'])
-            service_name = request.get_json()['instances'][0]
-            for instance in instances:
-                apply_default_rules(infra, service_name, instance.name,
-                                    instance.attrs['Config']['Labels']['com.docker.swarm.task.id'])
+        # if 'network_reset' in commands and commands['network_reset'] == 'true':
+        #     infra = read_network_rules(os.getcwd() + app.config['UPLOAD_FOLDER'])
+        #     service_name = request.get_json()['instances'][0]
+        #     for instance in instances:
+        #         apply_default_rules(infra, service_name, instance.name, instance.id[:10])
 
         if 'uplink' in commands and 'downlink' in commands and 'network' in commands:
             for instance in instances:
-                apply_network_rule(instance.name,
-                                   commands['network'],
-                                   commands['downlink'],
-                                   commands['uplink'],
-                                   instance.attrs['Config']['Labels']['com.docker.swarm.task.id'][:10],
-                                   "FALSE")
+                with ContainerNetworkNamespace(instance.id):
+                    apply_network_rule(instance.name,
+                                       commands['network'],
+                                       commands['downlink'],
+                                       commands['uplink'],
+                                       instance.id[:10],
+                                       "FALSE")
 
         if 'stress' in commands:
             for instance in instances:
                 instance.exec_run(commands['stress'], detach=True)
-            pass
+
         if 'vertical_scaling' in commands:
             for instance in instances:
                 res = {}

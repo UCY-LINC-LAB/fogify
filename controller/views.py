@@ -3,17 +3,18 @@ import socket
 
 import requests
 import yaml
+from flask import current_app as app
 from flask import request
 from flask.views import MethodView
-import docker
-from connectors.ClusterConnectors import SwarmConnector
+
+from connectors import get_connector_class
 from controller.models import Status, Annotation
 from models.actions import StressAction, VerticalScalingAction, CommandAction
 from models.base import NetworkGenerator, Network
 from utils.general import AsyncTask
-from flask import current_app as app
-
 from utils.network import generate_network_distribution
+
+ConnectorClass = get_connector_class()
 
 
 class AnnotationAPI(MethodView):
@@ -32,11 +33,9 @@ class TopologyAPI(MethodView):
 
     def get(self):
         """ Returns the current status of the fogify deployment"""
-        client = docker.from_env()
-        services = client.services.list()
-        return {service.name: service.tasks() for service in services if service.name.startswith('fogify')}
+        return ConnectorClass.return_deployment()
 
-    @SwarmConnector.check_status("running")
+    @ConnectorClass.check_status("running")
     def delete(self):
         """ Remove a Fogify deployment"""
         Status.update_config('submit_delete')
@@ -46,7 +45,7 @@ class TopologyAPI(MethodView):
         t.start()
         return {"message": "The topology is down."}
 
-    @SwarmConnector.check_status("available")
+    @ConnectorClass.check_status("available")
     def post(self):
         """ Introduce a new deployment to the fogify"""
 
@@ -66,7 +65,7 @@ class TopologyAPI(MethodView):
         from models.base import FogifyModel
         model = FogifyModel(infra)
 
-        connector = SwarmConnector(model,
+        connector = ConnectorClass(model,
                                    path=path,
                                    frequency=int(os.environ['CPU_FREQ']) if 'CPU_FREQ' in os.environ else 2400,
                                    cpu_oversubscription=int(os.environ[
@@ -74,9 +73,11 @@ class TopologyAPI(MethodView):
                                    ram_oversubscription=int(os.environ[
                                                                 'RAM_OVERSUBSCRIPTION_PERCENTAGE']) if 'RAM_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0
                                    )
+
         swarm = connector.generate_files()
 
         networks = NetworkGenerator(model).generate_network_rules()
+
         yaml.dump(networks, open(path + "fogified-network.yaml", 'w'), default_flow_style=False)
 
         t = AsyncTask(self, 'submition', [connector, path, model.all_networks])
@@ -89,8 +90,8 @@ class TopologyAPI(MethodView):
 
     def remove(self):
         """ A utility function that destroys a topology """
-        swarmController = SwarmConnector()
-        swarmController.down()
+        connector = ConnectorClass(path=os.getcwd() + app.config['UPLOAD_FOLDER'])
+        connector.down()
         Annotation.create(Annotation.TYPES.UNDEPLOY.value)
 
     def submition(self, connector, path, networks):
@@ -125,8 +126,8 @@ class MonitoringAPI(MethodView):
 
     def delete(self):
         """ Removes the stored monitoring data """
-        swarmController = SwarmConnector()
-        nodes = swarmController.get_nodes()
+        connector = ConnectorClass()
+        nodes = connector.get_nodes()
         res = {}
         for i in nodes:
             try:
@@ -146,8 +147,8 @@ class MonitoringAPI(MethodView):
             query += "from_timestamp=" + from_timestamp + "&" if from_timestamp else ""
             query += "to_timestamp=" + to_timestamp + "&" if to_timestamp else ""
             query += "service=" + service if service else ""
-            swarmController = SwarmConnector()
-            nodes = swarmController.get_nodes()
+            connector = ConnectorClass()
+            nodes = connector.get_nodes()
             res = {}
             for i in nodes:
                 try:
@@ -168,8 +169,10 @@ class ActionsAPI(MethodView):
     """ This API class applies the actions to a running topology"""
 
     def instance_ids(self, params):
-        docker_instances = SwarmConnector().get_all_instances()
+        docker_instances = ConnectorClass().get_all_instances()
+        print(params)
         if 'instance_id' in params and params['instance_id'] in docker_instances:
+            print("1 ", docker_instances)
             return {
                 docker_instances[params['instance_id']]: [params['instance_id']]
             }
@@ -177,12 +180,16 @@ class ActionsAPI(MethodView):
             instance_type = params['instance_type']
             instances = {}
             for node in docker_instances:
+                print(node)
+                print(instance_type)
                 for i in docker_instances[node]:
                     if i.find(instance_type) >= 0:
                         if node not in instances:
                             instances[node] = []
                         instances[node] += [i]
+            print("2 ", instances)
             return instances
+        print("3")
         return {}
 
     def post(self, action_type):
@@ -193,7 +200,7 @@ class ActionsAPI(MethodView):
         :param action_type:
         :return:
         """
-        swarmController = SwarmConnector()
+        connector = ConnectorClass(path=os.getcwd() + app.config['UPLOAD_FOLDER'])
         data = request.get_json()
         # TODO check how to define the possible containers or services
         if 'params' in data:
@@ -202,15 +209,16 @@ class ActionsAPI(MethodView):
 
                 instances = int(params['instances'])
                 if params['type'] == 'up':
-                    service_count = int(swarmController.count_services(params['instance_type'])) + instances
+                    service_count = int(connector.count_services(params['instance_type'])) + instances
                     Annotation.create(Annotation.TYPES.H_SCALE_UP.value, instance_names=params['instance_type'],
                                       params="num of instances: " + str(instances))
                 else:
-                    service_count = int(swarmController.count_services(params['instance_type'])) - instances
+                    service_count = int(connector.count_services(params['instance_type'])) - instances
                     service_count = 0 if service_count < 0 else service_count
                     Annotation.create(Annotation.TYPES.H_SCALE_DOWN.value, instance_names=params['instance_type'],
                                       params="num of instances: " + str(instances))
-                swarmController.scale(params['instance_type'], service_count)
+                print("SCALE: ",params['instance_type'],service_count)
+                connector.scale(params['instance_type'], service_count)
 
             else:
                 selected_instances = self.instance_ids(params)
@@ -230,12 +238,14 @@ class ActionsAPI(MethodView):
                 if action_type == "stress":
                     service_cpu = None
                     if 'instance_type' in params:
-                        service_cpu = swarmController.get_running_container_processing(
-                            params['instance_type'] if not params['instance_type'].split(".")[
-                                -1].isnumeric() else "".join(params['instance_type'].split(".")[:-1])
+                        service_cpu = connector.get_running_container_processing(
+                            connector.instance_name(params['instance_type'])
+                            # params['instance_type'] if not params['instance_type'].split(".")[
+                            #     -1].isnumeric() else "".join(params['instance_type'].split(".")[:-1])
                         )
+                        print("service_cpu: ", service_cpu)
                     elif 'instance_id' in params:
-                        service_cpu = swarmController.get_running_container_processing(
+                        service_cpu = connector.get_running_container_processing(
                             params['instance_id'] if not params['instance_id'].split(".")[-1].isnumeric() else "".join(
                                 params['instance_id'].split(".")[:-1])
                         )
@@ -272,7 +282,7 @@ class ControlAPI(MethodView):
     def get(self, service):
         if service.lower() == "controller-properties":
             try:
-                return {"credits": SwarmConnector().get_manager_info()}
+                return {"credits": ConnectorClass().get_manager_info()}
             except Exception as ex:
                 print(ex)
                 return {"credits": ""}
@@ -283,7 +293,7 @@ class ControlAPI(MethodView):
         for ser in service.split("|"):
             commands = {"instances": [ser], "network_reset": 'true'}
             action_url = 'http://%s:5500/actions/'
-            docker_instances = SwarmConnector().get_all_instances()
+            docker_instances = ConnectorClass().get_all_instances()
             selected_instances = []
             for node in docker_instances:
                 for docker_instance in docker_instances[node]:
@@ -320,7 +330,7 @@ class DistributionAPI(MethodView):
             line = l.split("=")
             if len(line) == 2:
                 res[line[0].strip()] = line[1].strip()
-        connector = SwarmConnector()
+        connector = ConnectorClass()
         nodes = connector.get_nodes()
 
         for i in nodes:
@@ -333,8 +343,8 @@ class DistributionAPI(MethodView):
 class SnifferAPI(MethodView):
     def delete(self):
         """ Removes the stored monitoring data """
-        swarmController = SwarmConnector()
-        nodes = swarmController.get_nodes()
+        connector = ConnectorClass()
+        nodes = connector.get_nodes()
         res = {}
         for i in nodes:
             try:
@@ -357,8 +367,8 @@ class SnifferAPI(MethodView):
             query += "to_timestamp=" + to_timestamp + "&" if to_timestamp else ""
             query += "service=" + service if service else ""
             query += "packet_type=" + packet_type if packet_type else ""
-            swarmController = SwarmConnector()
-            nodes = swarmController.get_nodes()
+            connector = ConnectorClass()
+            nodes = connector.get_nodes()
             res = []
             for i in nodes:
                 try:

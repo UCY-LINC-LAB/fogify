@@ -309,10 +309,17 @@ class FogifySDK(object):
 
     def action(self, action_type: Action_type, **kwargs):
         headers = {'Content-Type': 'application/json; charset=utf-8'}
+        action_type_to_url = {
+            self.Action_type.HORIZONTAL_SCALING.value: "/actions/horizontal_scaling/",
+            self.Action_type.VERTICAL_SCALING.value: "/actions/vertical_scaling/",
+            self.Action_type.NETWORK.value: "/actions/network/",
+            self.Action_type.STRESS.value: "/actions/stress/",
+            self.Action_type.COMMAND.value: "/actions/command/"
+        }
         if action_type not in [e.value for e in FogifySDK.Action_type]:
             raise ExceptionFogifySDK("The action type %s is not defined." % action_type)
         res = requests.request("POST",
-                               self.get_url("/actions/horizontal_scaling/"),
+                               self.get_url(action_type_to_url[action_type]),
                                json={"params": kwargs}, headers=headers
                                ).json()
         if "message" in res and res["message"].upper() == "OK":

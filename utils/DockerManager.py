@@ -2,6 +2,19 @@ import json
 import os
 import subprocess
 
+from nsenter import Namespace
+
+
+class ContainerNetworkNamespace(Namespace):
+    def __init__(self, container_id):
+        proc = os.environ["NAMESPACE_PATH"] if "NAMESPACE_PATH" in os.environ else "/proc/"
+        pid_res = get_pid_from_container(container_id)
+        pid = pid_res.split(" ")[-1]
+        if str(pid).isnumeric() and str(pid) != "0":
+            Namespace.__init__(self, proc + "/" + str(pid) + "/ns/net", 'net')
+        else:
+            raise Exception("The container id is fault: %s" % str(pid_res))
+
 
 def get_host_data_path(container_id):
     try:
@@ -23,35 +36,39 @@ def get_pid_from_container(container_id):
         print(ex)
 
 
-def get_container_ip_property(container_id, property):
-    namespace_path = os.environ['NAMESPACE_PATH'] if 'NAMESPACE_PATH' in os.environ else "proc"
-    container = get_pid_from_container(container_id)
-    pid = get_pid_from_container(container).split(" ")[-1]
-    if str(pid) == "0":
-        return None
-    namespace_path = namespace_path[1:] if namespace_path.startswith("/") else namespace_path
-    namespace_path = namespace_path[:-1] if namespace_path.endswith("/") else namespace_path
+def get_container_ip_property(property):
     eth = subprocess.check_output(
-        ['/bin/sh', '-c', 'ip a | grep %s | tail -n 1' % property]).decode()  # -n/%s/%s/ns/net
+        ['/bin/sh', '-c', 'ip a | grep %s | tail -n 1' % property]).decode().replace("\n", "")  # -n/%s/%s/ns/net
     return eth
 
 
 def get_containers_adapter_for_network(container_id, network):
     try:
-
         networks = json.loads(subprocess.getoutput(
             "docker inspect --format='{{json .NetworkSettings.Networks}}' %s" % container_id))
         ip = None
         if network in networks:
-            ip = networks[network]['IPAMConfig']['IPv4Address']
-        # container = client.containers.get(container_id)
-        eth = get_container_ip_property(container_id, ip)
+            ip = get_ip_from_network_object(networks[network])
+        pid = get_pid_from_container(container_id).split(" ")[-1]
+        if pid is None:
+            return None
+        eth = get_container_ip_property(ip)
         if not eth:
             return None
-        eth = eth.split()[-1]
+        eth = eth.split(" ")[-1]
         return eth
     except Exception as ex:
         print("get_containers_adapter_for_network", ex)
+
+
+def get_ip_from_network_object(network: dict):
+    if 'IPAMConfig' in network \
+            and network['IPAMConfig'] is not None \
+            and 'IPv4Address' in network['IPAMConfig']:  # Overlay networks
+        ip = network['IPAMConfig']['IPv4Address']
+    else:
+        ip = network['IPAddress']
+    return ip
 
 
 def get_ips_for_service(service):

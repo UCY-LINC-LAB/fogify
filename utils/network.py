@@ -1,3 +1,4 @@
+import copy
 import os
 import subprocess
 # import threading
@@ -5,12 +6,15 @@ import threading
 import time
 # from collections import deque
 from collections import deque
-from nsenter import Namespace
+
 import docker
 import requests
 import yaml
 
-from utils.DockerManager import get_pid_from_container
+from connectors import get_connector_class
+from utils.DockerManager import ContainerNetworkNamespace
+
+ConnectorClass = get_connector_class()
 
 
 def generate_network_distribution(path, name="experimental"):
@@ -29,29 +33,21 @@ def inject_network_distribution(trace_file):
 
 def apply_network_rule(container, network, in_rule, out_rule, ifb_interface, create="TRUE", _ips={}):
     from utils import DockerManager
-    namespace_path = os.environ['NAMESPACE_PATH'] if 'NAMESPACE_PATH' in os.environ else "proc"
-
-    pid = DockerManager.get_pid_from_container(container)
     adapter = None
     count = 0
-
-    namespace_path = namespace_path[1:] if namespace_path.startswith("/") else namespace_path
-    namespace_path = namespace_path[:-1] if namespace_path.endswith("/") else namespace_path
-
     while (adapter is None and count < 3):
         adapter = DockerManager.get_containers_adapter_for_network(container, network)
         time.sleep(1)
         count += 1
     if not adapter:
         return
-
     ifb_interface = ifb_interface + adapter[-1]
-    subprocess.check_output(
-        [os.path.dirname(os.path.abspath(__file__)) + '/apply_rule.sh',
-         pid, adapter, in_rule, out_rule, ifb_interface, str(create).lower(), namespace_path])
+    subprocess.run(
+        [os.path.dirname(os.path.abspath(__file__)) + '/apply_rule.sh', adapter, in_rule, out_rule, ifb_interface,
+         str(create).lower()]
+    )
 
     commands = " "
-
     counter = 12
     for ip in _ips:
         ips = ip.split("|")
@@ -74,28 +70,21 @@ def read_network_rules(path):
     return infra
 
 
-def apply_default_rules(infra, service_name, container_name, container_id):
-    net_rules = infra[service_name.replace("fogify_", "")]
+from utils import DockerManager
+
+
+def ips_to_rule(service_name, network, network_rules):
     f_name = service_name.replace("fogify_", "")
-    from utils import DockerManager
-    for net in net_rules:
-        ips_to_rule = {}
-        if 'links' in net_rules[net] and f_name in net_rules[net]['links']:
+    res = {}
+    if 'links' in network_rules[network] and f_name in network_rules[network]['links']:
+        for i in network_rules[network]['links'][f_name]:
+            network_ips = {}
+            while network not in network_ips:
+                network_ips = DockerManager.get_ips_for_service(i)
 
-            for i in net_rules[net]['links'][f_name]:
-                network_ips = {}
-                while net not in network_ips:
-                    network_ips = DockerManager.get_ips_for_service(i)
-
-                ips_to_rule["|".join(network_ips[net])] = net_rules[net]['links'][service_name.replace("fogify_", "")][
-                    i]
-
-        apply_network_rule(container_name,
-                           net,
-                           net_rules[net]['downlink'],
-                           net_rules[net]['uplink'],
-                           container_id[:10],
-                           create="TRUE", _ips=ips_to_rule)  # TODO update rules
+            res["|".join(network_ips[network])] = network_rules[network]['links'][service_name.replace("fogify_", "")][
+                i]
+    return res
 
 
 class NetworkController(object):
@@ -115,21 +104,26 @@ class NetworkController(object):
         for event in client.events(decode=True):
 
             try:
+                # print(event)
+
                 if 'status' in event and event['status'] == 'start' and 'Type' in event and event[
                     'Type'] == 'container':
-
-                    attrs = event['Actor']['Attributes']
+                    properties = ConnectorClass.event_attr_to_information(event)
                     infra = read_network_rules(path)
-                    if attrs['com.docker.stack.namespace'] == 'fogify':
-                        def apply_net_qos(attrs, infra):
-                            service_name = attrs['com.docker.swarm.service.name']
-                            container_id = attrs['com.docker.swarm.task.id']
-                            container_name = attrs['com.docker.swarm.task.name']
-                            proc = os.environ["NAMESPACE_PATH"] if "NAMESPACE_PATH" in os.environ else "/proc/"
-                            pid = get_pid_from_container(container_name).split(" ")[-1]
-                            if str(pid).isnumeric() and str(pid) != "0":
-                                with Namespace(proc + "/" + str(pid) + "/ns/net", 'net'):
-                                    apply_default_rules(infra, service_name, container_name, container_id)
+                    if properties['service_name'] and properties['container_id'] and properties['container_name']:
+                        def apply_net_qos(service_name, container_id, container_name, infra):
+                            network_rules = infra[service_name.replace("fogify_", "")]
+                            with ContainerNetworkNamespace(container_id):
+                                for network in network_rules:
+                                    apply_network_rule(container_name,
+                                                       network,
+                                                       network_rules[network]['downlink'],
+                                                       network_rules[network]['uplink'],
+                                                       container_id[:10],
+                                                       create="TRUE",
+                                                       _ips=ips_to_rule(
+                                                           service_name, network, network_rules
+                                                       ))
 
                             # update containers for new links
                             update_for_services_needed = set()
@@ -140,34 +134,29 @@ class NetworkController(object):
                                     for j in net_rules[net]['links'][i]:
                                         if j == f_name:
                                             update_for_services_needed.add(i)
-                            # for i in update_for_services_needed:
                             str_set = "|".join(update_for_services_needed)
                             action_url = 'http://%s:5000/control/%s/' % (
                                 os.environ['CONTROLLER_IP'] if 'CONTROLLER_IP' in os.environ else '0.0.0.0', str_set)
                             requests.post(action_url, headers={'Content-Type': "application/json"})
 
-                        threading.Thread(target=apply_net_qos, args=(attrs, infra)).start()
+                        threading.Thread(
+                            target=apply_net_qos, args=(
+                                properties['service_name'],
+                                properties['container_id'],
+                                properties['container_name'],
+                                copy.deepcopy(infra)
+                            )).start()
 
                         # update network rules to controller
-                        def network_sniffing(attrs, infra):
-                            service_name = attrs['com.docker.swarm.service.name']
-                            container_id = attrs['com.docker.swarm.task.id']
-                            container_name = attrs['com.docker.swarm.task.name']
-
-                            from utils.sniffer import Sniffer
-                            #  network monitoring
-                            from utils import DockerManager
-
-                            pid = get_pid_from_container(container_name).split(" ")[-1]
-                            if str(pid).isnumeric() and str(pid) != "0":
-                                proc = os.environ["NAMESPACE_PATH"] if "NAMESPACE_PATH" in os.environ else "/proc/"
-                                with Namespace(proc + "/" + str(pid) + "/ns/net", 'net'):
-                                    sniffer = Sniffer(buffer, container_name)
-                                    # threading.Thread(target=sniffer.sniff).start()
-                                    sniffer.sniff()
+                        def network_sniffing(event):
+                            properties = ConnectorClass.event_attr_to_information(event)
+                            with ContainerNetworkNamespace(properties['container_id']):
+                                from utils.sniffer import Sniffer
+                                sniffer = Sniffer(buffer, properties['container_name'])
+                                sniffer.sniff()
 
                         if 'SNIFFING_ENABLED' in os.environ and os.environ['SNIFFING_ENABLED'].lower() == 'true':
-                            threading.Thread(target=network_sniffing, args=(attrs, infra)).start()
+                            threading.Thread(target=network_sniffing, args=(event)).start()
             except Exception as ex:
                 print(ex)
                 continue

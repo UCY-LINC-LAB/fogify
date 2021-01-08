@@ -1,12 +1,12 @@
 import os
 
-import requests
 from flask_sqlalchemy import SQLAlchemy
-import subprocess
 
-from connectors import SwarmConnector
+from connectors import get_connector_class
 from utils.general import AsyncTask
 from utils.network import NetworkController
+
+ConnectorClass = get_connector_class()
 
 
 class Agent(object):
@@ -23,7 +23,7 @@ class Agent(object):
         """
         db_path = os.getcwd() + '/agent_database.db'
 
-        connector = SwarmConnector(frequency=int(os.environ['CPU_FREQ']) if 'CPU_FREQ' in os.environ else 2400)
+        connector = ConnectorClass(frequency=int(os.environ['CPU_FREQ']) if 'CPU_FREQ' in os.environ else 2400)
 
         # TODO
         # controller_info = requests.get("http://" + os.environ['CONTROLLER_IP'] + ":5000/control/controller-properties/").json()
@@ -41,7 +41,7 @@ class Agent(object):
                 label = i.split(":")
                 if len(label) == 2:
                     node_labels[label[0]] = label[1]
-        connector.inject_labels(node_labels, HOST_IP=os.environ['HOST_IP'])
+        connector.inject_labels(node_labels, HOST_IP=os.environ['HOST_IP'] if 'HOST_IP' in os.environ else None)
 
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 
