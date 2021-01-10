@@ -6,12 +6,12 @@ import yaml
 from flask import current_app as app
 from flask import request
 from flask.views import MethodView
-
+from models.base import FogifyModel
 from connectors import get_connector_class
 from controller.models import Status, Annotation
 from models.actions import StressAction, VerticalScalingAction, CommandAction
 from models.base import NetworkGenerator, Network
-from utils.general import AsyncTask
+from utils.async_task import AsyncTask
 from utils.network import generate_network_distribution
 
 ConnectorClass = get_connector_class()
@@ -40,7 +40,6 @@ class TopologyAPI(MethodView):
         """ Remove a Fogify deployment"""
         Status.update_config('submit_delete')
         Annotation.create(Annotation.TYPES.STOP.value)
-        path = os.getcwd() + app.config['UPLOAD_FOLDER']
         t = AsyncTask(self, 'remove')
         t.start()
         return {"message": "The topology is down."}
@@ -52,17 +51,14 @@ class TopologyAPI(MethodView):
         path = os.getcwd() + app.config['UPLOAD_FOLDER']
 
         Annotation.create(Annotation.TYPES.START.value)
+
         if 'file' in request.files:
             file = request.files['file']
-            if not os.path.exists(path):
-                os.mkdir(path)
-
+            if not os.path.exists(path): os.mkdir(path)
             file.save(os.path.join(path, "docker-compose.yaml"))
         f = open(os.path.join(path, "docker-compose.yaml"), "r")
         infra = yaml.load(f)
 
-        # application = infra.copy()
-        from models.base import FogifyModel
         model = FogifyModel(infra)
 
         connector = ConnectorClass(model,
@@ -74,7 +70,7 @@ class TopologyAPI(MethodView):
                                                                 'RAM_OVERSUBSCRIPTION_PERCENTAGE']) if 'RAM_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0
                                    )
 
-        swarm = connector.generate_files()
+        controller_response = connector.generate_files()
 
         networks = NetworkGenerator(model).generate_network_rules()
 
@@ -84,7 +80,7 @@ class TopologyAPI(MethodView):
         t.start()
         return {
             "message": "OK",
-            "swarm": swarm,
+            "swarm": controller_response,
             "networks": networks
         }
 
@@ -170,29 +166,73 @@ class ActionsAPI(MethodView):
 
     def instance_ids(self, params):
         docker_instances = ConnectorClass().get_all_instances()
-        print(params)
+
         if 'instance_id' in params and params['instance_id'] in docker_instances:
-            print("1 ", docker_instances)
-            return {
-                docker_instances[params['instance_id']]: [params['instance_id']]
-            }
-        elif 'instance_type' in params and 'instances' in params:
+            return {docker_instances[params['instance_id']]: [params['instance_id']]}
+
+        if 'instance_type' in params and 'instances' in params:
             instance_type = params['instance_type']
             instances = {}
             for node in docker_instances:
-                print(node)
-                print(instance_type)
                 for i in docker_instances[node]:
                     if i.find(instance_type) >= 0:
-                        if node not in instances:
-                            instances[node] = []
+                        if node not in instances: instances[node] = []
                         instances[node] += [i]
-            print("2 ", instances)
             return instances
-        print("3")
         return {}
 
-    def post(self, action_type):
+    def horizontal_scaling(self, connector,  params):
+        instances = int(params['instances'])
+        if params['type'] == 'up':
+            service_count = int(connector.count_services(params['instance_type'])) + instances
+            Annotation.create(Annotation.TYPES.H_SCALE_UP.value, instance_names=params['instance_type'],
+                              params="num of instances: " + str(instances))
+        else:
+            service_count = int(connector.count_services(params['instance_type'])) - instances
+            service_count = 0 if service_count < 0 else service_count
+            Annotation.create(Annotation.TYPES.H_SCALE_DOWN.value, instance_names=params['instance_type'],
+                              params="num of instances: " + str(instances))
+        connector.scale(params['instance_type'], service_count)
+
+    def vertical_scaling(self, params):
+        vaction = VerticalScalingAction(**params['action'])
+        Annotation.create(Annotation.TYPES.V_SCALE.value, instance_names=params['action']['instance_type'],
+                          params="parameters: " + vaction.get_command() + "=>" + vaction.get_value())
+        return {vaction.get_command(): vaction.get_value()}
+
+    def network(self, params):
+        commands = Network(params).network_record
+        commands['network'] = params['network']
+        Annotation.create(Annotation.TYPES.NETWORK.value, instance_names=params['instance_type'],
+                          params="parameters: " + "Network" + "=>" + commands['network'] + ", uplink=>"
+                                 + commands['uplink'] + ", downlink=>" + commands['downlink'])
+        return commands
+
+    def stress(self, connector, params):
+        commands = {}
+        if 'instance_type' in params:
+            service_cpu = connector.get_running_container_processing(
+                connector.instance_name(params['instance_type'])
+            )
+        elif 'instance_id' in params:
+            service_cpu = connector.get_running_container_processing(
+                params['instance_id'] if not params['instance_id'].split(".")[-1].isnumeric() else "".join(
+                    params['instance_id'].split(".")[:-1])
+            )
+        else:
+            service_cpu = 1
+        commands['stress'] = StressAction(**params['action']).get_command(service_cpu)
+        Annotation.create(Annotation.TYPES.STRESS.value, instance_names=params['instance_type'],
+                          params="parameters: " + commands['stress'])
+        return commands
+
+    def command(self, params):
+        commands = {"command": CommandAction(**params['action']).get_command()}
+        Annotation.create(Annotation.TYPES.COMMAND.value, instance_names=params['instance_type'],
+                          params="parameters: " + commands['command'])
+        return commands
+
+    def post(self, action_type: str):
         """
         request.data : {
             'params': {...}
@@ -202,76 +242,30 @@ class ActionsAPI(MethodView):
         """
         connector = ConnectorClass(path=os.getcwd() + app.config['UPLOAD_FOLDER'])
         data = request.get_json()
-        # TODO check how to define the possible containers or services
-        if 'params' in data:
-            params = data['params']
-            if action_type == "horizontal_scaling":
+        action_type = action_type.lower()
 
-                instances = int(params['instances'])
-                if params['type'] == 'up':
-                    service_count = int(connector.count_services(params['instance_type'])) + instances
-                    Annotation.create(Annotation.TYPES.H_SCALE_UP.value, instance_names=params['instance_type'],
-                                      params="num of instances: " + str(instances))
-                else:
-                    service_count = int(connector.count_services(params['instance_type'])) - instances
-                    service_count = 0 if service_count < 0 else service_count
-                    Annotation.create(Annotation.TYPES.H_SCALE_DOWN.value, instance_names=params['instance_type'],
-                                      params="num of instances: " + str(instances))
-                print("SCALE: ",params['instance_type'],service_count)
-                connector.scale(params['instance_type'], service_count)
+        if 'params' not in data: return {"message": "NOT OK"}
+        params = data['params']
 
-            else:
-                selected_instances = self.instance_ids(params)
-                commands = {}
-                if action_type == "vertical_scaling":
-                    vaction = VerticalScalingAction(**data['params']['action'])
-                    commands['vertical_scaling'] = {vaction.get_command(): vaction.get_value()}
-                    Annotation.create(Annotation.TYPES.V_SCALE.value, instance_names=params['instance_type'],
-                                      params="parameters: " + vaction.get_command() + "=>" + vaction.get_value())
-                if action_type == "network":
-                    action = data['params']
-                    commands = Network(action).network_record
-                    commands['network'] = action['network']
-                    Annotation.create(Annotation.TYPES.NETWORK.value, instance_names=params['instance_type'],
-                                      params="parameters: " + "Network" + "=>" + commands['network'] + ", uplink=>"
-                                             + commands['uplink'] + ", downlink=>" + commands['downlink'])
-                if action_type == "stress":
-                    service_cpu = None
-                    if 'instance_type' in params:
-                        service_cpu = connector.get_running_container_processing(
-                            connector.instance_name(params['instance_type'])
-                            # params['instance_type'] if not params['instance_type'].split(".")[
-                            #     -1].isnumeric() else "".join(params['instance_type'].split(".")[:-1])
-                        )
-                        print("service_cpu: ", service_cpu)
-                    elif 'instance_id' in params:
-                        service_cpu = connector.get_running_container_processing(
-                            params['instance_id'] if not params['instance_id'].split(".")[-1].isnumeric() else "".join(
-                                params['instance_id'].split(".")[:-1])
-                        )
-                    else:
-                        service_cpu = 1
-                    service_cpu = 1 if not service_cpu else service_cpu
-                    commands['stress'] = StressAction(**data['params']['action']).get_command(
-                        service_cpu
-                    )
-                    Annotation.create(Annotation.TYPES.STRESS.value, instance_names=params['instance_type'],
-                                      params="parameters: " + commands['stress'])
+        if action_type == "horizontal_scaling":
+            self.horizontal_scaling(connector,  params)
+            return {"message": "OK"}
 
-                if action_type == "command":
-                    commands["command"] = CommandAction(**data['params']['action']).get_command()
-                    Annotation.create(Annotation.TYPES.COMMAND.value, instance_names=params['instance_type'],
-                                      params="parameters: " + commands['command'])
+        commands = {}
+        if action_type == "vertical_scaling": commands['vertical_scaling'] = self.vertical_scaling(params)
+        if action_type == "network": commands["network"] = self.network(params)
+        if action_type == "stress": commands["stress"] = self.stress(connector, params)
+        if action_type == "command": commands["command"] = self.command(params)
 
-                action_url = 'http://%s:5500/actions/'
-                for i in selected_instances:
-                    print(i)
-                    requests.post(
-                        action_url % socket.gethostbyname(i), json={
-                            'instances': selected_instances[i],
-                            'commands': commands
-                        }, headers={'Content-Type': "application/json"}
-                    )
+        selected_instances = self.instance_ids(params)
+        action_url = 'http://%s:5500/actions/'
+        for i in selected_instances:
+            requests.post(
+                action_url % socket.gethostbyname(i), json={
+                    'instances': selected_instances[i],
+                    'commands': commands
+                }, headers={'Content-Type': "application/json"}
+            )
 
         return {"message": "OK"}
 
@@ -318,18 +312,15 @@ class DistributionAPI(MethodView):
 
         if 'file' in request.files:
             file = request.files['file']
-            if not os.path.exists(path):
-                os.mkdir(path)
-
+            if not os.path.exists(path): os.mkdir(path)
             file.save(os.path.join(path, "rttdata.txt"))
 
         res = generate_network_distribution(path, name)
         lines = res.split("\n")
         res = {}
-        for l in lines:
-            line = l.split("=")
-            if len(line) == 2:
-                res[line[0].strip()] = line[1].strip()
+        for line in lines:
+            line_arr = line.split("=")
+            if len(line_arr) == 2: res[line_arr[0].strip()] = line_arr[1].strip()
         connector = ConnectorClass()
         nodes = connector.get_nodes()
 

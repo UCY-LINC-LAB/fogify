@@ -49,8 +49,6 @@ class Packet(db.Model):
     service_id = db.Column(db.String(250))
     src_ip = db.Column(db.String(250))
     dest_ip = db.Column(db.String(250))
-    # src_port = db.Column(db.String(250))
-    # dest_port = db.Column(db.String(250))
     protocol = db.Column(db.String(250))
     size = db.Column(db.Integer())
     count = db.Column(db.Integer())

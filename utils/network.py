@@ -1,18 +1,17 @@
 import copy
 import os
 import subprocess
-# import threading
 import threading
 import time
-# from collections import deque
 from collections import deque
-
+from utils import docker_manager
 import docker
 import requests
 import yaml
-
 from connectors import get_connector_class
-from utils.DockerManager import ContainerNetworkNamespace
+from utils.docker_manager import ContainerNetworkNamespace
+
+from utils.sniffer import Sniffer, SniffingStorage
 
 ConnectorClass = get_connector_class()
 
@@ -32,11 +31,10 @@ def inject_network_distribution(trace_file):
 
 
 def apply_network_rule(container, network, in_rule, out_rule, ifb_interface, create="TRUE", _ips={}):
-    from utils import DockerManager
     adapter = None
     count = 0
     while (adapter is None and count < 3):
-        adapter = DockerManager.get_containers_adapter_for_network(container, network)
+        adapter = docker_manager.get_containers_adapter_for_network(container, network)
         time.sleep(1)
         count += 1
     if not adapter:
@@ -70,8 +68,6 @@ def read_network_rules(path):
     return infra
 
 
-from utils import DockerManager
-
 
 def ips_to_rule(service_name, network, network_rules):
     f_name = service_name.replace("fogify_", "")
@@ -80,7 +76,7 @@ def ips_to_rule(service_name, network, network_rules):
         for i in network_rules[network]['links'][f_name]:
             network_ips = {}
             while network not in network_ips:
-                network_ips = DockerManager.get_ips_for_service(i)
+                network_ips = docker_manager.get_ips_for_service(i)
 
             res["|".join(network_ips[network])] = network_rules[network]['links'][service_name.replace("fogify_", "")][
                 i]
@@ -91,7 +87,6 @@ class NetworkController(object):
 
     def submition(self, path):
         if 'SNIFFING_ENABLED' in os.environ and os.environ['SNIFFING_ENABLED'].lower() == 'true':
-            from utils.store import SniffingStorage
             buffer = deque()
             periodicity = int(os.environ['SNIFFING_PERIODICITY']) if 'SNIFFING_PERIODICITY' in os.environ and \
                                                                      os.environ[
@@ -104,10 +99,8 @@ class NetworkController(object):
         for event in client.events(decode=True):
 
             try:
-                # print(event)
-
-                if 'status' in event and event['status'] == 'start' and 'Type' in event and event[
-                    'Type'] == 'container':
+                if getattr(event, 'status', None) == 'start' and \
+                        getattr(event, 'Type', None) == 'container':
                     properties = ConnectorClass.event_attr_to_information(event)
                     infra = read_network_rules(path)
                     if properties['service_name'] and properties['container_id'] and properties['container_name']:
@@ -151,7 +144,6 @@ class NetworkController(object):
                         def network_sniffing(event):
                             properties = ConnectorClass.event_attr_to_information(event)
                             with ContainerNetworkNamespace(properties['container_id']):
-                                from utils.sniffer import Sniffer
                                 sniffer = Sniffer(buffer, properties['container_name'])
                                 sniffer.sniff()
 

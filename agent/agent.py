@@ -3,7 +3,7 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 
 from connectors import get_connector_class
-from utils.general import AsyncTask
+from utils.async_task import AsyncTask
 from utils.network import NetworkController
 
 ConnectorClass = get_connector_class()
@@ -24,15 +24,6 @@ class Agent(object):
         db_path = os.getcwd() + '/agent_database.db'
 
         connector = ConnectorClass(frequency=int(os.environ['CPU_FREQ']) if 'CPU_FREQ' in os.environ else 2400)
-
-        # TODO
-        # controller_info = requests.get("http://" + os.environ['CONTROLLER_IP'] + ":5000/control/controller-properties/").json()
-        # connector.initialize(
-        #     MANAGER_IP=os.environ['CONTROLLER_IP'],
-        #     HOST_IP=os.environ['HOST_IP'],
-        #     advertise_addr=os.environ['CONTROLLER_IP'],
-        #     join_token=controller_info['credits']
-        # )
 
         node_labels = {}
 

@@ -8,8 +8,8 @@ import requests
 
 from agent.models import Status, Metric, db, Record
 from connectors import get_connector_class
-from utils import DockerManager
-from utils.DockerManager import get_container_ip_property, get_ip_from_network_object, \
+from utils import docker_manager
+from utils.docker_manager import get_container_ip_property, get_ip_from_network_object, \
     ContainerNetworkNamespace
 
 ConnectorClass = get_connector_class()
@@ -18,7 +18,7 @@ ConnectorClass = get_connector_class()
 class MetricCollector(object):
 
     def custom_metrics(self, container_id):
-        path = DockerManager.get_host_data_path(container_id)
+        path = docker_manager.get_host_data_path(container_id)
         res = {}
         if path and exists(path + "/fogify/metrics"):
             with open(path + "/fogify/metrics") as json_file:
@@ -45,10 +45,7 @@ class MetricCollector(object):
         while (True):
 
             count = Status.query.filter_by(name="counter").first()
-            if count is None:
-                count = 0
-            else:
-                count = int(count.value)
+            count = 0 if count is None else int(count.value)
 
             try:
                 docker_instances = requests.get("http://%s:9090/api/v1.3/docker/" % agent_ip).json()
@@ -58,11 +55,11 @@ class MetricCollector(object):
             for i in docker_instances:
                 try:
                     instance = docker_instances[i]
-                    is_fogified = False
                     for alias in instance['aliases']:
                         if alias.startswith('fogify_'):
                             is_fogified = True
                             break
+
                     if is_fogified:
                         instance_name = ConnectorClass.instance_name(alias)
 

@@ -7,7 +7,7 @@ from flask import request
 from flask.views import MethodView
 
 from agent.models import Status, Record, Metric, Packet
-from utils.DockerManager import ContainerNetworkNamespace
+from utils.docker_manager import ContainerNetworkNamespace
 from utils.monitoring import MetricCollector
 from utils.network import apply_network_rule, inject_network_distribution
 
@@ -71,8 +71,7 @@ class MonitoringAPI(MethodView):
                 query = query.filter(Record.instance_name == service)
 
             for r in query.all():
-                if r.instance_name not in res:
-                    res[r.instance_name] = []
+                if r.instance_name not in res: res[r.instance_name] = []
                 temp = {}
                 temp['count'] = r.count
                 temp['timestamp'] = r.timestamp
@@ -105,9 +104,7 @@ class TopologyAPI(MethodView):
 
         if 'file' in request.files:
             file = request.files['file']
-            if not os.path.exists(path):
-                os.mkdir(path)
-
+            if not os.path.exists(path): os.mkdir(path)
             file.save(os.path.join(path, "network.yaml"))
 
         return {"message": "OK"}
@@ -151,10 +148,7 @@ class ActionAPI(MethodView):
                     rate = int(commands['vertical_scaling']['CPU'][1:]) / 100
                     current = int(instance.attrs['HostConfig']['CpuQuota'])
                     dif = rate * current
-                    if commands['vertical_scaling'][0] == '-':
-                        fin = current - dif
-                    else:
-                        fin = current + dif
+                    fin = current - dif if commands['vertical_scaling'][0] == '-' else current + dif
                     res = {'cpu_quota': fin}
                 elif 'MEMORY' in commands['vertical_scaling']:
                     res = {'mem_limit': commands['vertical_scaling']['MEMORY']}
@@ -175,8 +169,7 @@ class DistributionAPI(MethodView):
 
         if 'file' in request.files:
             file = request.files['file']
-            if not os.path.exists(path):
-                os.mkdir(path)
+            if not os.path.exists(path): os.mkdir(path)
 
             file.save(os.path.join(path, name + ".dist"))
 

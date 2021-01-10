@@ -19,8 +19,7 @@ class Controller(object):
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
         self.args = args
         Controller.db = SQLAlchemy(app)
-        if os.path.exists(db_path):
-            os.remove(db_path)
+        if os.path.exists(db_path): os.remove(db_path)
         os.mknod(db_path)
 
         app.config['UPLOAD_FOLDER'] = "/current_infrastructure/"

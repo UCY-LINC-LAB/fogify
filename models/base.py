@@ -84,25 +84,23 @@ class Network(BaseModel):
 
             if 'from_node' in i and 'to_node' in i and 'properties' in i:
                 if 'bidirectional' in i and str(i['bidirectional']).lower() == 'true':
-                    if i['from_node'] not in temp:
-                        temp[i['from_node']] = {}
-                    if i['to_node'] not in temp:
-                        temp[i['to_node']] = {}
+
+                    if i['from_node'] not in temp: temp[i['from_node']] = {}
+                    if i['to_node'] not in temp: temp[i['to_node']] = {}
+
                     temp[i['from_node']][i['to_node']] = self.get_bidirectional_links(
                         copy.deepcopy(i['properties'])).get_command()
                     temp[i['to_node']][i['from_node']] = self.get_bidirectional_links(
                         copy.deepcopy(i['properties'])).get_command()
                 else:
-                    if i['from_node'] not in temp:
-                        temp[i['from_node']] = {}
+                    if i['from_node'] not in temp: temp[i['from_node']] = {}
                     temp[i['from_node']][i['to_node']] = NetworkAction(**i['properties']).get_command()
         return temp
 
     @property
     def network_record(self):
         res = {}
-        if self.capacity is not None:
-            res['capacity'] = self.capacity
+        if self.capacity is not None: res['capacity'] = self.capacity
         res['uplink'] = self.get_uplink().get_command()
         res['downlink'] = self.get_downlink().get_command()
         res['links'] = self.get_links()
@@ -161,7 +159,6 @@ class FogifyModel(object):
         self.networks = [Network(i) for i in fogify['networks']] if 'networks' in fogify else []
         self.deployment = Deployment({"topology": fogify['topology']}) if 'topology' in fogify else None
 
-        # [Deployment(i) for i in fogify['deployments']] if 'deployments' in fogify else []
 
     @property
     def all_networks(self):
@@ -178,9 +175,7 @@ class FogifyModel(object):
             if 'networks' in service:
                 for network in service['networks']:
                     if network not in [i['name'] for i in res]:
-                        res.append(
-                            {"name": network}
-                        )
+                        res.append({"name": network})
         return res
 
     @property
@@ -208,8 +203,7 @@ class FogifyModel(object):
         real_node = None
         extra_name = ""
         if type(network_object) == dict:
-            if (
-                    'uplink' not in network_object or 'downlink' not in network_object) and 'bidirectional' not in network_object:
+            if ('uplink' not in network_object or 'downlink' not in network_object) and 'bidirectional' not in network_object:
                 if 'name' in network_object:
                     extra_name = network_object['name']
         if type(network_object) == str:
@@ -218,11 +212,11 @@ class FogifyModel(object):
             if node.name == extra_name:
                 real_node = node
                 break
-        if real_node is None and type(network_object) != str:
-            return Network(network_object)
 
-        if real_node is None:
-            raise Exception("Model Error: the network specs do not exist")
+        if real_node is None and type(network_object) != str: return Network(network_object)
+
+        if real_node is None: raise Exception("Model Error: the network specs do not exist")
+
         return real_node
 
     def service_count(self):

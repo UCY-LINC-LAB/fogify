@@ -57,9 +57,6 @@ class BasicConnector(object):
     def inject_labels(self, labels={}, **kwargs):
         pass
 
-    def initialize(self, **kwargs):
-        pass
-
     def down(self, timeout=60):
         pass
 
@@ -98,6 +95,31 @@ class CommonDockerSuperclass(BasicConnector):
         self.cpu_oversubscription = cpu_oversubscription
         self.ram_oversubscription = ram_oversubscription
 
+    @classmethod
+    def check_status(cls, *_args, **_kwargs):
+        CurrentClass = cls
+
+        def decorator(func):
+            def wrapper(*args, **kwargs):
+                options = ['available', 'running']
+                if not len(_args) > 0:
+                    raise exceptions.APIException('You have to select at least one option:' + str(options))
+                option = str(_args[0])
+                if option not in options:
+                    raise exceptions.APIException('You have to select an option from:' + str(options))
+                if option == 'available':
+                    if int(CurrentClass.count_services(status=None)) < 1:
+                        return func(*args, **kwargs)
+                    raise exceptions.APIException('The system has a deployed instance.')
+                if option == 'running':
+                    if int(CurrentClass.count_services(status=None)) > 0:
+                        return func(*args, **kwargs)
+                    raise exceptions.APIException('The system is available.')
+
+            return wrapper
+
+        return decorator
+
     def generate_files(self):
         """
         This function returns the proper docker-swarm file
@@ -107,10 +129,7 @@ class CommonDockerSuperclass(BasicConnector):
         res = {'version': '3.7'}
 
         # generate networks
-        res['networks'] = {
-            i.name: {
-                'external': True
-            } for i in self.model.networks}
+        res['networks'] = {i.name: {'external': True} for i in self.model.networks}
 
         res['services'] = {}
         deployment = self.model.topology
@@ -129,7 +148,6 @@ class CommonDockerSuperclass(BasicConnector):
                         'external': True
                     }
                     service['networks'][network] = {}
-                    # service['networks']+=[network]
                 else:
                     if 'name' in network:
                         res['networks'][network['name']] = {
@@ -144,12 +162,13 @@ class CommonDockerSuperclass(BasicConnector):
         return res
 
     def node_capabilities(self, node):
-        if str(node.capabilities['memory'])[-1] == "G":
+        metric = str(node.capabilities['memory'])[-1]
+        if metric not in ["G", "M"]: raise Exception("Model does not provide other metrics than G or M")
+        if metric == "G":
             memory = float(str(node.capabilities['memory'])[:-1])
-        elif str(node.capabilities['memory'])[-1] == "M":
-            memory = float(str(node.capabilities['memory'])[:-1]) / 1024
         else:
-            raise Exception("Model does not provide other metrics than G or M")
+            memory = float(str(node.capabilities['memory'])[:-1]) / 1024
+
         lower_memory_bound = memory - memory * self.ram_oversubscription / 100
         cpu = node.capabilities['processor']['cores'] * node.capabilities['processor']['clock_speed'] / self.frequency
 
@@ -170,16 +189,12 @@ class CommonDockerSuperclass(BasicConnector):
         real_specs = list({"node.labels." + i for i in node.node_specifications})
         res = {"placement": {"constraints": []}}
         if len(real_specs) > 0:
-            res = {
-                "placement": {
-                    "constraints": real_specs
-                }
-            }
+            res = {"placement": {"constraints": real_specs}}
 
         for i in real_specs:
             if i == "node.labels.main_cluster_node!=True" or i == "node.labels.main_cluster_node==False":
-                print(i)
                 return res
+
         res["placement"]["constraints"].append("node.labels.main_cluster_node==True")
         caps = self.node_capabilities(node)
         res['resources'] = {
@@ -195,8 +210,8 @@ class CommonDockerSuperclass(BasicConnector):
         return res
 
     def count_networks(self):
-        """Counts the networks that are created
-
+        """
+        Counts the networks that are created
         :return: The number of created networks
         """
         try:
@@ -210,31 +225,6 @@ class CommonDockerSuperclass(BasicConnector):
 class DockerComposeConnector(CommonDockerSuperclass):
 
     @classmethod
-    def check_status(cls, *_args, **_kwargs):
-        def decorator(func):
-            def wrapper(*args, **kwargs):
-                options = ['available', 'running']
-                if not len(_args) > 0:
-                    raise exceptions.APIException('You have to select at least one option:' + str(options))
-                option = str(_args[0])
-                if option not in options:
-                    raise exceptions.APIException('You have to select an option from:' + str(options))
-                if option == 'available':
-                    if int(str(DockerComposeConnector.count_services(status=None))[-1]) < 1:
-                        return func(*args, **kwargs)
-                    else:
-                        raise exceptions.APIException('The system has a deployed instance.')
-                if option == 'running':
-                    if int(DockerComposeConnector.count_services(status=None)) > 0:
-                        return func(*args, **kwargs)
-                    else:
-                        raise exceptions.APIException('The system is available.')
-
-            return wrapper
-
-        return decorator
-
-    @classmethod
     def count_services(cls, service_name=None, status="Running"):
         """
         Counts the services that are running
@@ -243,14 +233,13 @@ class DockerComposeConnector(CommonDockerSuperclass):
         """
         try:
             com = "docker ps --format '{{.Names}}' | grep fogify_"
-            if service_name:
-                com += ' | grep fogify_' + str(service_name)
+            if service_name: com += ' | grep fogify_' + str(service_name)
             res = subprocess.getoutput(com + ' | wc -l')
-            try:
+
+            if len(res) > 0 and res.split(" ")[-1].isnumeric():
                 return int(res.split(" ")[-1])
-            except Exception as ex:
-                print(ex)
-                return 0
+            return 0
+
         except Exception as e:
             print(e)
 
@@ -260,15 +249,14 @@ class DockerComposeConnector(CommonDockerSuperclass):
         """
         count = self.model.service_count()
         subprocess.check_output(
-            ['docker-compose', '-f', self.path + self.file, '-p', 'fogify', '--compatibility', 'up', '-d']
-        )
-        if count is None:
-            return
+            ['docker-compose', '-f', self.path + self.file, '-p', 'fogify', '--compatibility', 'up', '-d'])
+
+        if count is None: return
+
         finished = False
         for i in range(int(timeout / 5)):
             sleep(5)
-            cur_count = self.count_services()
-            if str(cur_count) == str(count):
+            if self.count_services() == count:
                 finished = True
                 break
         if not finished:
@@ -282,7 +270,8 @@ class DockerComposeConnector(CommonDockerSuperclass):
         :return: Returns the result of the command execution
         """
         return subprocess.getoutput(
-            'docker-compose -f ' + self.path + self.file + ' -p fogify --compatibility up --scale ' + service + "=" + str(instances) + " -d"
+            'docker-compose -f ' + self.path + self.file + ' -p fogify --compatibility up --scale ' + service + "=" + str(
+                instances) + " -d"
         )
 
     def get_all_instances(self):
@@ -291,13 +280,10 @@ class DockerComposeConnector(CommonDockerSuperclass):
         :return: a dictionary that has as keys the nodes and as values a set of running containers on each node
         """
         try:
-            rows = subprocess.getoutput(
-                """docker ps --format '{{.Names}}'""").split(
-                "\n")
+            rows = subprocess.getoutput("""docker ps --format '{{.Names}}'""").split("\n")
             node_name = os.environ['MANAGER_NAME'] if 'MANAGER_NAME' in os.environ else 'localhost'
             fin_res = {node_name: []}
-            for i in rows:
-                name = i
+            for name in rows:
                 if name.startswith("fogify_"):
                     fin_res[node_name].append(name)
             return fin_res
@@ -312,7 +298,6 @@ class DockerComposeConnector(CommonDockerSuperclass):
         try:
             subprocess.check_output(
                 ['docker-compose', '-p', '--compose-file', self.path + self.file, 'fogify', 'down', '--remove-orphans']
-                # docker-compose -p fogify down --remove-orphans
             )
         except Exception as e:
             print(e)
@@ -359,8 +344,7 @@ class DockerComposeConnector(CommonDockerSuperclass):
         for container in containers:
             if container.name.startswith('fogify_'):
                 service = container.attrs['Config']['Labels']["com.docker.compose.service"]
-                if service not in res:
-                    res[service] = []
+                if service not in res: res[service] = []
                 res[service].append(container.name)
         return res
 
@@ -410,31 +394,6 @@ class SwarmConnector(CommonDockerSuperclass):
     The swarm implementation of Basic Connector of Fogify
     """
 
-    @classmethod
-    def check_status(cls, *_args, **_kwargs):
-        def decorator(func):
-            def wrapper(*args, **kwargs):
-                options = ['available', 'running']
-                if not len(_args) > 0:
-                    raise exceptions.APIException('You have to select at least one option:' + str(options))
-                option = str(_args[0])
-                if option not in options:
-                    raise exceptions.APIException('You have to select an option from:' + str(options))
-                if option == 'available':
-                    if int(str(SwarmConnector.count_services(status=None))[-1]) < 1:
-                        return func(*args, **kwargs)
-                    else:
-                        raise exceptions.APIException('The system has a deployed instance.')
-                if option == 'running':
-                    if int(SwarmConnector.count_services(status=None)) > 0:
-                        return func(*args, **kwargs)
-                    else:
-                        raise exceptions.APIException('The system is available.')
-
-            return wrapper
-
-        return decorator
-
     def scale(self, service, instances):
         """ Executes a scaling action for specific instance's number
 
@@ -445,11 +404,7 @@ class SwarmConnector(CommonDockerSuperclass):
         client = docker.from_env()
         for instance_service in client.services.list():
             if instance_service.name.startswith("fogify_") and str(instance_service.name).find(service) > -1:
-                print(instances)
                 return instance_service.scale(instances)
-        # return subprocess.getoutput(
-        #     'docker service scale fogify_' + service + "=" + str(instances)
-        # )
 
     def get_running_container_processing(self, service):
         """ Find the number of the running containers for a service
@@ -476,8 +431,7 @@ class SwarmConnector(CommonDockerSuperclass):
             fin_res = {}
             for i in res:
                 for j in i:
-                    if i[j] not in fin_res:
-                        fin_res[i[j]] = []
+                    if i[j] not in fin_res: fin_res[i[j]] = []
                     fin_res[i[j]].append(j)
             return fin_res
         except Exception:
@@ -492,10 +446,8 @@ class SwarmConnector(CommonDockerSuperclass):
         """
         try:
             com = 'docker stack ps fogify'
-            if status:
-                com += ' | grep ' + status
-            if service_name:
-                com += ' | grep ' + service_name
+            if status: com += ' | grep ' + status
+            if service_name: com += ' | grep ' + service_name
             res = subprocess.getoutput(com + ' | wc -l')
             try:
                 res = int(res.split(" ")[-1])
@@ -592,22 +544,6 @@ class SwarmConnector(CommonDockerSuperclass):
 
         node.update(node_spec)
 
-    def initialize(self, **kwargs):
-        import docker
-        client = docker.from_env()
-        if kwargs['MANAGER_IP'] == kwargs['HOST_IP']:
-            try:
-                client.swarm.init(kwargs['advertise_addr'])
-            except Exception as ex:
-                pass
-        else:
-            client = docker.from_env()
-            try:
-                client.swarm.join(remote_addrs=[kwargs['MANAGER_IP']], join_token=kwargs['join_token'])
-            except Exception as ex:
-                client.swarm.leave(force=True)
-                client.swarm.join(remote_addrs=[kwargs['MANAGER_IP']], join_token=kwargs['join_token'])
-
     def get_manager_info(self):
         import docker
         client = docker.from_env()
@@ -632,7 +568,7 @@ class SwarmConnector(CommonDockerSuperclass):
         return {service.name: service.tasks() for service in services if service.name.startswith('fogify')}
 
     @classmethod
-    def event_attr_to_information(cls, event):
+    def event_attr_to_information(cls, event)->dict:
         attrs = event['Actor']['Attributes']
         service_name = None
         container_id = None
