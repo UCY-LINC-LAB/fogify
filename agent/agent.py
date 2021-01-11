@@ -57,13 +57,12 @@ class Agent(object):
 
         # The thread that runs the monitoring agent
         metricController = MetricCollector()
-        metricControllerTask = AsyncTask(metricController, 'save_metrics', [
-            args.agent_ip])
+        metricControllerTask = AsyncTask(metricController, 'save_metrics', [args.agent_ip])
         metricControllerTask.start()
 
         # The thread that inspect containers and apply network QoS
         networkController = NetworkController()
-        networkControllerTask = AsyncTask(networkController, 'submition',
+        networkControllerTask = AsyncTask(networkController, 'listen',
                                           [os.getcwd() + app.config['UPLOAD_FOLDER']])
         networkControllerTask.start()
 

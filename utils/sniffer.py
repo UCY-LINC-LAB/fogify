@@ -9,7 +9,7 @@ import netifaces as ni
 import time
 from collections import deque
 from datetime import datetime
-from agent.models import Packet, db
+
 buffer = deque()
 
 
@@ -200,7 +200,7 @@ class SniffingStorage(object):
     # Sniffs and stores the traffic
     def store_data(self):
         delay = 0
-
+        from agent.models import Packet, db
         while True:
             if delay > 0:
                 time.sleep(delay)

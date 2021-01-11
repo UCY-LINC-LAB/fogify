@@ -49,14 +49,8 @@ def get_containers_adapter_for_network(container_id, network):
         ip = None
         if network in networks:
             ip = get_ip_from_network_object(networks[network])
-        pid = get_pid_from_container(container_id).split(" ")[-1]
-        if pid is None:
-            return None
         eth = get_container_ip_property(ip)
-        if not eth:
-            return None
-        eth = eth.split(" ")[-1]
-        return eth
+        return eth.split(" ")[-1] if eth else None
     except Exception as ex:
         print("get_containers_adapter_for_network", ex)
 
@@ -81,8 +75,7 @@ def get_ips_for_service(service):
     temp = []
     for i in res:
         for j in i:
-            if j.startswith(service):
-                temp.append(i[j])
+            if j.startswith(service): temp.append(i[j])
     res = {}
     for i in temp:
         nets = json.loads(subprocess.getoutput("""docker inspect --format='{{json .NetworksAttachments}}' %s""" % i))
@@ -90,7 +83,6 @@ def get_ips_for_service(service):
         for net in nets:
             net_name = net['Network']['Spec']['Name']
             addresses = net['Addresses']
-            if net_name not in res:
-                res[net_name] = []
+            if net_name not in res: res[net_name] = []
             res[net_name] += [address.replace("/24", "") for address in addresses]
     return res

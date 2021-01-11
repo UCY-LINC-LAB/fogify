@@ -49,7 +49,7 @@ class FogifySDK(object):
 
     def get_url(self, path: str = ""):
         if not self.url.startswith("http://"):
-            return "http://" + self.url + path
+            return "https://%s" % (self.url + path)
         return self.url + path
 
     def check_docker_swarm_existence(self):

@@ -1,7 +1,7 @@
 from sqlalchemy import Index
 from sqlalchemy.orm import relationship
 
-from agent.agent import Agent
+from .agent import Agent
 
 db = Agent.db
 

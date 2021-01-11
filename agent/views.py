@@ -113,6 +113,43 @@ class TopologyAPI(MethodView):
 class ActionAPI(MethodView):
     """ Fogify Controller send ad-hoc actions through ActionAPI """
 
+    def network(self, commands, instances):
+        command = commands['network']
+        if 'uplink' in command and 'downlink' in command:
+            for instance in instances:
+                with ContainerNetworkNamespace(instance.id):
+                    apply_network_rule(instance.name,
+                                       command['network'],
+                                       command['downlink'],
+                                       command['uplink'],
+                                       instance.id[:10],
+                                       "FALSE")
+
+    def stress(self, commands, instances):
+        for instance in instances:
+            instance.exec_run(commands['stress'], detach=True)
+
+    def vertical_scaling(self, commands, instances):
+        for instance in instances:
+            res = {}
+            if 'CPU' in commands['vertical_scaling']:
+                rate = int(commands['vertical_scaling']['CPU'][1:]) / 100
+                current = int(instance.attrs['HostConfig']['CpuQuota'])
+                dif = rate * current
+                fin = current - dif if commands['vertical_scaling'][0] == '-' else current + dif
+                res = {'cpu_quota': fin}
+            elif 'MEMORY' in commands['vertical_scaling']:
+                res = {'mem_limit': commands['vertical_scaling']['MEMORY']}
+            instance.update(**res)
+
+    def command(self, commands, instances):
+        for instance in instances:
+            instance.exec_run(commands['command'], detach=True)
+
+    def network_restore(self, commands, instances):
+        for instance in instances:
+            pass
+
     def post(self):
         client = docker.from_env()
         instances = []
@@ -121,42 +158,13 @@ class ActionAPI(MethodView):
 
         commands = request.json['commands']
 
-        # if 'network_reset' in commands and commands['network_reset'] == 'true':
-        #     infra = read_network_rules(os.getcwd() + app.config['UPLOAD_FOLDER'])
-        #     service_name = request.get_json()['instances'][0]
-        #     for instance in instances:
-        #         apply_default_rules(infra, service_name, instance.name, instance.id[:10])
+        if 'network' in commands: self.network(commands, instances)
 
-        if 'uplink' in commands and 'downlink' in commands and 'network' in commands:
-            for instance in instances:
-                with ContainerNetworkNamespace(instance.id):
-                    apply_network_rule(instance.name,
-                                       commands['network'],
-                                       commands['downlink'],
-                                       commands['uplink'],
-                                       instance.id[:10],
-                                       "FALSE")
+        if 'stress' in commands: self.stress(commands, instances)
 
-        if 'stress' in commands:
-            for instance in instances:
-                instance.exec_run(commands['stress'], detach=True)
+        if 'vertical_scaling' in commands: self.vertical_scaling(commands, instances)
 
-        if 'vertical_scaling' in commands:
-            for instance in instances:
-                res = {}
-                if 'CPU' in commands['vertical_scaling']:
-                    rate = int(commands['vertical_scaling']['CPU'][1:]) / 100
-                    current = int(instance.attrs['HostConfig']['CpuQuota'])
-                    dif = rate * current
-                    fin = current - dif if commands['vertical_scaling'][0] == '-' else current + dif
-                    res = {'cpu_quota': fin}
-                elif 'MEMORY' in commands['vertical_scaling']:
-                    res = {'mem_limit': commands['vertical_scaling']['MEMORY']}
-                instance.update(**res)
-
-        if 'command' in commands:
-            for instance in instances:
-                instance.exec_run(commands['command'], detach=True)
+        if 'command' in commands: self.command(commands, instances)
 
         return {"message": "OK"}
 

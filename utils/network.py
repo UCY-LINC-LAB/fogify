@@ -4,13 +4,12 @@ import subprocess
 import threading
 import time
 from collections import deque
-from utils import docker_manager
 import docker
 import requests
 import yaml
 from connectors import get_connector_class
+from utils import docker_manager
 from utils.docker_manager import ContainerNetworkNamespace
-
 from utils.sniffer import Sniffer, SniffingStorage
 
 ConnectorClass = get_connector_class()
@@ -65,8 +64,8 @@ def apply_network_rule(container, network, in_rule, out_rule, ifb_interface, cre
 def read_network_rules(path):
     f = open(os.path.join(path, "network.yaml"), "r")
     infra = yaml.load(f, Loader=yaml.UnsafeLoader)
+    f.close()
     return infra
-
 
 
 def ips_to_rule(service_name, network, network_rules):
@@ -82,10 +81,43 @@ def ips_to_rule(service_name, network, network_rules):
                 i]
     return res
 
+def apply_net_qos( service_name, container_id, container_name: str, __infra):
+        network_rules = __infra[service_name.replace("fogify_", "")]
+        for network in network_rules:
+            with ContainerNetworkNamespace(container_id):
+                apply_network_rule(container_name,
+                                   network,
+                                   network_rules[network]['downlink'].replace("  ", " "),
+                                   network_rules[network]['uplink'].replace("  ", " "),
+                                   container_id[:10],
+                                   create="TRUE",
+                                   _ips=ips_to_rule(
+                                       service_name, network, network_rules
+                                   ))
+        # update containers for new links
+        update_for_services_needed = set()
+        net_rules = __infra[service_name.replace("fogify_", "")]
+        f_name = service_name.replace("fogify_", "")
+        for net in net_rules:
+            for i in net_rules[net]['links']:
+                for j in net_rules[net]['links'][i]:
+                    if j == f_name: update_for_services_needed.add(i)
+
+        if len(update_for_services_needed) != 0:
+            str_set = "|".join(update_for_services_needed)
+            action_url = 'http://%s:5000/control/%s/' % (
+                os.environ['CONTROLLER_IP'] if 'CONTROLLER_IP' in os.environ else '0.0.0.0', str_set)
+            requests.post(action_url, headers={'Content-Type': "application/json"})
+
 
 class NetworkController(object):
 
-    def submition(self, path):
+
+    def check_starting_condition(self, event):
+        return 'status' in event and event['status'] == 'start' and 'Type' in event and event['Type']=='container'
+
+    def listen(self, path):
+
         if 'SNIFFING_ENABLED' in os.environ and os.environ['SNIFFING_ENABLED'].lower() == 'true':
             buffer = deque()
             periodicity = int(os.environ['SNIFFING_PERIODICITY']) if 'SNIFFING_PERIODICITY' in os.environ and \
@@ -94,44 +126,14 @@ class NetworkController(object):
             storage = SniffingStorage(buffer, periodicity)
             t2 = threading.Thread(target=storage.store_data)
             t2.start()
-
         client = docker.from_env()
         for event in client.events(decode=True):
 
             try:
-                if getattr(event, 'status', None) == 'start' and \
-                        getattr(event, 'Type', None) == 'container':
+                if self.check_starting_condition(event):
                     properties = ConnectorClass.event_attr_to_information(event)
                     infra = read_network_rules(path)
                     if properties['service_name'] and properties['container_id'] and properties['container_name']:
-                        def apply_net_qos(service_name, container_id, container_name, infra):
-                            network_rules = infra[service_name.replace("fogify_", "")]
-                            with ContainerNetworkNamespace(container_id):
-                                for network in network_rules:
-                                    apply_network_rule(container_name,
-                                                       network,
-                                                       network_rules[network]['downlink'],
-                                                       network_rules[network]['uplink'],
-                                                       container_id[:10],
-                                                       create="TRUE",
-                                                       _ips=ips_to_rule(
-                                                           service_name, network, network_rules
-                                                       ))
-
-                            # update containers for new links
-                            update_for_services_needed = set()
-                            net_rules = infra[service_name.replace("fogify_", "")]
-                            f_name = service_name.replace("fogify_", "")
-                            for net in net_rules:
-                                for i in net_rules[net]['links']:
-                                    for j in net_rules[net]['links'][i]:
-                                        if j == f_name:
-                                            update_for_services_needed.add(i)
-                            str_set = "|".join(update_for_services_needed)
-                            action_url = 'http://%s:5000/control/%s/' % (
-                                os.environ['CONTROLLER_IP'] if 'CONTROLLER_IP' in os.environ else '0.0.0.0', str_set)
-                            requests.post(action_url, headers={'Content-Type': "application/json"})
-
                         threading.Thread(
                             target=apply_net_qos, args=(
                                 properties['service_name'],
@@ -150,5 +152,5 @@ class NetworkController(object):
                         if 'SNIFFING_ENABLED' in os.environ and os.environ['SNIFFING_ENABLED'].lower() == 'true':
                             threading.Thread(target=network_sniffing, args=(event)).start()
             except Exception as ex:
-                print(ex)
+                print(ex.__traceback__)
                 continue

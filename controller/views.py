@@ -40,7 +40,8 @@ class TopologyAPI(MethodView):
         """ Remove a Fogify deployment"""
         Status.update_config('submit_delete')
         Annotation.create(Annotation.TYPES.STOP.value)
-        t = AsyncTask(self, 'remove')
+        connector = ConnectorClass(path=os.getcwd() + app.config['UPLOAD_FOLDER'])
+        t = AsyncTask(self, 'remove', [connector])
         t.start()
         return {"message": "The topology is down."}
 
@@ -84,9 +85,8 @@ class TopologyAPI(MethodView):
             "networks": networks
         }
 
-    def remove(self):
+    def remove(self, connector):
         """ A utility function that destroys a topology """
-        connector = ConnectorClass(path=os.getcwd() + app.config['UPLOAD_FOLDER'])
         connector.down()
         Annotation.create(Annotation.TYPES.UNDEPLOY.value)
 
@@ -209,21 +209,16 @@ class ActionsAPI(MethodView):
         return commands
 
     def stress(self, connector, params):
-        commands = {}
-        if 'instance_type' in params:
-            service_cpu = connector.get_running_container_processing(
-                connector.instance_name(params['instance_type'])
-            )
-        elif 'instance_id' in params:
-            service_cpu = connector.get_running_container_processing(
-                params['instance_id'] if not params['instance_id'].split(".")[-1].isnumeric() else "".join(
-                    params['instance_id'].split(".")[:-1])
-            )
-        else:
-            service_cpu = 1
-        commands['stress'] = StressAction(**params['action']).get_command(service_cpu)
+        if 'instance_id' in params: name = params['instance_id']
+        if 'instance_type' in params: name = params['instance_type']
+        service_cpu = connector.get_running_container_processing(
+            connector.instance_name(name).split(".")[0]
+        )
+        if not service_cpu: service_cpu = 1
+
+        commands = StressAction(**params['action']).get_command(service_cpu)
         Annotation.create(Annotation.TYPES.STRESS.value, instance_names=params['instance_type'],
-                          params="parameters: " + commands['stress'])
+                          params="parameters: " + commands)
         return commands
 
     def command(self, params):
@@ -252,6 +247,7 @@ class ActionsAPI(MethodView):
             return {"message": "OK"}
 
         commands = {}
+
         if action_type == "vertical_scaling": commands['vertical_scaling'] = self.vertical_scaling(params)
         if action_type == "network": commands["network"] = self.network(params)
         if action_type == "stress": commands["stress"] = self.stress(connector, params)
