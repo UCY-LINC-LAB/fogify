@@ -1,19 +1,21 @@
 import os
 import socket
+import traceback
 
+from flask_api import exceptions
 import requests
 import yaml
 from flask import current_app as app
 from flask import request
 from flask.views import MethodView
-from models.base import FogifyModel
-from connectors import get_connector_class
+from FogifyModel.base import FogifyModel
+from connectors import get_connector_class, get_connector
 from controller.models import Status, Annotation
-from models.actions import StressAction, VerticalScalingAction, CommandAction
-from models.base import NetworkGenerator, Network
+from FogifyModel.actions import StressAction, VerticalScalingAction, CommandAction
+from FogifyModel.base import Network
 from utils.async_task import AsyncTask
-from utils.network import generate_network_distribution
-
+from utils.inter_communication import Communicator
+from utils.network import NetworkController
 ConnectorClass = get_connector_class()
 
 
@@ -33,14 +35,15 @@ class TopologyAPI(MethodView):
 
     def get(self):
         """ Returns the current status of the fogify deployment"""
-        return ConnectorClass.return_deployment()
+        connector = get_connector()
+        return connector.return_deployment()
 
     @ConnectorClass.check_status("running")
     def delete(self):
         """ Remove a Fogify deployment"""
         Status.update_config('submit_delete')
         Annotation.create(Annotation.TYPES.STOP.value)
-        connector = ConnectorClass(path=os.getcwd() + app.config['UPLOAD_FOLDER'])
+        connector = get_connector()
         t = AsyncTask(self, 'remove', [connector])
         t.start()
         return {"message": "The topology is down."}
@@ -62,23 +65,24 @@ class TopologyAPI(MethodView):
 
         model = FogifyModel(infra)
 
-        connector = ConnectorClass(model,
-                                   path=path,
-                                   frequency=int(os.environ['CPU_FREQ']) if 'CPU_FREQ' in os.environ else 2400,
-                                   cpu_oversubscription=int(os.environ[
-                                                                'CPU_OVERSUBSCRIPTION_PERCENTAGE']) if 'CPU_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0,
-                                   ram_oversubscription=int(os.environ[
-                                                                'RAM_OVERSUBSCRIPTION_PERCENTAGE']) if 'RAM_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0
-                                   )
+        try:
+            connector = get_connector(model=model)
+            controller_response = connector.generate_files()
+            yaml.dump(controller_response, open(path + "fogified-swarm.yaml", 'w'), default_flow_style=False)
+            networks = model.generate_network_rules()
+        except Exception as ex:
+            print("controller error")
+            print(ex)
+            print(traceback.format_exc())
+            raise exceptions.APIException("Fogify could not generate the orchestrator files."
+                                          "Please check your fogify model again.")
 
-        controller_response = connector.generate_files()
-
-        networks = NetworkGenerator(model).generate_network_rules()
 
         yaml.dump(networks, open(path + "fogified-network.yaml", 'w'), default_flow_style=False)
 
         t = AsyncTask(self, 'submition', [connector, path, model.all_networks])
         t.start()
+
         return {
             "message": "OK",
             "swarm": controller_response,
@@ -92,12 +96,8 @@ class TopologyAPI(MethodView):
 
     def submition(self, connector, path, networks):
         """ A utility function that deploys a topology """
-
-        nodes = connector.get_nodes()
-        # add network rules
-        for i in nodes:
-            r = requests.post('http://' + nodes[i] + ':5500/topology/',
-                              files={'file': open(path + "fogified-network.yaml", 'rb')})
+        file = open(path + "fogified-network.yaml", 'rb')
+        Communicator(connector).agents__forward_network_file(file)
 
         for network in networks:
             try:
@@ -122,16 +122,7 @@ class MonitoringAPI(MethodView):
 
     def delete(self):
         """ Removes the stored monitoring data """
-        connector = ConnectorClass()
-        nodes = connector.get_nodes()
-        res = {}
-        for i in nodes:
-            try:
-                r = requests.delete('http://' + nodes[i] + ':5500/monitorings/').json()
-                res.update(r)
-            except ConnectionError as e:
-                print('The agent of node ' + str(i) + ' is offline')
-        return {"message": "The monitorings are empty now"}
+        return Communicator(get_connector()).agents__delete_metrics()
 
     def get(self):
         """ Returns the stored monitoring data """
@@ -143,18 +134,9 @@ class MonitoringAPI(MethodView):
             query += "from_timestamp=" + from_timestamp + "&" if from_timestamp else ""
             query += "to_timestamp=" + to_timestamp + "&" if to_timestamp else ""
             query += "service=" + service if service else ""
-            connector = ConnectorClass()
-            nodes = connector.get_nodes()
-            res = {}
-            for i in nodes:
-                try:
-                    url = 'http://' + nodes[i] + ':5500/monitorings/'
-                    url = url + "?" + query if query != "" else url
-                    r = requests.get(url).json()
-                    res.update(r)
-                except ConnectionError as e:
-                    print('The agent of node ' + str(i) + ' is offline')
-            return res
+
+            return Communicator(get_connector()).agents__get_metrics(query)
+
         except Exception as e:
             return {
                 "Error": "{0}".format(e)
@@ -164,22 +146,26 @@ class MonitoringAPI(MethodView):
 class ActionsAPI(MethodView):
     """ This API class applies the actions to a running topology"""
 
-    def instance_ids(self, params):
-        docker_instances = ConnectorClass().get_all_instances()
+    def links(self,  params):
+        """
+        {'network': 'internet', 'links': [{'from_node': 'cloud-server', 'to_node': 'mec-svc-1', 'bidirectional': False, 
+        'properties': {'latency': {'delay': '1500ms'}}}], 'instance_type': 'cloud-server', 'instances': 1}
 
-        if 'instance_id' in params and params['instance_id'] in docker_instances:
-            return {docker_instances[params['instance_id']]: [params['instance_id']]}
+        """
+        if 'links' not in params: return {}
+        if 'network' not in params: return {}
 
-        if 'instance_type' in params and 'instances' in params:
-            instance_type = params['instance_type']
-            instances = {}
-            for node in docker_instances:
-                for i in docker_instances[node]:
-                    if i.find(instance_type) >= 0:
-                        if node not in instances: instances[node] = []
-                        instances[node] += [i]
-            return instances
-        return {}
+        commands = {}
+        commands['network'] = params['network']
+        res = []
+        for link in params['links']:
+            res.extend(Network.get_link(link))
+        commands['links'] = res
+
+        Annotation.create(Annotation.TYPES.UPDATE_LINKS.value, instance_names=params['instance_type'],
+                          params="parameters: " + "Network" + "=>" + commands['network'] + ", link number=>"
+                                 + str(len(commands['links'])))
+        return commands
 
     def horizontal_scaling(self, connector,  params):
         instances = int(params['instances'])
@@ -201,8 +187,16 @@ class ActionsAPI(MethodView):
         return {vaction.get_command(): vaction.get_value()}
 
     def network(self, params):
-        commands = Network(params).network_record
-        commands['network'] = params['network']
+        new_params = {i: params[i] for i in params if i not in ['instance_type', 'network', 'instance_id', 'instances']}
+        network = params['network']
+        if not new_params and 'network' in params:
+            new_params = params['network']
+            network = new_params['network']
+        if not new_params: return {}
+
+        commands = Network(new_params).network_record
+
+        commands['network'] = network
         Annotation.create(Annotation.TYPES.NETWORK.value, instance_names=params['instance_type'],
                           params="parameters: " + "Network" + "=>" + commands['network'] + ", uplink=>"
                                  + commands['uplink'] + ", downlink=>" + commands['downlink'])
@@ -235,7 +229,7 @@ class ActionsAPI(MethodView):
         :param action_type:
         :return:
         """
-        connector = ConnectorClass(path=os.getcwd() + app.config['UPLOAD_FOLDER'])
+        connector = get_connector()
         data = request.get_json()
         action_type = action_type.lower()
 
@@ -252,16 +246,9 @@ class ActionsAPI(MethodView):
         if action_type == "network": commands["network"] = self.network(params)
         if action_type == "stress": commands["stress"] = self.stress(connector, params)
         if action_type == "command": commands["command"] = self.command(params)
+        if action_type == "links": commands["links"] = self.links(params)
 
-        selected_instances = self.instance_ids(params)
-        action_url = 'http://%s:5500/actions/'
-        for i in selected_instances:
-            requests.post(
-                action_url % socket.gethostbyname(i), json={
-                    'instances': selected_instances[i],
-                    'commands': commands
-                }, headers={'Content-Type': "application/json"}
-            )
+        Communicator(get_connector()).agents__perform_action(commands, **params)
 
         return {"message": "OK"}
 
@@ -272,7 +259,7 @@ class ControlAPI(MethodView):
     def get(self, service):
         if service.lower() == "controller-properties":
             try:
-                return {"credits": ConnectorClass().get_manager_info()}
+                return {"credits": get_connector().get_manager_info()}
             except Exception as ex:
                 print(ex)
                 return {"credits": ""}
@@ -280,23 +267,11 @@ class ControlAPI(MethodView):
             return {"message": "error"}
 
     def post(self, service):
-        for ser in service.split("|"):
-            commands = {"instances": [ser], "network_reset": 'true'}
-            action_url = 'http://%s:5500/actions/'
-            docker_instances = ConnectorClass().get_all_instances()
-            selected_instances = []
-            for node in docker_instances:
-                for docker_instance in docker_instances[node]:
-                    if service in docker_instance and node not in selected_instances:
-                        selected_instances.append(node)
-            for i in selected_instances:
-                requests.post(
-                    action_url % socket.gethostbyname(i), json={
-                        'instances': [ser],
-                        'commands': commands
-                    }, headers={'Content-Type': "application/json"}
-                )
-
+        commands = {
+            'network': 'all',
+            'links':[]
+        }
+        Communicator(get_connector()).agents__perform_action(commands, instance_type=service)
         return {"message": "OK"}
 
 
@@ -311,18 +286,15 @@ class DistributionAPI(MethodView):
             if not os.path.exists(path): os.mkdir(path)
             file.save(os.path.join(path, "rttdata.txt"))
 
-        res = generate_network_distribution(path, name)
+        res = NetworkController.generate_network_distribution(path, name)
         lines = res.split("\n")
         res = {}
         for line in lines:
             line_arr = line.split("=")
             if len(line_arr) == 2: res[line_arr[0].strip()] = line_arr[1].strip()
-        connector = ConnectorClass()
-        nodes = connector.get_nodes()
 
-        for i in nodes:
-            r = requests.post('http://' + nodes[i] + ':5500/generate-network-distribution/%s/' % name,
-                              files={'file': open(os.path.join(path, name + ".dist"), 'rb')})
+        Communicator(get_connector()).agents__disseminate_net_distribution(
+            name, open(os.path.join(path, name + ".dist"), 'rb'))
 
         return {"generated-distribution": res}
 
@@ -330,21 +302,11 @@ class DistributionAPI(MethodView):
 class SnifferAPI(MethodView):
     def delete(self):
         """ Removes the stored monitoring data """
-        connector = ConnectorClass()
-        nodes = connector.get_nodes()
-        res = {}
-        for i in nodes:
-            try:
-                r = requests.delete('http://' + nodes[i] + ':5500/packets/').json()
-                res.update(r)
-            except ConnectionError as e:
-                print('The agent of node ' + str(i) + ' is offline')
-        return {"message": "The monitorings are empty now"}
+        return Communicator(get_connector()).agents__delete_packets()
 
     def get(self):
         """ Returns the stored monitoring data """
         try:
-
             query = ""
             from_timestamp = request.args.get('from_timestamp')
             to_timestamp = request.args.get('to_timestamp')
@@ -354,18 +316,7 @@ class SnifferAPI(MethodView):
             query += "to_timestamp=" + to_timestamp + "&" if to_timestamp else ""
             query += "service=" + service if service else ""
             query += "packet_type=" + packet_type if packet_type else ""
-            connector = ConnectorClass()
-            nodes = connector.get_nodes()
-            res = []
-            for i in nodes:
-                try:
-                    url = 'http://' + nodes[i] + ':5500/packets/'
-                    url = url + "?" + query if query != "" else url
-                    r = requests.get(url).json()
-                    res.extend(r)
-                except ConnectionError as e:
-                    print('The agent of node ' + str(i) + ' is offline')
-            return {"res": res}
+            return Communicator(get_connector()).agents__get_packets(query)
         except Exception as e:
             return {
                 "Error": "{0}".format(e)

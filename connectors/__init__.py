@@ -1,9 +1,23 @@
-from .ClusterConnectors import *
+import os
+from . import DockerBasedConnectors
+from .base import BasicConnector
 
-
-def get_connector_class() -> BasicConnector:
+def get_connector_class():
     connector_class = os.environ['CONNECTOR'] if 'CONNECTOR' in os.environ else 'SwarmConnector'
-    print("CONNECTOR CLASS: ", connector_class)
-    ConnectorClass = getattr(ClusterConnectors, connector_class, getattr(ClusterConnectors, 'SwarmConnector'))
-    print("CLASS OBJECT: ", ConnectorClass)
+    ConnectorClass = getattr(DockerBasedConnectors, connector_class, getattr(DockerBasedConnectors, 'SwarmConnector'))
     return ConnectorClass
+
+def get_connector(**kwargs) -> BasicConnector:
+    default_params = dict(
+        model=None,
+        path=os.getcwd() + os.environ['UPLOAD_FOLDER'] if 'UPLOAD_FOLDER' in os.environ else "",
+        frequency=int(os.environ['CPU_FREQ']) if 'CPU_FREQ' in os.environ else 2400,
+        cpu_oversubscription=int(
+            os.environ['CPU_OVERSUBSCRIPTION_PERCENTAGE']) if 'CPU_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0,
+        ram_oversubscription=int(
+            os.environ['RAM_OVERSUBSCRIPTION_PERCENTAGE']) if 'RAM_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0,
+        node_name=os.environ['MANAGER_NAME'] if 'MANAGER_NAME' in os.environ else 'localhost',
+        host_ip=os.environ['HOST_IP'] if 'HOST_IP' in os.environ else None
+    )
+    default_params.update(kwargs)
+    return get_connector_class()(** default_params)

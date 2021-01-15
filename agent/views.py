@@ -5,11 +5,9 @@ import docker
 from flask import current_app as app
 from flask import request
 from flask.views import MethodView
-
 from agent.models import Status, Record, Metric, Packet
-from utils.docker_manager import ContainerNetworkNamespace
 from utils.monitoring import MetricCollector
-from utils.network import apply_network_rule, inject_network_distribution
+from utils.network import NetworkController
 
 
 class SnifferAPI(MethodView):
@@ -72,11 +70,9 @@ class MonitoringAPI(MethodView):
 
             for r in query.all():
                 if r.instance_name not in res: res[r.instance_name] = []
-                temp = {}
+                temp = {i.metric_name: i.value for i in r.metrics}
                 temp['count'] = r.count
                 temp['timestamp'] = r.timestamp
-                for i in r.metrics:
-                    temp[i.metric_name] = i.value
                 res[r.instance_name].append(temp)
             return res
         except Exception as e:
@@ -95,35 +91,75 @@ class TopologyAPI(MethodView):
     """ Fogify Controller communicate with the agents through this API to apply network rules or to clean a deployment """
 
     def delete(self):
-        path = os.getcwd() + app.config['UPLOAD_FOLDER']
+        connector=app.config['CONNECTOR']
+        path = connector.path
         MetricCollector().remove_record_file(path + "metrics/")
         return {"message": "The topology is down."}
 
     def post(self):
-        path = os.getcwd() + app.config['UPLOAD_FOLDER']
-
+        connector = app.config['CONNECTOR']
         if 'file' in request.files:
             file = request.files['file']
-            if not os.path.exists(path): os.mkdir(path)
-            file.save(os.path.join(path, "network.yaml"))
-
+        NetworkController(connector).save_network_rules(file)
         return {"message": "OK"}
 
 
-class ActionAPI(MethodView):
+class ActionsAPI(MethodView):
     """ Fogify Controller send ad-hoc actions through ActionAPI """
+
+    def get_common_requirements(self):
+        connector = app.config['CONNECTOR']
+        net_controller = NetworkController(connector)
+        network_rules = net_controller.read_network_rules()
+        return connector, net_controller, network_rules
+
+    def get_rules_and_container_data(self, connector, instance, network_rules):
+        instance_name = connector.instance_name(instance.name)
+        if instance_name.rfind("_") > 0:
+            service_name = instance_name[:instance_name.rfind("_")]
+        elif instance_name.rfind(".") > 0:
+            service_name = instance_name[:instance_name.rfind(".")]
+        service_network_rule = network_rules[service_name] if service_name in network_rules else {}
+        return instance_name, service_name, service_network_rule
+
+    def merge_links(self, old_links, new_links):
+        if len(old_links) == 0: return new_links
+
+        new_link_dict = {new_link['from_node'] + "___" + new_link['to_node']: new_link['command'] for new_link in new_links}
+        old_link_dict = {old_link['from_node'] + "___" + old_link['to_node']: old_link['command'] for old_link in old_links}
+        old_link_dict.update(new_link_dict)
+        fin_link = []
+        for key, value in old_link_dict.items():
+            fin_link.append(dict(from_node=key.split("___")[0], to_node=key.split("___")[1], command=value))
+        return fin_link
+
+    def common_link_and_network(self, commands, instances):
+        if 'network' not in commands: return {}
+
+        links = commands['links'] if 'links' in commands else []
+        uplink = commands['uplink'] if 'uplink' in commands else None
+        downlink = commands['downlink'] if 'downlink' in commands else None
+        network = commands['network']
+
+        connector, net_controller, network_rules = self.get_common_requirements()
+        for instance in instances:
+            instance_name, service_name, ser_net_rule = self.get_rules_and_container_data(connector, instance, network_rules)
+            if network != 'all':
+                ser_net_rule[network]['links'] = self.merge_links(ser_net_rule[network]['links'], links)
+                if uplink: ser_net_rule[network]['uplink'] = uplink
+                if downlink: ser_net_rule[network]['downlink'] = downlink
+                network_rules[service_name] = ser_net_rule
+                net_controller.save_network_rules(network_rules)
+            net_controller.execute_network_commands(service_name, instance.id, instance.name, ser_net_rule, "False")
+
+    def link(self, commands, instances):
+        commands = commands['links']
+        self.common_link_and_network(commands, instances)
 
     def network(self, commands, instances):
         command = commands['network']
-        if 'uplink' in command and 'downlink' in command:
-            for instance in instances:
-                with ContainerNetworkNamespace(instance.id):
-                    apply_network_rule(instance.name,
-                                       command['network'],
-                                       command['downlink'],
-                                       command['uplink'],
-                                       instance.id[:10],
-                                       "FALSE")
+        self.common_link_and_network(command, instances)
+
 
     def stress(self, commands, instances):
         for instance in instances:
@@ -146,17 +182,18 @@ class ActionAPI(MethodView):
         for instance in instances:
             instance.exec_run(commands['command'], detach=True)
 
-    def network_restore(self, commands, instances):
-        for instance in instances:
-            pass
 
     def post(self):
         client = docker.from_env()
         instances = []
-        for instance in request.get_json()['instances']:
+        obj_json = request.get_json()
+
+        for instance in obj_json['instances']:
             instances += [i for i in client.containers.list() if i.name.find(instance) > -1]
 
-        commands = request.json['commands']
+        commands = obj_json['commands']
+
+        if 'links' in commands: self.link(commands, instances)
 
         if 'network' in commands: self.network(commands, instances)
 
@@ -181,5 +218,5 @@ class DistributionAPI(MethodView):
 
             file.save(os.path.join(path, name + ".dist"))
 
-        inject_network_distribution(os.path.join(path, name + ".dist"))
+        NetworkController.inject_network_distribution(os.path.join(path, name + ".dist"))
         return {"success": True}

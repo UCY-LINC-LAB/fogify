@@ -33,6 +33,7 @@ class Annotation(db.Model):
         H_SCALE_UP = "H_SCALE_UP"
         H_SCALE_DOWN = "H_SCALE_DOWN"
         V_SCALE = "V_SCALE"
+        UPDATE_LINKS = "UPDATE_LINKS"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     instance_name = db.Column(db.String(250), nullable=True)

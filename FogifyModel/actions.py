@@ -83,13 +83,3 @@ class NetworkAction(BaseAction):
         res += " loss %s " % self.drop if self.drop else ""
         return res
 
-
-class NetworkLinkAction(BaseAction):
-    """ Translates the network link alteration model to Fogify agent's network link primitives """
-
-    def __init__(self, to_node, network):
-        self.to_node = to_node
-        self.properties = network
-
-    def get_command(self):
-        return ""

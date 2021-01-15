@@ -32,7 +32,7 @@ RUN mkdir /code/fogify/
 ADD agent /code/fogify/agent
 ADD controller /code/fogify/controller
 ADD connectors /code/fogify/connectors
-ADD models /code/fogify/models
+ADD FogifyModel /code/fogify/FogifyModel
 ADD utils /code/fogify/utils
 ADD main.py /code/fogify/
 

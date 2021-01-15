@@ -7,18 +7,134 @@ import docker
 import requests
 
 from agent.models import Status, Metric, db, Record
-from connectors import get_connector_class
-from utils import docker_manager
-from utils.docker_manager import get_container_ip_property, get_ip_from_network_object, \
-    ContainerNetworkNamespace
 
-ConnectorClass = get_connector_class()
+from utils.docker_manager import get_container_ip_property, get_ip_from_network_object, ContainerNetworkNamespace
 
 
+
+class cAdvisorHandler(object):
+
+    def __init__(self, ip, port, project):
+        self.ip = ip
+        self.port = port
+        self.project = project
+        self.current_instance = None
+        self.metrics = []
+        self.machine = []
+        self.instance_name = None
+        self.current_instance = {}
+        self.retrieve_machine_info()
+
+    def retrieve_docker_metrics(self):
+        self.metrics = requests.get("http://%s:%s/api/v1.3/docker/" % (self.ip, self.port)).json()
+
+    def retrieve_machine_info(self):
+        self.machine = requests.get("http://%s:%s/api/v1.3/machine" % (self.ip, self.port)).json()
+
+    def set_current_instance_name(self, instance_name: str):
+        self.instance_name = instance_name
+
+    def set_current_instance(self, instance):
+        self.current_instance = instance
+
+    def return_project_alias(self):
+        for alias in self.current_instance['aliases']:
+            if alias.startswith(self.project):
+                return alias
+        return None
+    
+    def get_last_stats(self):
+        return self.current_instance['stats'][-1]
+
+    def get_last_stats_cpu_usage(self):
+        return float(self.get_last_stats()['cpu']['usage']['total'])
+
+    def get_last_stats_disk_usage(self):
+        return float(self.get_last_stats()['filesystem'][0]['usage'])
+
+    def get_last_stats_timestamp(self):
+        return self.get_last_stats()['timestamp']
+
+    def get_last_stats_memory_usage(self):
+        return float(self.get_last_stats()['memory']['usage'])
+
+    def get_last_stats_memory_util(self):
+        return self.get_last_stats_disk_usage()/self.get_mem_quota()
+
+    def get_last_saved_record(self, instance_name):
+        return Record.query.filter_by(instance_name=instance_name).order_by(Record.count.desc()).limit(1).first()
+
+    def get_last_stats_cpu_util(self):
+        cpu_specs = self.get_cpu_specs()
+        record = self.get_last_saved_record(self.instance_name)
+
+        if not record: return 0
+        last_cpu_record = record.get_metric_by_name("cpu")
+
+        timedif = abs(self.millis_interval(p.parse(self.get_last_stats_timestamp()).replace(tzinfo=None),
+                                           record.timestamp.replace(tzinfo=None)))
+        if timedif == 0: timedif = 1
+
+        rate = (float(self.get_last_stats_cpu_usage()) - float(last_cpu_record.value)) / timedif
+        val = 1.0
+        if 'quota' in cpu_specs:
+            val = self.get_cpu_quota()
+        elif 'mask' in cpu_specs:
+            val = self.get_cpu_mask_to_period_ratio()
+        cpu_util_val = 10 * float(rate / val)
+        return cpu_util_val
+
+    def get_last_stats_networks(self):
+        return self.get_last_stats()['network']['interfaces']
+
+    def get_cpu_specs(self):
+        return self.current_instance['spec']['cpu']
+    
+    def get_mem_specs(self):
+        return self.current_instance['spec']['memory']
+
+    def get_mem_quota(self):
+        mem_specs = self.get_mem_specs()['limit'] if 'limit' in self.get_mem_specs() else \
+            self.machine['memory_capacity']
+        return float(mem_specs)
+
+    def get_cpu_quota(self):
+        if 'quota' not in self.get_cpu_specs(): return
+        return self.get_cpu_specs()['quota']
+    
+    def get_cpu_mask(self):
+        try:
+            return int(self.get_cpu_specs()['mask'].split("-")[-1]) + 1
+        except Exception:
+            return 0
+
+    def get_cpu_period(self):
+        cpu_specs = self.get_cpu_specs()
+        return float(cpu_specs['period'] if cpu_specs and 'period' in cpu_specs else 1.0)
+
+    def get_cpu_mask_to_period_ratio(self):
+        return self.get_cpu_mask() / self.get_cpu_period()
+    
+    def get_mem_quota(self):
+        memory = self.get_mem_specs()
+        mem_specs = memory['limit'] if 'limit' in memory else self.machine['memory_capacity']
+        return float(mem_specs)
+    
+    def millis_interval(self, start, end):
+        """start and end are datetime instances"""
+        diff = end - start
+        millis = diff.days * 24 * 60 * 60 * 1000
+        millis += diff.seconds * 1000
+        millis += diff.microseconds / 1000
+        return millis
+
+    def get_metrics(self):
+        return self.metrics
+    
 class MetricCollector(object):
 
-    def get_custom_metrics(self, instance):
-        path = docker_manager.get_host_data_path(instance['id'])
+    def get_custom_metrics(self, instance, connector):
+        path = connector.get_host_data_path(instance['id'])
         metrics = {}
 
         if not (path and exists(path + "/fogify/metrics")): return []
@@ -29,54 +145,6 @@ class MetricCollector(object):
                 if str(data[i]).isnumeric(): metrics[i] = float(data[i])
 
         return [Metric(metric_name=metric, value=metrics[metric]) for metric in metrics]
-
-    def millis_interval(self, start, end):
-        """start and end are datetime instances"""
-        diff = end - start
-        millis = diff.days * 24 * 60 * 60 * 1000
-        millis += diff.seconds * 1000
-        millis += diff.microseconds / 1000
-        return millis
-
-    def get_docker_metrics(self, agent_ip):
-        try:
-            return requests.get("http://%s:9090/api/v1.3/docker/" % agent_ip).json()
-        except Exception: return []
-
-    def is_instance_of_fogify(self, instance):
-        for alias in instance['aliases']:
-            if alias.startswith('fogify_'):
-                return alias
-
-    def cpu_util_val(self, instance_name, instance):
-        last_cpu_record = None
-        last_stat = instance['stats'][-1]
-        cpu_specs = instance['spec']['cpu']
-        record = Record.query.filter_by(instance_name=instance_name).order_by(Record.count.desc()).limit(1).first()
-        if not record: return 0
-
-        for i in record.metrics:
-            if i.metric_name == 'cpu':
-                last_cpu_record = i
-                break
-
-        if not last_cpu_record: return 0
-
-        timedif = abs(self.millis_interval(p.parse(instance['stats'][-1]['timestamp']).replace(tzinfo=None),
-                                           record.timestamp.replace(tzinfo=None)))
-        if timedif == 0: timedif = 1
-
-        rate = (float(last_stat['cpu']['usage']['total']) - float(last_cpu_record.value)) / timedif
-        val = 1.0
-        if 'quota' in cpu_specs:
-            val = cpu_specs['quota']
-        elif 'mask' in cpu_specs:
-            mask = int(cpu_specs['mask'].split("-")[-1]) + 1
-            period = float(cpu_specs['period'] if 'period' in cpu_specs else 1.0)
-            val = float( mask / period)
-        cpu_util_val = 10*float(rate/val)
-        # cpu_util_val /= 10000
-        return cpu_util_val
 
     def get_ip(self, container, cadv_net, nets):
         search = "%{}%".format(container.name + "|" + cadv_net["name"] + "|")
@@ -96,27 +164,23 @@ class MetricCollector(object):
             Status.update_config(ip, container.name + "|" + cadv_net["name"] + "|")
         return ip
 
-    def get_default_metrics(self, instance_name, instance_obj, machine):
-        last_stat = instance_obj['stats'][-1]
-        mem_specs = instance_obj['spec']['memory']['limit'] if 'limit' in instance_obj['spec']['memory'] else \
-            machine['memory_capacity']
-        cpu_util = Metric(metric_name="cpu_util", value=float(self.cpu_util_val(instance_name, instance_obj)))
-        cpu = Metric(metric_name="cpu", value=float(last_stat['cpu']['usage']['total']))
-        memory = Metric(metric_name="memory", value=float(last_stat['memory']['usage']))
-        memory_util = Metric(metric_name="memory_util", value=float(last_stat['memory']['usage']) / float(mem_specs))
-        disk = Metric(metric_name="disk_bytes", value=float(last_stat['filesystem'][0]['usage']))
+    def get_default_metrics(self, cAdvisor_handler):
+        cpu_util = Metric(metric_name="cpu_util", value=cAdvisor_handler.get_last_stats_cpu_util())
+        cpu = Metric(metric_name="cpu", value=cAdvisor_handler.get_last_stats_cpu_usage())
+        memory = Metric(metric_name="memory", value=cAdvisor_handler.get_last_stats_memory_usage())
+        memory_util = Metric(metric_name="memory_util", value=cAdvisor_handler.get_last_stats_memory_util())
+        disk = Metric(metric_name="disk_bytes", value=cAdvisor_handler.get_last_stats_disk_usage())
         return [cpu_util, cpu, memory, memory_util, disk]
 
-    def get_network_metrics(self, instance):
-        last_stat = instance['stats'][-1]
+    def get_network_metrics(self, cAdvisor_handler:cAdvisorHandler):
         client = docker.from_env()
-        container = client.containers.get(instance["id"])
+        container = client.containers.get(cAdvisor_handler.current_instance["id"])
         res = []
+        nets = {}
         for network in container.attrs["NetworkSettings"]["Networks"]:
             ip = get_ip_from_network_object(container.attrs["NetworkSettings"]["Networks"][network])
-            nets = {ip: network}
-
-        for cadv_net in last_stat['network']['interfaces']:
+            nets[ip] = network
+        for cadv_net in cAdvisor_handler.get_last_stats_networks():
             ip = self.get_ip(container, cadv_net, nets)
 
             if not (ip in nets and nets[ip] != 'ingress'): continue
@@ -124,26 +188,33 @@ class MetricCollector(object):
             res.append(Metric(metric_name="network_tx_" + nets[ip], value=int(cadv_net['tx_bytes'])))
         return res
 
-    def save_metrics(self, agent_ip):
+    def save_metrics(self, agent_ip, connector):
         interval = 5
-        machine = requests.get("http://%s:9090/api/v1.3/machine" % agent_ip).json()
         print("Monitoring Agent Instantiation")
-
+        cAdvisor_handler = cAdvisorHandler(agent_ip,'9090', 'fogify')
         while (True):
             count = Status.query.filter_by(name="counter").first()
             count = 0 if count is None else int(count.value)
-            docker_instances = self.get_docker_metrics(agent_ip)
-            for i in docker_instances:
+            cAdvisor_handler.retrieve_docker_metrics()
+            metrics = cAdvisor_handler.get_metrics()
+            for i in metrics:
                 try:
-                    instance_obj = docker_instances[i]
-                    alias = self.is_instance_of_fogify(instance_obj)
+                    current_instance = metrics[i]
+                    cAdvisor_handler.set_current_instance(metrics[i])
+                    alias = cAdvisor_handler.return_project_alias()
                     if not alias: continue
-                    instance_name = ConnectorClass.instance_name(alias)
-                    r = Record(timestamp=p.parse(instance_obj['stats'][-1]['timestamp']), count=count,
+
+                    instance_name = connector.instance_name(alias)
+
+                    cAdvisor_handler.set_current_instance_name(instance_name)
+
+                    r = Record(timestamp=p.parse(cAdvisor_handler.get_last_stats_timestamp()), count=count,
                                instance_name=instance_name)
-                    r.metrics.extend(self.get_default_metrics(instance_name, instance_obj, machine))
-                    r.metrics.extend(self.get_network_metrics(instance_obj))
-                    r.metrics.extend(self.get_custom_metrics(instance_obj))
+
+                    r.metrics.extend(self.get_default_metrics(cAdvisor_handler))
+                    r.metrics.extend(self.get_network_metrics(cAdvisor_handler))
+                    r.metrics.extend(self.get_custom_metrics(current_instance, connector))
+
                     db.session.add(r)
                     db.session.commit()
                 except Exception as ex:

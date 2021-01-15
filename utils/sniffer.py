@@ -1,16 +1,54 @@
-import argparse
 import fcntl
 import socket
 import struct
 import textwrap
-from collections import deque
+import threading
 
 import netifaces as ni
 import time
 from collections import deque
 from datetime import datetime
+import os
+
+from utils.docker_manager import ContainerNetworkNamespace
 
 buffer = deque()
+
+
+class SnifferHandler(object):
+
+    def __init__(
+            self,
+            buffer: deque = deque(),
+            sniffer_enabled=os.environ['SNIFFING_ENABLED'] if 'SNIFFING_ENABLED' not in os.environ else 'false',
+            sniffer_periodicity=int(os.environ['SNIFFING_PERIODICITY'])
+               if 'SNIFFING_PERIODICITY' in os.environ and os.environ['SNIFFING_PERIODICITY'].isnumeric() else 0,
+
+                 ):
+        self.sniffer_enabled=sniffer_enabled.lower() == 'true'
+        self.sniffer_periodicity = sniffer_periodicity
+        self.buffer = buffer
+
+
+    def is_sniffer_enabled(self):
+        return self.sniffer_enabled and self.sniffer_periodicity>0
+
+
+    def start_thread_for_sniffing_storage(self):
+        storage = SniffingStorage(self.buffer, self.periodicity)
+        t2 = threading.Thread(target=storage.store_data)
+        t2.start()
+
+
+    def start_thread_for_sniffing(self, properties):
+        def network_sniffing(_buffer, container_id, container_name):
+            with ContainerNetworkNamespace(container_id):
+                sniffer = Sniffer(_buffer, container_name)
+                sniffer.sniff()
+
+        threading.Thread(target=network_sniffing,
+                         args=(self.buffer, properties['container_id'], properties['container_name'])
+                         ).start()
 
 
 class Sniffer(object):
@@ -157,13 +195,6 @@ class Sniffer(object):
         s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
         return socket.inet_ntoa(fcntl.ioctl(s.fileno(), bytes(0x8915), struct.pack('256s', ifname[:15]))[20:24])
 
-    def controller(self):
-        parser = argparse.ArgumentParser(fromfile_prefix_chars='=', add_help=False)
-        parser.add_argument('-ni', '--network-interface', action='store_true')
-        parser.add_argument('--help', action='store_true', dest='help')
-        known, unknown = parser.parse_known_args()
-        return known, unknown
-
     def check_unknown_flags(self, unknown):
         unknown_flags = []
         for item in unknown:
@@ -197,49 +228,54 @@ class SniffingStorage(object):
         self.ip_to_info = {}
         self.periodicity = periodicity if periodicity is not None else 15
 
+    def retrieve_packets_from_buffer(self):
+        res = {}
+        while len(self.buffer) > 0:
+            obj = self.buffer.pop()
+            if obj is not None:
+                key = "%s|%s|%s|%s|%s" % (
+                    obj["packet_id"], obj["src_ip"], obj["dest_ip"], obj["protocol"], obj["out"]
+                )
+
+                if key not in res:
+                    res[key] = {
+                        "count": 0,
+                        "size": 0
+                    }
+                res[key]["count"] += 1
+                res[key]["size"] += int(obj["size"]) if obj["size"] else 0
+        return res
+
+    def save_packets_to_db(self, res: {}):
+        from agent.models import Packet, db
+        new_res = []
+        for i in res:
+            vals = i.split("|")
+            new_res.append(Packet(
+                service_id=vals[0],
+                src_ip=vals[1],
+                dest_ip=vals[2],
+                protocol=vals[3],
+                out=vals[4].lower() == 'true',
+                timestamp=datetime.now(),
+                size=res[i]["size"],
+                count=res[i]["count"],
+            ))
+        db.session.bulk_save_objects(new_res)
+        db.session.commit()
+
     # Sniffs and stores the traffic
     def store_data(self):
         delay = 0
-        from agent.models import Packet, db
+
         while True:
             if delay > 0:
                 time.sleep(delay)
-            res = {}
             start = datetime.now()
-            while len(self.buffer) > 0:
-                obj = self.buffer.pop()
-                if obj is not None:
 
-                    key = "%s|%s|%s|%s|%s" % (obj["packet_id"],
-                                              obj["src_ip"],
-                                              obj["dest_ip"],
-                                              obj["protocol"],
-                                              obj["out"]
-                                              )
+            res = self.retrieve_packets_from_buffer()
 
-                    if key not in res:
-                        res[key] = {
-                            "count": 0,
-                            "size": 0
-                        }
-                    res[key]["count"] += 1
-                    res[key]["size"] += int(obj["size"]) if obj["size"] else 0
-                obj = None
-            new_res = []
-            for i in res:
-                vals = i.split("|")
-                new_res.append(Packet(
-                    service_id=vals[0],
-                    src_ip=vals[1],
-                    dest_ip=vals[2],
-                    protocol=vals[3],
-                    out=vals[4].lower() == 'true',
-                    timestamp=datetime.now(),
-                    size=res[i]["size"],
-                    count=res[i]["count"],
-                ))
-            db.session.bulk_save_objects(new_res)
-            db.session.commit()
+            self.save_packets_to_db(res)
 
             end = datetime.now()
             delay = self.periodicity - (end - start).total_seconds()

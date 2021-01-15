@@ -1,18 +1,18 @@
 import copy
-import os
-import yaml
-
-from models.actions import NetworkAction, NetworkLinkAction
+from FogifyModel.actions import NetworkAction
 
 
 class BaseModel(object):
 
     def __init__(self, data={}):
         self.__dict__ = data
+        self.validate()
 
     def __repr__(self):
         return self.__str__()
 
+    def validate(self):
+        pass
 
 class Node(BaseModel):
     name = ''
@@ -23,6 +23,26 @@ class Node(BaseModel):
         return "cpu: %s, memory: %s, node specifications: %s" % (
             self.capabilities['processor'], self.capabilities['memory'], self.node_specifications)
 
+    def get_memory_unit(self) -> str:
+        return self.get_memory()[-1]
+
+    def get_memory(self) -> str:
+        return self.capabilities['memory']
+
+    def get_memory_value_in_gb(self) -> float:
+        return float(self.get_memory()[:-1]) if self.get_memory_unit() == "G" else float(self.get_memory()[:-1]) / 1024
+    
+    def get_processor_cores(self):
+        return int(self.capabilities['processor']['cores'])
+
+    def get_processor_clock_speed(self):
+        return int(self.capabilities['processor']['clock_speed'])
+
+    def get_specifications(self) -> []:
+        return self.node_specifications
+    
+    def validate(self):
+        if self.get_memory_unit() not in ["G", "M"]: raise Exception("Model does not provide other metrics than G or M")
 
 class Network(BaseModel):
     """ This class is the intermediate model of the network model"""
@@ -31,7 +51,8 @@ class Network(BaseModel):
     downlink = {}
     links = []
 
-    def get_bidirectional_links(self, res):
+    @classmethod
+    def get_bidirectional_links(cls, res):
         if 'latency' in res:
             if 'delay' in res['latency']:
                 latency = res['latency']['delay']
@@ -78,24 +99,44 @@ class Network(BaseModel):
     def __str__(self):
         return "uplink: %s , downlink: %s " % (self.get_uplink(), self.get_uplink())
 
+    @property
     def get_links(self):
-        temp = {}
+        res = []
         for i in self.links:
+            res.extend(self.get_link(i))
+        return res
 
-            if 'from_node' in i and 'to_node' in i and 'properties' in i:
-                if 'bidirectional' in i and str(i['bidirectional']).lower() == 'true':
+    @classmethod
+    def get_link(cls, link):
+        temp = []
+        from_to, to_from = cls.get_link_rules(copy.deepcopy(link))
+        if from_to:
+            temp.append({
+                    'from_node': link['from_node'],
+                    'to_node': link['to_node'],
+                    'command': from_to
+                })
+        if to_from:
+            temp.append({
+                    'from_node': link['to_node'],
+                    'to_node': link['from_node'],
+                    'command': to_from
+                })
 
-                    if i['from_node'] not in temp: temp[i['from_node']] = {}
-                    if i['to_node'] not in temp: temp[i['to_node']] = {}
-
-                    temp[i['from_node']][i['to_node']] = self.get_bidirectional_links(
-                        copy.deepcopy(i['properties'])).get_command()
-                    temp[i['to_node']][i['from_node']] = self.get_bidirectional_links(
-                        copy.deepcopy(i['properties'])).get_command()
-                else:
-                    if i['from_node'] not in temp: temp[i['from_node']] = {}
-                    temp[i['from_node']][i['to_node']] = NetworkAction(**i['properties']).get_command()
         return temp
+
+
+    @classmethod
+    def get_link_rules(cls, link):
+        from_to, to_from = None, None
+        if 'from_node' in link and 'to_node' in link and 'properties' in link:
+            if 'bidirectional' in link and link['bidirectional']:
+                from_to = cls.get_bidirectional_links(copy.deepcopy(link['properties'])).get_command()
+                to_from = cls.get_bidirectional_links(copy.deepcopy(link['properties'])).get_command()
+            else:
+                from_to = NetworkAction(**link['properties']).get_command()
+        return from_to, to_from
+
 
     @property
     def network_record(self):
@@ -103,7 +144,7 @@ class Network(BaseModel):
         if self.capacity is not None: res['capacity'] = self.capacity
         res['uplink'] = self.get_uplink().get_command()
         res['downlink'] = self.get_downlink().get_command()
-        res['links'] = self.get_links()
+        # res['links'] = self.get_links()
         return res
 
 
@@ -165,17 +206,15 @@ class FogifyModel(object):
         res = []
         for network in self.networks:
             cur = {'name': network.name}
-            if hasattr(network, 'subnet') and hasattr(network, 'gateway'):
-                cur['subnet'] = network.subnet
-                cur['gateway'] = network.gateway
             res.append(cur)
 
         for topology in self.topology:
             service = copy.deepcopy(self.services[topology.service])
-            if 'networks' in service:
-                for network in service['networks']:
-                    if network not in [i['name'] for i in res]:
-                        res.append({"name": network})
+            if 'networks' not in service: continue
+
+            for network in service['networks']:
+                if network not in [i['name'] for i in res]:
+                    res.append({"name": network})
         return res
 
     @property
@@ -203,7 +242,9 @@ class FogifyModel(object):
         real_node = None
         extra_name = ""
         if type(network_object) == dict:
-            if ('uplink' not in network_object or 'downlink' not in network_object) and 'bidirectional' not in network_object:
+            up_down_links = 'uplink' not in network_object or 'downlink' not in network_object
+            bidirectional = 'bidirectional' not in network_object
+            if up_down_links and bidirectional:
                 if 'name' in network_object:
                     extra_name = network_object['name']
         if type(network_object) == str:
@@ -219,35 +260,29 @@ class FogifyModel(object):
 
         return real_node
 
-    def service_count(self):
-        sum = 0
-        for i in self.topology:
-            sum += i.replicas
-        return sum
+    def service_count(self): return sum([i.replicas for i in self.topology])
 
     @property
-    def topology(self):
-        return self.deployment.get_topologies()
-
-
-class NetworkGenerator(object):
-    """
-    It generates the network rules that are recognizable from the Fogify Agents
-    """
-
-    def __init__(self, model):
-        self.model = model
+    def topology(self): return self.deployment.get_topologies()
 
     def generate_network_rules(self):
         res = {}
-        mode_topology = self.model.topology
+        mode_topology = self.topology
         for fognode in mode_topology:
             res[fognode.service_name] = {}
             for network_name in fognode.networks:
-                network = self.model.network_object(network_name)
-                if network is not None:
-                    if fognode.service_name not in res:
-                        res[fognode.service_name] = network.network_record
+                network = self.network_object(network_name)
 
-                    res[fognode.service_name][network.name] = network.network_record
+                if network is None: continue
+
+                if fognode.service_name not in res:
+                    res[fognode.service_name] = network.network_record
+
+                res[fognode.service_name][network.name] = network.network_record
+                res[fognode.service_name][network.name]['links'] = \
+                    [i for i in network.get_links if i['from_node'] == fognode.service_name]
+
         return res
+
+
+

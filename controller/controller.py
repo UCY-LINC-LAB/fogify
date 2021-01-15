@@ -23,6 +23,7 @@ class Controller(object):
         os.mknod(db_path)
 
         app.config['UPLOAD_FOLDER'] = "/current_infrastructure/"
+        os.environ['UPLOAD_FOLDER'] = "/current_infrastructure/"
 
         from controller.views import TopologyAPI, \
             MonitoringAPI, \

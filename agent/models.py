@@ -20,20 +20,6 @@ class Status(db.Model):
         db.session.commit()
 
 
-class Record(db.Model):
-    """
-    It represents the monitoring measurement. A measurement is connected with multiple Records.
-    """
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    instance_name = db.Column(db.String(250))
-    timestamp = db.Column(db.DateTime())
-    metrics = relationship("Metric", backref='record')
-    count = db.Column(db.Integer())
-    __table_args__ = (
-        db.Index('timestamp_service', timestamp.desc(), instance_name),
-    )
-
-
 class Metric(db.Model):
     """
     Metric is combination of a metric name and a measurement at a specific timestamp
@@ -55,5 +41,23 @@ class Packet(db.Model):
     out = db.Column(db.Boolean())
     timestamp = db.Column(db.DateTime())
 
+
+class Record(db.Model):
+    """
+    It represents the monitoring measurement. A measurement is connected with multiple Records.
+    """
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    instance_name = db.Column(db.String(250))
+    timestamp = db.Column(db.DateTime())
+    metrics = relationship("Metric", backref='record')
+    count = db.Column(db.Integer())
+    __table_args__ = (
+        db.Index('timestamp_service', timestamp.desc(), instance_name),
+    )
+
+    def get_metric_by_name(self, name: str) -> Metric:
+        for i in self.metrics:
+            if i.metric_name == name:
+                return i
 
 db.create_all()

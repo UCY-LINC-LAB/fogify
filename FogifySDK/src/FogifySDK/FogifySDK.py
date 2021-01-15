@@ -1,23 +1,15 @@
 import datetime
 import os
-import sys
 import time
 from enum import Enum
 
 import requests
 import yaml
 
-if sys.version_info[0] < 3:
-    pass
-else:
-    pass
-
 import pandas as pd
-
 
 class ExceptionFogifySDK(Exception):
     pass
-
 
 class FogifySDK(object):
 
@@ -45,7 +37,8 @@ class FogifySDK(object):
         VERTICAL_SCALING = 'VERTICAL_SCALING'
         NETWORK = 'NETWORK'
         STRESS = 'STRESS'
-        COMMAND = "COMMAND"
+        COMMAND = 'COMMAND'
+        UPDATE_LINKS = 'UPDATE_LINKS'
 
     def get_url(self, path: str = ""):
         if not self.url.startswith("http://"):
@@ -103,7 +96,7 @@ class FogifySDK(object):
         response = requests.post(url, files={"file": self.upload_file()}, headers={}).json()
 
         if not ('message' in response and response['message'].upper() == "OK"):
-            raise ExceptionFogifySDK("The deployment is failed")
+            raise ExceptionFogifySDK("The deployment is failed (%s)"%str(response))
 
         service_count = {name: response['swarm']['services'][name]['deploy']['replicas'] for name in
                          response['swarm']['services']}
@@ -135,7 +128,6 @@ class FogifySDK(object):
 
     def undeploy(self, timeout: int = 120):
         url = self.get_url("/topology/")
-        print(url)
         response = requests.delete(url)
         if response.status_code != 200:
             raise ExceptionFogifySDK("Server error ( %s )" % str(response.json()))
@@ -262,16 +254,6 @@ class FogifySDK(object):
             **params
         )
 
-    def update_network(self, instance_type: str, network: str, network_characteristics: dict = {},
-                       num_of_instances: int = 1):
-        network_characteristics['network'] = network
-        return self.action(
-            FogifySDK.Action_type.NETWORK.value,
-            instance_type=instance_type,
-            instances=num_of_instances,
-            action=network_characteristics
-        )
-
     def stress(self, instance_type: str, duration: int = 60, num_of_instances: int = 1, cpu=None, io=None, vm=None,
                vm_bytes=None):
         if all(v is None for v in [cpu, io, vm, vm_bytes]):
@@ -314,7 +296,8 @@ class FogifySDK(object):
             self.Action_type.VERTICAL_SCALING.value: "/actions/vertical_scaling/",
             self.Action_type.NETWORK.value: "/actions/network/",
             self.Action_type.STRESS.value: "/actions/stress/",
-            self.Action_type.COMMAND.value: "/actions/command/"
+            self.Action_type.COMMAND.value: "/actions/command/",
+            self.Action_type.UPDATE_LINKS.value: "/actions/links/"
         }
         if action_type not in [e.value for e in FogifySDK.Action_type]:
             raise ExceptionFogifySDK("The action type %s is not defined." % action_type)
@@ -415,6 +398,48 @@ class FogifySDK(object):
                 capacity=capacity
             )
         )
+
+    def update_network(self, instance_type: str, network: str, network_characteristics: dict = {},
+                       num_of_instances: int = 1):
+        network_characteristics['network'] = network
+        return self.action(
+            FogifySDK.Action_type.NETWORK.value,
+            instance_type=instance_type,
+            instances=num_of_instances,
+            network=network_characteristics
+        )
+
+    def update_link(self,
+                    instance_type: str,
+                    network_name: str,
+                    from_node: str,
+                    to_node: str,
+                    properties: dict,
+                    bidirectional: bool = True,
+                    num_of_instances: int = 1):
+
+        return self.update_links(instance_type, network_name, [
+            {
+                "from_node": from_node,
+                "to_node": to_node,
+                "bidirectional": bidirectional,
+                "properties": properties
+            }
+        ], num_of_instances)
+
+    def update_links(self,
+                     instance_type: str,
+                     network_name: str,
+                     links: list,
+                     num_of_instances: int = 1):
+
+        return self.action(FogifySDK.Action_type.UPDATE_LINKS.value,
+                           network=network_name,
+                           links=links,
+                           instance_type=instance_type,
+                           instances=num_of_instances,
+                           )
+
 
     def add_link(self, network_name: str, from_node: str, to_node: str, properties: dict, bidirectional: bool = True):
         self.check_docker_swarm_existence()
