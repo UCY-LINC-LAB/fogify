@@ -69,9 +69,13 @@ class NetworkController(object):
                                    network_rules[network]['uplink'].replace("  ", " "),
                                    create=create
                                    )
-                ips_to_rule = self.ips_to_rule(service_name, network, network_rules)
 
-                self.apply_link_rules(ifb, ips_to_rule)
+                ips_to_rule = self.ips_to_rule(service_name, network, network_rules)
+                commands = self.get_link_rules(eth, 'ifb' + ifb, ips_to_rule)
+                subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(commands.encode())
+
+
+
 
     @classmethod
     def get_adapters(cls, container_name, network, container_id):
@@ -114,39 +118,58 @@ class NetworkController(object):
         Communicator(self.connector).controller__link_updates(services)
 
 
-    def apply_link_rules(self, ifb_interface, ips_to_rule):
+    def get_link_rules(self, interface, ifb_interface, ips_to_rule):
         """
         Performs network QoS links to the specific instances
+        :param interface: ingress (initial) interface of the container
         :param ifb_interface: egress virtual interface
         :param ips_to_rule: specific rules for this interface
         :return: None
         """
-
         commands = " "
         for str_ips in ips_to_rule:
             ips = str_ips.split("|")
             for ip in ips:
                 rule_id = ip.split(".")[-1]
-                # rule_id = codecs.encode(str.encode(rule_id), "hex").decode()
-                commands+=self.generate_string_link_rule('ifb' + ifb_interface, rule_id, ip, ips_to_rule[str_ips])
-        process = subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        process.communicate(commands.encode())
+                for i in ['downlink', 'uplink']:
+                    eth = interface if i == 'downlink' else ifb_interface
+                    _type = 2 if i == 'downlink' else 1
+                    commands+=self.generate_string_link_rule(eth, rule_id, ip, ips_to_rule[str_ips][i], _type)
+        return commands
 
 
-    def generate_string_link_rule(self, eth, rule_id, ip, rule):
-        res = 'tc class add dev %s parent 1:22 classid 1:%s htb rate 10000mbit' % (eth, rule_id) + " \n"
-        res += 'tc qdisc add dev %s parent 1:%s handle %s: netem %s ' % (eth, rule_id, rule_id, rule) + " \n"
-        res += "tc filter add dev %s protocol ip prio 1 u32 match ip src %s flowid 1:%s " % (eth , ip, rule_id) + " \n"
+
+    def generate_string_link_rule(self, eth, rule_id, ip, rule, _type):
+        """
+        Command link generator for link connections between emulated nodes
+        :param eth: The network interface of the emulated node
+        :param rule_id: An id of the specific rule. Specifically, last number of the network ip of the emulated node as rule id
+        :param ip: The ip of the emulated node for the specific eth
+        :param rule: The netem command
+        :param _type: A number that specifies the rule type (1 for uplink, 2 for downlink)
+        :return: The generated command lines
+        """
+
+
+        rule_id = int(rule_id) + 11 # due to the default rules that the system has already built (see file apply_rules.sh)
+        res = 'tc class add dev %s parent %s: classid %s:%s htb rate 10000mbit' % (eth,_type, _type, rule_id) + " \n"
+
+        res += 'tc qdisc add dev %s parent %s:%s handle %s: netem %s ' % (eth, _type, rule_id, rule_id, rule) + " \n"
+        if _type == 2: # Downlink
+            res += "tc filter add dev %s parent %s: protocol ip prio 1 u32 match ip dst %s match ip src 0.0.0.0/0 flowid %s:%s " % (eth , _type, ip, _type, rule_id) + " \n"
+        if _type == 1: # uplink
+            res += "tc filter add dev %s parent %s: protocol ip prio 1 u32 match ip src %s match ip dst 0.0.0.0/0 flowid %s:%s " % (eth , _type, ip, _type, rule_id) + " \n"
         return res
 
 
     def ips_to_rule(self, service_name, network, network_rules):
         """
-        Returns a dictionary with a concatenated list of ips and the necessary commands
+        Returns a dictionary with a concatenated list of ips and the necessary commands.
+        Since a service will have similar connectivity with all "to_node" services
         :param service_name: the service name
         :param network: the specific network name
         :param network_rules: the network rules
-        :return:
+        :return: A dictionary with keys all ips separated with "|" and the NetEm command as value
         """
         f_name = service_name.replace("fogify_", "")
         res = {}
@@ -160,9 +183,17 @@ class NetworkController(object):
         return res
 
     def check_starting_condition(self, event):
+        """
+        Evaluates if the event docker socket is a starting container event
+        :param event: The docker socket event
+        :return: True or False based on the rule
+        """
         return 'status' in event and event['status'] == 'start' and 'Type' in event and event['Type']=='container'
 
     def start_thread_for_qos(self, service_name, container_id, container_name, network_rules):
+        """
+        This function starts a new thread in order to apply the network QoS on a specific emulated instance
+        """
         threading.Thread(
             target=NetworkController.apply_net_qos, args=(
                 self, service_name, container_id, container_name, network_rules
@@ -201,6 +232,13 @@ class NetworkController(object):
 
     @classmethod
     def generate_network_distribution(cls, path, name="experimental"):
+        """
+        This function captures a distribution of network's ping trace and generates its distribution file.
+        With that distribution file, tc tool can apply specific network distribution on delay function
+        :param path: The path that the documents will be saved
+        :param name: The name of the distribution
+        :return: The distribution context of the ping trace file
+        """
         init_path = os.path.join(path, "rttdata.txt")
         fin_path = os.path.join(path, "rttdata2.txt")
         current_path = os.path.dirname(os.path.abspath(__file__))
@@ -212,9 +250,15 @@ class NetworkController(object):
 
     @classmethod
     def inject_network_distribution(cls, trace_file):
+        """
+        Saves the distribution to the right folder of the tc tool
+        """
         return subprocess.check_output(['/bin/sh', '-c', "cp %s /usr/lib/tc" % trace_file])
 
     def read_network_rules(self):
+        """
+        Reads the network rules file and returns a dictionary with the rules
+        """
         f = open(os.path.join(self.connector.path, "network.yaml"), "r")
         infra = yaml.load(f, Loader=yaml.UnsafeLoader)
         f.close()
@@ -222,6 +266,15 @@ class NetworkController(object):
 
     @classmethod
     def apply_network_rule(cls, adapter, ifb_interface , in_rule, out_rule, create="TRUE"):
+        """
+        Executes the 'apply_rule.sh' script in order to inject the right network characteristics to the specific
+        emulated nodes.
+        :param adapter: The specific adapter of a network
+        :param ifb_interface: The id of the virtual adapter that the system will create
+        :param in_rule: The ingress NetEm rule
+        :param out_rule: The egress NetEm rule
+        :param create: If true, it is the first time that the Fogify applies rules in this emulated node
+        """
         subprocess.run(
             [os.path.dirname(os.path.abspath(__file__)) + '/apply_rule.sh', adapter, in_rule, out_rule, ifb_interface,
              str(create).lower()]

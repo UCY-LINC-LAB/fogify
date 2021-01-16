@@ -5,17 +5,40 @@ import socket
 import subprocess
 from time import sleep
 import docker
-import yaml
 from flask_api import exceptions
 from utils.host_info import HostInfo
-from FogifyModel.base import Node
-from .base import BasicConnector
+from FogifyModel.base import Node, FogifyModel
+from connectors.base import BasicConnector
+
 
 class CommonDockerSuperclass(BasicConnector):
+
+    def __init__(self,
+                 model: FogifyModel = None,
+                 path=os.getcwd() + os.environ['UPLOAD_FOLDER'] if 'UPLOAD_FOLDER' in os.environ else "",
+                 frequency=int(os.environ['CPU_FREQ']) if 'CPU_FREQ' in os.environ else 2400,
+                 cpu_oversubscription=
+                 int(os.environ[
+                         'CPU_OVERSUBSCRIPTION_PERCENTAGE']) if 'CPU_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0,
+                 ram_oversubscription=
+                 int(os.environ[
+                         'RAM_OVERSUBSCRIPTION_PERCENTAGE']) if 'RAM_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0,
+                 node_name=os.environ['MANAGER_NAME'] if 'MANAGER_NAME' in os.environ else 'localhost',
+                 host_ip=os.environ['HOST_IP'] if 'HOST_IP' in os.environ else None
+                 ):
+        self.model = model
+        self.frequency = frequency
+        self.path = path
+        self.file = "fogified-swarm.yaml"
+        self.cpu_oversubscription = cpu_oversubscription
+        self.ram_oversubscription = ram_oversubscription
+        self.node_name = node_name
+        self.host_ip = host_ip
 
     @classmethod
     def check_status(cls, *_args, **_kwargs):
         CurrentClass = cls
+
         def decorator(func):
             def wrapper(*args, **kwargs):
                 options = ['available', 'running']
@@ -32,7 +55,9 @@ class CommonDockerSuperclass(BasicConnector):
                     if int(CurrentClass.count_services(status=None)) > 0:
                         return func(*args, **kwargs)
                     raise exceptions.APIException('The system is available.')
+
             return wrapper
+
         return decorator
 
     def generate_files(self):
@@ -107,15 +132,15 @@ class CommonDockerSuperclass(BasicConnector):
         pass
 
     def get_container_ips(self, container_id):
-        nets = json.loads(subprocess.getoutput("docker inspect --format '{{json .NetworkSettings.Networks}}' %s" % container_id))
-        return { network : nets[network]['IPAddress'] for network in nets}
+        nets = json.loads(
+            subprocess.getoutput("docker inspect --format '{{json .NetworkSettings.Networks}}' %s" % container_id))
+        return {network: nets[network]['IPAddress'] for network in nets}
 
     def get_host_data_path(self, container_id):
         try:
             return subprocess.getoutput("docker inspect --format='{{.GraphDriver.Data.MergedDir}}' %s" % container_id)
         except Exception:
             return None
-
 
 
 class DockerComposeConnector(CommonDockerSuperclass):
@@ -167,7 +192,7 @@ class DockerComposeConnector(CommonDockerSuperclass):
     def down(self, timeout=60):
         try:
             subprocess.check_output(
-                ['docker-compose',  '-f', self.path + self.file, '-p', 'fogify', 'down', '--remove-orphans']
+                ['docker-compose', '-f', self.path + self.file, '-p', 'fogify', 'down', '--remove-orphans']
             )
         except Exception as e:
             print(e)
@@ -253,21 +278,22 @@ class DockerComposeConnector(CommonDockerSuperclass):
         if network not in nets: return None
         return nets[network]
 
-
     def get_ips_for_service(self, service):
 
-            res = {}
-            if not service.startswith("fogify_"):
-                service = "fogify_" + service
-            containers = [json.loads(s) for s in
-                   subprocess.getoutput("""docker ps --format '{ "{{ .Names }}": "{{.ID}}" }' | grep %s"""%service).split("\n")]
+        res = {}
+        if not service.startswith("fogify_"):
+            service = "fogify_" + service
+        containers = [json.loads(s) for s in
+                      subprocess.getoutput(
+                          """docker ps --format '{ "{{ .Names }}": "{{.ID}}" }' | grep %s""" % service).split("\n")]
 
-            for container in containers:
-                for name in container:
-                    for net, ip in self.get_container_ips(container[name]).items():
-                        if net not in res: res[net] = []
-                        res[net].append(ip)
-            return res
+        for container in containers:
+            for name in container:
+                for net, ip in self.get_container_ips(container[name]).items():
+                    if net not in res: res[net] = []
+                    res[net].append(ip)
+        return res
+
 
 class SwarmConnector(CommonDockerSuperclass):
     """
@@ -388,11 +414,13 @@ class SwarmConnector(CommonDockerSuperclass):
         for node in client.nodes.list():
             if node.attrs['Status']['Addr'] == self.host_ip:
                 break
-        labels.update(HostInfo.get_all_properties())
+
         labels['cpu_architecture'] = node.attrs["Description"]["Platform"]["Architecture"]
         labels['os'] = node.attrs["Description"]["Platform"]["OS"]
 
-        if int(1000 * float(labels["cpu_hz_advertised_friendly"].split(" ")[0])) == self.frequency \
+        if "cpu_hz_advertised_friendly" not in labels:
+            labels['main_cluster_node'] = 'True'
+        elif int(1000 * float(labels["cpu_hz_advertised_friendly"].split(" ")[0])) == self.frequency \
                 and 'main_cluster_node' not in labels:
             labels['main_cluster_node'] = 'True'
         else:

@@ -1,12 +1,10 @@
 import argparse
-import sys
 from agent.agent import Agent
 from controller.controller import Controller
 from flask_api import FlaskAPI
 
-app = FlaskAPI(__name__)
-
-if __name__ == '__main__':
+def initialize():
+    app = FlaskAPI(__name__)
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--agent', help='Run agent', default=False, action="store_true")
@@ -15,10 +13,17 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+
+
     if args.agent:
-        agent = Agent(args, app)
-        sys.exit(0)
+        cmd = Agent(args, app)
 
     if args.controller:
-        controller = Controller(args, app)
-        sys.exit(0)
+        cmd = Controller(args, app)
+
+    return cmd
+
+cmd = initialize()
+app = cmd.app
+if __name__ == '__main__':
+    app.run(debug=False, host='0.0.0.0', port=5500 if type(cmd) == Agent else 5000)

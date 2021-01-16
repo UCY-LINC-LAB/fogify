@@ -159,7 +159,11 @@ class ActionsAPI(MethodView):
         commands['network'] = params['network']
         res = []
         for link in params['links']:
-            res.extend(Network.get_link(link))
+            obj = link['parameters']
+            obj['from_node'] = link['from_node']
+            obj['to_node'] = link['to_node']
+            obj['bidirectional'] = link['bidirectional']
+            res.extend(Network.get_link(obj))
         commands['links'] = res
 
         Annotation.create(Annotation.TYPES.UPDATE_LINKS.value, instance_names=params['instance_type'],

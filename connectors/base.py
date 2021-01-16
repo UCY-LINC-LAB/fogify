@@ -1,36 +1,7 @@
-import os
-
-from FogifyModel.base import FogifyModel, Node
-
+from FogifyModel.base import Node
 from abc import ABC, abstractmethod
 
-
 class BasicConnector(ABC):
-
-    def __init__(self,
-                     model: FogifyModel=None,
-                     path = os.getcwd() + os.environ['UPLOAD_FOLDER'] if 'UPLOAD_FOLDER' in os.environ else "",
-                     frequency=int(os.environ['CPU_FREQ']) if 'CPU_FREQ' in os.environ else 2400,
-                     cpu_oversubscription=
-                        int(os.environ['CPU_OVERSUBSCRIPTION_PERCENTAGE']) if 'CPU_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0,
-                     ram_oversubscription=
-                        int(os.environ['RAM_OVERSUBSCRIPTION_PERCENTAGE']) if 'RAM_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0,
-                     node_name=os.environ['MANAGER_NAME'] if 'MANAGER_NAME' in os.environ else 'localhost',
-                     host_ip=os.environ['HOST_IP'] if 'HOST_IP' in os.environ else None
-                 ):
-        """Initialize a Swarm Connector.
-            :param model (FogifyModel): The fogify model that will be traslated to the proper docker-compose file
-            :param path (str): The path that the swarm file will be saved
-            :param frequency(int): The frequency of the underlying infrastructure nodes
-        """
-        self.model = model
-        self.frequency = frequency
-        self.path = path
-        self.file = "fogified-swarm.yaml"
-        self.cpu_oversubscription = cpu_oversubscription
-        self.ram_oversubscription = ram_oversubscription
-        self.node_name = node_name
-        self.host_ip = host_ip
 
     @abstractmethod
     def generate_files(self):
@@ -43,7 +14,6 @@ class BasicConnector(ABC):
     @abstractmethod
     def get_nodes(self):
         """Returns the physical nodes of the cluster
-
         :return: A dictionary of <Node-id: Node-ip>
         """
         pass

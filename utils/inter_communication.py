@@ -5,6 +5,10 @@ from connectors.base import BasicConnector
 from enum import Enum
 
 class Communicator(object):
+    """
+    This class encapsulates all necessary API calls that are need to be performed between the Fogify Controller and
+    the Fogify Agents.
+    """
 
     class URLs(Enum):
         agent_action = 'http://%s:5500/actions/'

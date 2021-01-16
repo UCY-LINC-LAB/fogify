@@ -2,7 +2,6 @@ import json
 import os
 import subprocess
 from nsenter import Namespace
-from connectors.DockerBasedConnectors import CommonDockerSuperclass
 
 class ContainerNetworkNamespace(Namespace):
 

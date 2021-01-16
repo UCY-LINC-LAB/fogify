@@ -1,10 +1,10 @@
 import os
-from . import DockerBasedConnectors
+from . import materialized_connectors
 from .base import BasicConnector
 
 def get_connector_class():
     connector_class = os.environ['CONNECTOR'] if 'CONNECTOR' in os.environ else 'SwarmConnector'
-    ConnectorClass = getattr(DockerBasedConnectors, connector_class, getattr(DockerBasedConnectors, 'SwarmConnector'))
+    ConnectorClass = getattr(materialized_connectors, connector_class, getattr(materialized_connectors, 'SwarmConnector'))
     return ConnectorClass
 
 def get_connector(**kwargs) -> BasicConnector:

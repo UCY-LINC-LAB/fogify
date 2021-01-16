@@ -52,7 +52,8 @@ class Network(BaseModel):
     links = []
 
     @classmethod
-    def get_bidirectional_links(cls, res):
+    def get_bidirectional_links(cls, input):
+        res = copy.deepcopy(input)
         if 'latency' in res:
             if 'delay' in res['latency']:
                 latency = res['latency']['delay']
@@ -129,12 +130,26 @@ class Network(BaseModel):
     @classmethod
     def get_link_rules(cls, link):
         from_to, to_from = None, None
-        if 'from_node' in link and 'to_node' in link and 'properties' in link:
-            if 'bidirectional' in link and link['bidirectional']:
-                from_to = cls.get_bidirectional_links(copy.deepcopy(link['properties'])).get_command()
-                to_from = cls.get_bidirectional_links(copy.deepcopy(link['properties'])).get_command()
+        print("link: ", link)
+        if 'from_node' in link and 'to_node' in link:
+
+            if 'properties' in link:
+                from_to = {
+                    'uplink': cls.get_bidirectional_links(link['properties']).get_command(),
+                    'downlink': cls.get_bidirectional_links(link['properties']).get_command(),
+                }
+
+            elif 'uplink' in link and 'downlink' in link:
+                from_to = {
+                    'uplink': NetworkAction(**link['uplink']).get_command(),
+                    'downlink': NetworkAction(**link['downlink']).get_command()}
             else:
-                from_to = NetworkAction(**link['properties']).get_command()
+                raise Exception("The link has not the proper structure", str(link))
+            if 'bidirectional' in link and link['bidirectional']:
+                to_from = {
+                    'uplink': from_to['uplink'],
+                    'downlink': from_to['downlink'],
+                }
         return from_to, to_from
 
 

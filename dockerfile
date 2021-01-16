@@ -36,8 +36,5 @@ ADD FogifyModel /code/fogify/FogifyModel
 ADD utils /code/fogify/utils
 ADD main.py /code/fogify/
 
-
-
-# COPY ./installation/controller/entrypoint.sh /code/entrypoint.sh
-# RUN chmod +x /code/entrypoint.sh
-# ENTRYPOINT ["/code/entrypoint.sh"]
+ADD controller-entrypoint.sh /code/
+ADD agent-entrypoint.sh /code/

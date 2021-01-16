@@ -1,9 +1,8 @@
 import os
-
 from flask_sqlalchemy import SQLAlchemy
-
 from connectors import get_connector
 from utils.async_task import AsyncTask
+from utils.host_info import HostInfo
 from utils.network import NetworkController
 
 
@@ -41,6 +40,7 @@ class Agent(object):
             node_labels = {i.split(":")[0]: i.split(":")[1]
                            for i in os.environ['LABELS'].split(",") if len(i.split(":")) == 2}
 
+        node_labels.update(HostInfo.get_all_properties())
         connector.inject_labels(node_labels, HOST_IP=os.environ['HOST_IP'] if 'HOST_IP' in os.environ else None)
 
         from utils.monitoring import MetricCollector
@@ -64,7 +64,5 @@ class Agent(object):
         networkControllerTask = AsyncTask(networkController, 'listen', [])
         networkControllerTask.start()
 
-        # Starts the server
-        app.run(debug=False, host='0.0.0.0', port=5500)
-
+        self.app = app
         self.args = args

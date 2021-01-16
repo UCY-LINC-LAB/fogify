@@ -1,6 +1,7 @@
 import datetime
 import os
 import time
+import copy
 from enum import Enum
 
 import requests
@@ -410,38 +411,54 @@ class FogifySDK(object):
         )
 
     def update_link(self,
-                    instance_type: str,
                     network_name: str,
                     from_node: str,
                     to_node: str,
-                    properties: dict,
-                    bidirectional: bool = True,
-                    num_of_instances: int = 1):
+                    parameters: dict,
+                    bidirectional: bool = True):
 
-        return self.update_links(instance_type, network_name, [
+        return self.update_links(network_name, [
             {
                 "from_node": from_node,
                 "to_node": to_node,
                 "bidirectional": bidirectional,
-                "properties": properties
+                "parameters": parameters
             }
-        ], num_of_instances)
+        ])
 
     def update_links(self,
-                     instance_type: str,
                      network_name: str,
-                     links: list,
-                     num_of_instances: int = 1):
+                     links: list):
+        res = {}
+        for link in links:
+            if 'from_node' not in link:
+                raise ExceptionFogifySDK("A link should have the 'from_node' parameter")
+            if 'to_node' not in link:
+                raise ExceptionFogifySDK("A link should have the 'to_node' parameter")
 
-        return self.action(FogifySDK.Action_type.UPDATE_LINKS.value,
-                           network=network_name,
-                           links=links,
-                           instance_type=instance_type,
-                           instances=num_of_instances,
-                           )
+            if link['from_node'] not in res: res[link['from_node']] = []
 
+            res[link['from_node']].append(copy.deepcopy(link))
 
-    def add_link(self, network_name: str, from_node: str, to_node: str, properties: dict, bidirectional: bool = True):
+            if 'bidirectional' in link and link['bidirectional']:
+                if link['to_node'] not in res: res[link['to_node']] = []
+
+                res[link['to_node']].append(copy.deepcopy(link))
+        responses = {}
+        for instance_type, instance_links in res.items():
+            try:
+                responses[instance_type] = self.action(FogifySDK.Action_type.UPDATE_LINKS.value,
+                                   network=network_name,
+                                   links=instance_links,
+                                   instance_type=instance_type,
+                                   instances=1000,
+                               )
+            except Exception as ex:
+                responses[instance_type] = ex
+
+        return responses
+
+    def add_link(self, network_name: str, from_node: str, to_node: str, parameters: dict, bidirectional: bool = True):
         self.check_docker_swarm_existence()
         exists = False
         for i in self.networks:
@@ -452,13 +469,23 @@ class FogifySDK(object):
             raise ExceptionFogifySDK("The network does not exist")
 
         links = i['links'] if 'links' in i else []
-        links.append({
-            "from_node": from_node,
-            "to_node": to_node,
-            "bidirectional": bidirectional,
-            "properties": properties
-        })
-
+        if 'properties' in parameters:
+            links.append({
+                "from_node": from_node,
+                "to_node": to_node,
+                "bidirectional": bidirectional,
+                "properties": parameters['properties']
+            })
+        elif 'uplink' in parameters and 'downlink' in parameters:
+            links.append({
+                "from_node": from_node,
+                "to_node": to_node,
+                "bidirectional": bidirectional,
+                "uplink": parameters['uplink'],
+                "downlink": parameters['downlink'],
+            })
+        else:
+            raise ExceptionFogifySDK("A link should either have 'properties' field or both 'uplink' and 'downlink' fields")
         i['links'] = links
         res = []
         for j in self.networks:

@@ -17,7 +17,7 @@ services:
   controller:
     build: .
     image: fogify #name the image and give it a tag [name:tag]
-    entrypoint: [ "python", "/code/fogify/main.py", "--controller"]
+    entrypoint: [ "sh", "./controller-entrypoint.sh"]  # [ "python", "/code/fogify/main.py", "--controller"]  # Development stack
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/bin/docker:/usr/bin/docker
@@ -39,7 +39,7 @@ services:
   agent:
     build: .
     image: fogify #name the image and give it a tag [name:tag]
-    entrypoint: [ "python", "/code/fogify/main.py", "--agent", "--agent-ip", "${HOST_IP}"]
+    entrypoint: [ "sh", "./agent-entrypoint.sh"]  # [ "python", "/code/fogify/main.py", "--agent", "--agent-ip", "${HOST_IP}"]  # Development stack
     extra_hosts:
       - ${MANAGER_NAME}:${MANAGER_IP}
     volumes:

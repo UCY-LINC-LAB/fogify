@@ -44,4 +44,5 @@ class Controller(object):
                          view_func=DistributionAPI.as_view('NetworkDistribution'))
         # from .models import Status
         # Status.update_config(self.initiate_swarm_manager(), "swarm-ca")
-        app.run(debug=False, host='0.0.0.0')
+        # app.run(debug=False, host='0.0.0.0')
+        self.app = app
