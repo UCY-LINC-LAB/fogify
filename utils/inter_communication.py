@@ -1,3 +1,4 @@
+import logging
 import os
 import socket
 import requests
@@ -82,7 +83,7 @@ class Communicator(object):
                 r = requests.delete(url % nodes[i]).json()
                 res.update(r)
             except ConnectionError as e:
-                print('The agent of node ' + str(i) + ' is offline')
+                logging.error( 'The agent of node %s is offline'%i, exc_info=True)
         return {"message": "The %s are empty now"%action_type}
 
     def agents__get(self, url: URLs, query: str):
@@ -96,7 +97,7 @@ class Communicator(object):
                 r = requests.get(str_url).json()
                 res.update(r)
             except ConnectionError as e:
-                print('The agent of node ' + str(i) + ' is offline')
+                logging.error( 'The agent of node %s is offline'%i, exc_info=True)
         return res
 
     def agents__disseminate_net_distribution(self, name: str, file) -> dict:

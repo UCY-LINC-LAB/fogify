@@ -1,5 +1,6 @@
 import copy
 import json
+import logging
 import os
 import socket
 import subprocess
@@ -140,6 +141,8 @@ class CommonDockerSuperclass(BasicConnector):
         try:
             return subprocess.getoutput("docker inspect --format='{{.GraphDriver.Data.MergedDir}}' %s" % container_id)
         except Exception:
+            logging.error("The system did not find the host's docker disk space (that is used for user-defined metrics).",
+                          exc_info=True)
             return None
 
 
@@ -187,6 +190,8 @@ class DockerComposeConnector(CommonDockerSuperclass):
                     fin_res[node_name].append(name)
             return fin_res
         except Exception:
+            logging.error("The connector could not return the docker instances.",
+                          exc_info=True)
             return {}
 
     def down(self, timeout=60):
@@ -195,7 +200,8 @@ class DockerComposeConnector(CommonDockerSuperclass):
                 ['docker-compose', '-f', self.path + self.file, '-p', 'fogify', 'down', '--remove-orphans']
             )
         except Exception as e:
-            print(e)
+            logging.error("The undeploy failed. Please undeploy the stack manually (e.g. docker stop $(docker ps -q) )",
+                          exc_info=True)
         # check the services
         finished = False
         for i in range(int(timeout / 5)):
@@ -204,7 +210,9 @@ class DockerComposeConnector(CommonDockerSuperclass):
                 finished = True
                 break
         if not finished:
-            raise Exception("The deployment is not down")
+            logging.error("The services did not removed yet. Please check the issue manually.",
+                          exc_info=True)
+            # raise Exception("The deployment is not down")
 
         # check the networks
         # finished = False

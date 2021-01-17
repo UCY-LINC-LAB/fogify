@@ -1,4 +1,5 @@
 import codecs
+import logging
 import os
 import subprocess
 import threading
@@ -223,8 +224,9 @@ class NetworkController(object):
                 if self.sniffer.is_sniffer_enabled(): self.sniffer.start_thread_for_sniffing(info)
 
             except Exception as ex:
-                print(ex)
-                print(traceback.format_exc())
+                logging.error("An error occurred in container listener.",
+                              exc_info=True)
+
 
                 continue
 

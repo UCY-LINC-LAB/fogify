@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime
 
@@ -76,6 +77,8 @@ class MonitoringAPI(MethodView):
                 res[r.instance_name].append(temp)
             return res
         except Exception as e:
+            logging.error("An error occurred on monitoring view. The metrics did not retrieved.",
+                          exc_info=True)
             return {
                 "Error": "{0}".format(e)
             }

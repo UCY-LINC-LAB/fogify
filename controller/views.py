@@ -1,3 +1,4 @@
+import logging
 import os
 import socket
 import traceback
@@ -71,9 +72,8 @@ class TopologyAPI(MethodView):
             yaml.dump(controller_response, open(path + "fogified-swarm.yaml", 'w'), default_flow_style=False)
             networks = model.generate_network_rules()
         except Exception as ex:
-            print("controller error")
-            print(ex)
-            print(traceback.format_exc())
+            logging.error("An error occurred on monitoring view. The metrics did not retrieved.",
+                          exc_info=True)
             raise exceptions.APIException("Fogify could not generate the orchestrator files."
                                           "Please check your fogify model again.")
 
@@ -103,13 +103,15 @@ class TopologyAPI(MethodView):
             try:
                 connector.create_network(network)
             except Exception:
-                pass
+                logging.error("The system could not create %s network."%network,
+                              exc_info=True)
 
         # submit the current deployment
         try:
             connector.deploy()
         except Exception as ex:
-            print(ex)
+            logging.error("An error occured in the deployment.",
+                          exc_info=True)
             Status.update_config('error')
 
             return
@@ -265,7 +267,8 @@ class ControlAPI(MethodView):
             try:
                 return {"credits": get_connector().get_manager_info()}
             except Exception as ex:
-                print(ex)
+                logging.error("The system does not return the credits of the manager.",
+                              exc_info=True)
                 return {"credits": ""}
         else:
             return {"message": "error"}
@@ -322,6 +325,8 @@ class SnifferAPI(MethodView):
             query += "packet_type=" + packet_type if packet_type else ""
             return Communicator(get_connector()).agents__get_packets(query)
         except Exception as e:
+            logging.error("The system could not return the sniffer's data.",
+                          exc_info=True)
             return {
                 "Error": "{0}".format(e)
             }

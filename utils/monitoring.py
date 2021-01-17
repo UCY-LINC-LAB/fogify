@@ -1,4 +1,5 @@
 import json
+import logging
 from os.path import exists
 from time import sleep
 
@@ -118,6 +119,7 @@ class cAdvisorHandler(object):
         try:
             return int(self.get_cpu_specs()['mask'].split("-")[-1]) + 1
         except Exception:
+            logging.error('There is no mask in cpu specs', exc_info=True)
             return 0
 
     def get_cpu_period(self):
@@ -230,9 +232,7 @@ class MetricCollector(object):
                     db.session.add(r)
                     db.session.commit()
                 except Exception as ex:
-                    import traceback
-                    print("error", ex)
-                    traceback.print_tb(ex.__traceback__)
+                    logging.error("An error occurred in monitoring agent. The metrics will not be stored at this time.", exc_info=True)
                     continue
             count += 1
             Status.update_config(str(count))

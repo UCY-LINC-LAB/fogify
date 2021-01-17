@@ -1,4 +1,5 @@
 import fcntl
+import logging
 import socket
 import struct
 import textwrap
@@ -122,7 +123,8 @@ class Sniffer(object):
                 mac = str(ni.ifaddresses(str(item))[ni.AF_LINK][0]['addr']).upper()
                 mac_addresses.append(mac)
             except Exception as e:
-                print(e)
+                logging.error("The sniffer did not return the macs.",
+                              exc_info=True)
         return mac_addresses
 
     def sniff(self):
@@ -218,8 +220,8 @@ class Sniffer(object):
                 print("MAC in", item, "network interface:", ni.ifaddresses(str(item))[ni.AF_LINK][0]['addr'])
                 print("--------------\n")
             except Exception as e:
-                print(e)
-
+                logging.error("Sniffer can not print the information of the interfaces.",
+                              exc_info=True)
 
 class SniffingStorage(object):
 

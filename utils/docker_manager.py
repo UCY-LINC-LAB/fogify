@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import subprocess
 from nsenter import Namespace
@@ -12,6 +13,8 @@ class ContainerNetworkNamespace(Namespace):
         if str(pid).isnumeric() and str(pid) != "0":
             Namespace.__init__(self, proc + "/" + str(pid) + "/ns/net", 'net')
         else:
+            logging.error("The container namespace does not exists.",
+                          exc_info=True)
             raise Exception("The container id is fault: %s" % str(pid_res))
 
     def get_pid_from_container(self, container_id):
@@ -22,8 +25,8 @@ class ContainerNetworkNamespace(Namespace):
             if res.split(" ")[-1].startswith("State"): raise Exception("Failure due to the state of the container", res)
             return res
         except Exception as ex:
-            print(ex)
-
+            logging.error("The system did not return the container's pid.",
+                          exc_info=True)
 
 
 def get_ip_from_network_object(network: dict):
@@ -51,6 +54,9 @@ def get_containers_adapter_for_network(container_id, network):
         eth = get_container_ip_property(ip)
         return eth.split(" ")[-1] if eth else None
     except Exception as ex:
+        logging.error(
+            "The system does not return the adapter of the container/network pair (%s,%s)."% (container_id, network),
+                      exc_info=True)
         print("get_containers_adapter_for_network", ex)
 
 
