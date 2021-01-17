@@ -14,7 +14,7 @@ from utils.docker_manager import get_container_ip_property, get_ip_from_network_
 
 class cAdvisorHandler(object):
 
-    def __init__(self, ip, port, project):
+    def __init__(self, ip, port, project, client = docker.from_env()):
         self.ip = ip
         self.port = port
         self.project = project
@@ -24,9 +24,22 @@ class cAdvisorHandler(object):
         self.instance_name = None
         self.current_instance = {}
         self.retrieve_machine_info()
+        self.client = client
 
     def retrieve_docker_metrics(self):
-        self.metrics = requests.get("http://%s:%s/api/v1.3/docker/" % (self.ip, self.port)).json()
+        containers = [ i for i in self.client.containers.list() if i.name.startswith("fogify_")]
+        res = {}
+        for container in containers:
+            stats = requests.get("http://%s:%s/api/v2.0/stats/docker/%s" % (self.ip, self.port, container.id)).json()
+            stats["/docker/%s" % container.id] = {"stats": stats["/docker/%s"%container.id]}
+            stats["/docker/%s"%container.id]['aliases'] = [container.name]
+            stats["/docker/%s" % container.id]['id'] = container.id
+            stats["/docker/%s" % container.id]['limits'] = dict(
+                memory=container.attrs['HostConfig']['Memory'],
+                cpu=container.attrs['HostConfig']['NanoCpus']
+            )
+            res.update(stats)
+        self.metrics = res
 
     def retrieve_machine_info(self):
         self.machine = requests.get("http://%s:%s/api/v1.3/machine" % (self.ip, self.port)).json()
@@ -59,13 +72,12 @@ class cAdvisorHandler(object):
         return float(self.get_last_stats()['memory']['usage'])
 
     def get_last_stats_memory_util(self):
-        return self.get_last_stats_disk_usage()/self.get_mem_quota()
+        return 100*self.get_last_stats_memory_usage()/self.get_mem_quota()
 
     def get_last_saved_record(self, instance_name):
         return Record.query.filter_by(instance_name=instance_name).order_by(Record.count.desc()).limit(1).first()
 
     def get_last_stats_cpu_util(self):
-        cpu_specs = self.get_cpu_specs()
         record = self.get_last_saved_record(self.instance_name)
 
         if not record: return 0
@@ -76,31 +88,31 @@ class cAdvisorHandler(object):
         if timedif == 0: timedif = 1
 
         rate = (float(self.get_last_stats_cpu_usage()) - float(last_cpu_record.value)) / timedif
-        val = 1.0
-        if 'quota' in cpu_specs:
-            val = self.get_cpu_quota()
-        elif 'mask' in cpu_specs:
-            val = self.get_cpu_mask_to_period_ratio()
-        cpu_util_val = 10 * float(rate / val)
+        val = self.get_cpu_quota()
+        cpu_util_val = 0
+        if val:
+            cpu_util_val = 100000 * float(rate / val)
         return cpu_util_val
 
     def get_last_stats_networks(self):
         return self.get_last_stats()['network']['interfaces']
 
     def get_cpu_specs(self):
-        return self.current_instance['spec']['cpu']
+        return float(self.current_instance['limits']['cpu'])
     
     def get_mem_specs(self):
-        return self.current_instance['spec']['memory']
+        return self.current_instance['limits']['memory']#self.current_instance['spec']['memory']
 
     def get_mem_quota(self):
-        mem_specs = self.get_mem_specs()['limit'] if 'limit' in self.get_mem_specs() else \
-            self.machine['memory_capacity']
+        mem_specs = self.get_mem_specs()
+        if not mem_specs:
+            mem_specs = self.machine['memory_capacity']
         return float(mem_specs)
 
     def get_cpu_quota(self):
-        if 'quota' not in self.get_cpu_specs(): return
-        return self.get_cpu_specs()['quota']
+        cpu_specs = self.get_cpu_specs()
+        if not cpu_specs: return
+        return cpu_specs
     
     def get_cpu_mask(self):
         try:
@@ -117,7 +129,7 @@ class cAdvisorHandler(object):
     
     def get_mem_quota(self):
         memory = self.get_mem_specs()
-        mem_specs = memory['limit'] if 'limit' in memory else self.machine['memory_capacity']
+        mem_specs = memory if memory else self.machine['memory_capacity']
         return float(mem_specs)
     
     def millis_interval(self, start, end):
