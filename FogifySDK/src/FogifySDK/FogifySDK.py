@@ -109,7 +109,10 @@ class FogifySDK(object):
         current_iteration = 0
         while (count < total and current_iteration < timeout):
             time.sleep(5)
-            response = requests.get(url, headers={}).json()
+            response = requests.get(url, headers={})
+            if response.status_code != 200:
+                raise ExceptionFogifySDK("The deployment is failed (%s)" % str(response.json()))
+            response = response.json()
             new_count = 0
             for i in response:
                 new_count += len(response[i])

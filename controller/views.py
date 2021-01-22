@@ -36,6 +36,9 @@ class TopologyAPI(MethodView):
 
     def get(self):
         """ Returns the current status of the fogify deployment"""
+        infrastructure_status = Status.query.filter_by(name="infrastructure").first()
+        if infrastructure_status and infrastructure_status.value == 'error':
+            raise exceptions.APIException('The deployment is failed. Please check the logs of the Fogify Controller.')
         connector = get_connector()
         return connector.return_deployment()
 
