@@ -31,16 +31,23 @@ class cAdvisorHandler(object):
         containers = [ i for i in self.client.containers.list() if i.name.startswith("fogify_")]
         res = {}
         for container in containers:
-            stats = requests.get("http://%s:%s/api/v2.0/stats/docker/%s" % (self.ip, self.port, container.id)).json()
-            stats["/docker/%s" % container.id] = {"stats": stats["/docker/%s"%container.id]}
-            stats["/docker/%s"%container.id]['aliases'] = [container.name]
-            stats["/docker/%s" % container.id]['id'] = container.id
-            stats["/docker/%s" % container.id]['limits'] = dict(
-                memory=container.attrs['HostConfig']['Memory'],
-                cpu=container.attrs['HostConfig']['NanoCpus']
-            )
-            res.update(stats)
+            try:
+                stats = self.get_stats_from_cadvisor(container)
+                res.update(stats)
+            except Exception as ex:
+                logging.error("Monitoring agent did not capture the metrics this time")
+                continue
+
         self.metrics = res
+
+    def get_stats_from_cadvisor(self, container):
+        stats = requests.get("http://%s:%s/api/v2.0/stats/docker/%s" % (self.ip, self.port, container.id)).json()
+        stats["/docker/%s" % container.id] = {"stats": stats["/docker/%s" % container.id]}
+        stats["/docker/%s" % container.id]['aliases'] = [container.name]
+        stats["/docker/%s" % container.id]['id'] = container.id
+        stats["/docker/%s" % container.id]['limits'] = dict(memory=container.attrs['HostConfig']['Memory'],
+            cpu=container.attrs['HostConfig']['NanoCpus'])
+        return stats
 
     def retrieve_machine_info(self):
         self.machine = requests.get("http://%s:%s/api/v1.3/machine" % (self.ip, self.port)).json()
@@ -160,22 +167,29 @@ class MetricCollector(object):
 
         return [Metric(metric_name=metric, value=metrics[metric]) for metric in metrics]
 
-    def get_ip(self, container, cadv_net, nets):
-        search = "%{}%".format(container.name + "|" + cadv_net["name"] + "|")
+    def get_cache_ip(self, container_name, network_name):
+        search = "%{}%".format(container_name + "|" + network_name + "|")
         conf = Status.query.filter(Status.name.like(search)).first()
-
         if conf is not None: return conf.value
 
+    @staticmethod
+    def clean_cache_ip():
+        Status.query.filter(Status.name.like("%monitoring_network_cache:%")).delete(synchronize_session='fetch')
+        db.session.commit()
+
+    def set_cache_ip(self, ip, container_name, network_name):
+        Status.update_config(ip, "monitoring_network_cache:"+container_name + "|" + network_name + "|")
+
+    def get_ip(self, container, cadv_net):
+        old_ip = self.get_cache_ip(container.name, cadv_net["name"])
+        if old_ip: return old_ip
         with ContainerNetworkNamespace(container.id):
             eth_ip = get_container_ip_property(cadv_net["name"])
 
         if not eth_ip: return
 
         ip = eth_ip[eth_ip.find("inet ") + len("inet "):eth_ip.rfind("/")]
-        if ip in nets:
-            Status.update_config(ip, container.name + "|" + cadv_net["name"] + "|" + nets[ip])
-        else:
-            Status.update_config(ip, container.name + "|" + cadv_net["name"] + "|")
+        self.set_cache_ip(ip, container.name, cadv_net["name"])
         return ip
 
     def get_default_metrics(self, cAdvisor_handler):
@@ -187,23 +201,25 @@ class MetricCollector(object):
         return [cpu_util, cpu, memory, memory_util, disk]
 
     def get_network_metrics(self, cAdvisor_handler:cAdvisorHandler):
-        client = docker.from_env()
-        container = client.containers.get(cAdvisor_handler.current_instance["id"])
+        current_container = docker.from_env().containers.get(cAdvisor_handler.current_instance["id"])
+        nets = self.get_ips_to_networks_dict(current_container)
         res = []
-        nets = {}
-        for network in container.attrs["NetworkSettings"]["Networks"]:
-            ip = get_ip_from_network_object(container.attrs["NetworkSettings"]["Networks"][network])
-            nets[ip] = network
         for cadv_net in cAdvisor_handler.get_last_stats_networks():
-            ip = self.get_ip(container, cadv_net, nets)
-
+            ip = self.get_ip(current_container, cadv_net)
             if not (ip in nets and nets[ip] != 'ingress'): continue
             res.append(Metric(metric_name="network_rx_" + nets[ip], value=int(cadv_net['rx_bytes'])))
             res.append(Metric(metric_name="network_tx_" + nets[ip], value=int(cadv_net['tx_bytes'])))
         return res
 
-    def save_metrics(self, agent_ip, connector):
-        interval = 5
+    def get_ips_to_networks_dict(self, container):
+        nets = {}
+        for network in container.attrs["NetworkSettings"]["Networks"]:
+            ip = get_ip_from_network_object(container.attrs["NetworkSettings"]["Networks"][network])
+            nets[ip] = network
+        return nets
+
+    def start_monitoring(self, agent_ip, connector, interval):
+
         print("Monitoring Agent Instantiation")
         cAdvisor_handler = cAdvisorHandler(agent_ip,'9090', 'fogify')
         while (True):
@@ -211,29 +227,34 @@ class MetricCollector(object):
             count = 0 if count is None else int(count.value)
             cAdvisor_handler.retrieve_docker_metrics()
             metrics = cAdvisor_handler.get_metrics()
-            for i in metrics:
-                try:
-                    current_instance = metrics[i]
-                    cAdvisor_handler.set_current_instance(metrics[i])
-                    alias = cAdvisor_handler.return_project_alias()
-                    if not alias: continue
+            self.store_metrics(cAdvisor_handler, connector, count, metrics)
 
-                    instance_name = connector.instance_name(alias)
-
-                    cAdvisor_handler.set_current_instance_name(instance_name)
-
-                    r = Record(timestamp=p.parse(cAdvisor_handler.get_last_stats_timestamp()), count=count,
-                               instance_name=instance_name)
-
-                    r.metrics.extend(self.get_default_metrics(cAdvisor_handler))
-                    r.metrics.extend(self.get_network_metrics(cAdvisor_handler))
-                    r.metrics.extend(self.get_custom_metrics(current_instance, connector))
-
-                    db.session.add(r)
-                    db.session.commit()
-                except Exception as ex:
-                    logging.error("An error occurred in monitoring agent. The metrics will not be stored at this time.", exc_info=True)
-                    continue
             count += 1
             Status.update_config(str(count))
             sleep(interval)
+
+    def store_metrics(self, cAdvisor_handler, connector, count, metrics):
+        for i in metrics:
+            try:
+                current_instance = metrics[i]
+                cAdvisor_handler.set_current_instance(metrics[i])
+                alias = cAdvisor_handler.return_project_alias()
+                if not alias: continue
+
+                instance_name = connector.instance_name(alias)
+
+                cAdvisor_handler.set_current_instance_name(instance_name)
+
+                r = Record(timestamp=p.parse(cAdvisor_handler.get_last_stats_timestamp()), count=count,
+                           instance_name=instance_name)
+
+                r.metrics.extend(self.get_default_metrics(cAdvisor_handler))
+                r.metrics.extend(self.get_network_metrics(cAdvisor_handler))
+                r.metrics.extend(self.get_custom_metrics(current_instance, connector))
+
+                db.session.add(r)
+                db.session.commit()
+            except Exception as ex:
+                logging.error("An error occurred in monitoring agent. The metrics will not be stored at this time.",
+                              exc_info=True)
+                continue

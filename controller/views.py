@@ -106,18 +106,16 @@ class TopologyAPI(MethodView):
             try:
                 connector.create_network(network)
             except Exception:
-                logging.error("The system could not create %s network."%network,
-                              exc_info=True)
+                logging.error("The system could not create %s network."%network)
 
         # submit the current deployment
         try:
             connector.deploy()
         except Exception as ex:
-            logging.error("An error occured in the deployment.",
-                          exc_info=True)
+            logging.error("An error occured in the deployment.", exc_info=True)
             Status.update_config('error')
-
             return
+
         Status.update_config('running')
         Annotation.create(Annotation.TYPES.DEPLOY.value)
 
@@ -266,22 +264,18 @@ class ControlAPI(MethodView):
     """ This API is only for internal use between Agents and Controller"""
 
     def get(self, service):
-        if service.lower() == "controller-properties":
-            try:
-                return {"credits": get_connector().get_manager_info()}
-            except Exception as ex:
-                logging.error("The system does not return the credits of the manager.",
-                              exc_info=True)
-                return {"credits": ""}
-        else:
-            return {"message": "error"}
+        if service.lower() != "controller-properties": return {"message": "error"}
+
+        try:
+            return {"credits": get_connector().get_manager_info()}
+        except Exception as ex:
+            logging.error("The system does not return the credits of the manager.", exc_info=True)
+            return {"credits": ""}
 
     def post(self, service):
-        commands = {
-            'network': 'all',
-            'links':[]
-        }
-        Communicator(get_connector()).agents__perform_action(commands, instance_type=service)
+        commands, res = {'links':{'network': 'all'}}, []
+        for instance_type in service.split("|"):
+            res.append(Communicator(get_connector()).agents__perform_action(commands, instance_type=instance_type))
         return {"message": "OK"}
 
 

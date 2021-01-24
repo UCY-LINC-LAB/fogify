@@ -3,21 +3,15 @@ INTERFACE=${1}
 RULE=${2}
 RULE_OUT=${3}
 ext_ingress=ifb${4}
-CREATE=${5}
 
-if [ "$CREATE" = "true" ]
-then
-  modprobe ifb
-fi
+modprobe ifb
 
-if [ "$CREATE" = "false" ]
-then
-  tc qdisc del dev "$INTERFACE" root
-  tc qdisc del dev "$INTERFACE" ingress
-  tc qdisc del dev "$ext_ingress" root
-  ip link set dev "$ext_ingress" down
-  ip link delete "$ext_ingress" type ifb
-fi
+tc qdisc del dev "$INTERFACE" root
+tc qdisc del dev "$INTERFACE" ingress
+tc qdisc del dev "$ext_ingress" root
+ip link set dev "$ext_ingress" down
+ip link delete "$ext_ingress" type ifb
+
 
 ip link add "$ext_ingress" type ifb
 ip link set dev "$ext_ingress" up

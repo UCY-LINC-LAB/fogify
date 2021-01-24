@@ -8,25 +8,22 @@ class ContainerNetworkNamespace(Namespace):
 
     def __init__(self, container_id):
         proc = os.environ["NAMESPACE_PATH"] if "NAMESPACE_PATH" in os.environ else "/proc/"
-        pid_res = self.get_pid_from_container(container_id)
-        pid = pid_res.split(" ")[-1]
-        if str(pid).isnumeric() and str(pid) != "0":
-            Namespace.__init__(self, proc + "/" + str(pid) + "/ns/net", 'net')
-        else:
-            logging.error("The container namespace does not exists.",
-                          exc_info=True)
-            raise Exception("The container id is fault: %s" % str(pid_res))
+        pid = self.get_pid_from_container(container_id)
+        Namespace.__init__(self, proc + "/" + str(pid) + "/ns/net", 'net')
 
     def get_pid_from_container(self, container_id):
         try:
-            res = subprocess.getoutput(
-                "docker inspect %s --format '{{.State.Pid}}' " % container_id)
-
-            if res.split(" ")[-1].startswith("State"): raise Exception("Failure due to the state of the container", res)
+            res = subprocess.getoutput("docker inspect %s --format '{{.State.Pid}}' " % container_id)
+            res = res.split(" ")[-1]
+            ContainerNetworkNamespace.evaluate_pid(res)
             return res
         except Exception as ex:
-            logging.error("The system did not return the container's pid.",
-                          exc_info=True)
+            logging.error("The system did not return the container's pid.", exc_info=True)
+    @staticmethod
+    def evaluate_pid(pid):
+        if pid.startswith("State"): raise Exception("Failure due to the state of the container", pid)
+        if not str(pid).isnumeric(): raise Exception("The container id is fault: %s" % str(pid))
+        if not str(pid) != "0": raise Exception("The container id is fault: %s" % str(pid))
 
 
 def get_ip_from_network_object(network: dict):
@@ -57,7 +54,6 @@ def get_containers_adapter_for_network(container_id, network):
         logging.error(
             "The system does not return the adapter of the container/network pair (%s,%s)."% (container_id, network),
                       exc_info=True)
-        print("get_containers_adapter_for_network", ex)
 
 
 

@@ -115,6 +115,5 @@ class Communicator(object):
         str_set = "|".join(update_for_services_needed)
         action_url = self.URLs.controller_link_updates.value % (
             os.environ['CONTROLLER_IP'] if 'CONTROLLER_IP' in os.environ else '0.0.0.0', str_set)
-        print(action_url)
         requests.post(action_url, headers={'Content-Type': "application/json"})
 

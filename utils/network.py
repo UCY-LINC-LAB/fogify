@@ -10,7 +10,6 @@ from connectors import BasicConnector
 from utils.docker_manager import ContainerNetworkNamespace, get_containers_adapter_for_network
 from utils.inter_communication import Communicator
 from utils.sniffer import SnifferHandler
-import traceback
 
 class NetworkController(object):
     """
@@ -32,7 +31,6 @@ class NetworkController(object):
         Since the network rules can be either a file(from deploy API) or a dictionary(from action API),
         the method performs a different process based on data type
         :param data: Network Rules in a dictionary form or in a file object
-        :param path: A standard path that the network rules will be saved
         :return: None
         """
         path = self.connector.path
@@ -59,45 +57,45 @@ class NetworkController(object):
 
         self.communicate_with_controller(network_rules)
 
-    def execute_network_commands(self, service_name: str, container_id :str, container_name: str, network_rules: dict, create="TRUE"):
-        for network in network_rules:
-            with ContainerNetworkNamespace(container_id):
+    def execute_network_commands(self, service_name: str, container_id :str, container_name: str, network_rules: dict):
 
-                eth, ifb = NetworkController.get_adapters(container_name, network, container_id)
+        with ContainerNetworkNamespace(container_id):
+            for network, rules in network_rules.items():
 
-                NetworkController.apply_network_rule(eth, ifb,
-                                   network_rules[network]['downlink'].replace("  ", " "),
-                                   network_rules[network]['uplink'].replace("  ", " "),
-                                   create=create
-                                   )
+                eth, ifb = NetworkController.get_adapters( container_id, network )
 
-                ips_to_rule = self.ips_to_rule(service_name, network, network_rules)
-                commands = self.get_link_rules(eth, 'ifb' + ifb, ips_to_rule)
-                subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(commands.encode())
+                # apply general network QoS
+                downlink_rules, uplink_rules = rules['downlink'].replace("  ", " "),  rules['uplink'].replace("  ", " ")
+                NetworkController.apply_general_network_rules(eth, ifb, downlink_rules, uplink_rules)
+
+                # apply link QoS between the containers
+                ips_to_rules = self.ips_to_link_rules(service_name, network, network_rules)
+                commands = self.get_link_commands(eth, 'ifb' + ifb, ips_to_rules)
+                subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb')
+                                 ).communicate(commands.encode())
 
 
 
 
     @classmethod
-    def get_adapters(cls, container_name, network, container_id):
+    def get_adapters(cls, container_id, network ):
         """
         This method return the container's adapter for a specific network
         along with the identifier of the Fogify's egress virtual adapter.
-        :param container_name: The container's name
         :param network: Network name
         :param container_id: Container's id
         :return: "adapter" that is the current adapter of the container, "ifb_interface" the egress identifier
         """
 
-        container_id = container_id[:10]
+        shorten_container_id = container_id[:10]
         adapter = None
         count = 0
         while (adapter is None and count < 3):
-            adapter = get_containers_adapter_for_network(container_name, network)
+            adapter = get_containers_adapter_for_network(container_id, network)
             time.sleep(1)
             count += 1
         if not adapter: return None, None
-        ifb_interface = container_id + adapter[-1]
+        ifb_interface = shorten_container_id + adapter[-1]
         return adapter, ifb_interface
 
 
@@ -119,7 +117,7 @@ class NetworkController(object):
         Communicator(self.connector).controller__link_updates(services)
 
 
-    def get_link_rules(self, interface, ifb_interface, ips_to_rule):
+    def get_link_commands(self, interface, ifb_interface, ips_to_rule):
         """
         Performs network QoS links to the specific instances
         :param interface: ingress (initial) interface of the container
@@ -128,14 +126,10 @@ class NetworkController(object):
         :return: None
         """
         commands = " "
-        for str_ips in ips_to_rule:
-            ips = str_ips.split("|")
-            for ip in ips:
-                rule_id = ip.split(".")[-1]
-                for i in ['downlink', 'uplink']:
-                    eth = interface if i == 'downlink' else ifb_interface
-                    _type = 2 if i == 'downlink' else 1
-                    commands+=self.generate_string_link_rule(eth, rule_id, ip, ips_to_rule[str_ips][i], _type)
+        for ip, rule in ips_to_rule.items():
+            rule_id = ip.split(".")[-1]
+            commands += self.generate_string_link_rule(ifb_interface, rule_id, ip, rule["downlink"], "downlink")
+            commands += self.generate_string_link_rule(interface, rule_id, ip, rule["uplink"], "uplink")
         return commands
 
 
@@ -150,7 +144,7 @@ class NetworkController(object):
         :param _type: A number that specifies the rule type (1 for uplink, 2 for downlink)
         :return: The generated command lines
         """
-
+        _type = 1 if _type == "downlink" else 2  #  we change the id of the rule based on direction
 
         rule_id = int(rule_id) + 11 # due to the default rules that the system has already built (see file apply_rules.sh)
         res = 'tc class add dev %s parent %s: classid %s:%s htb rate 10000mbit' % (eth,_type, _type, rule_id) + " \n"
@@ -163,7 +157,7 @@ class NetworkController(object):
         return res
 
 
-    def ips_to_rule(self, service_name, network, network_rules):
+    def ips_to_link_rules(self, service_name, network, network_rules):
         """
         Returns a dictionary with a concatenated list of ips and the necessary commands.
         Since a service will have similar connectivity with all "to_node" services
@@ -172,15 +166,18 @@ class NetworkController(object):
         :param network_rules: the network rules
         :return: A dictionary with keys all ips separated with "|" and the NetEm command as value
         """
-        f_name = service_name.replace("fogify_", "")
+        from_service = service_name.replace("fogify_", "")
         res = {}
-        if 'links' in network_rules[network]:
-            for link in network_rules[network]['links']:
-                if link['from_node'] == f_name and 'to_node' in link:
+        rules_for_network = network_rules[network]
+        if not 'links' in rules_for_network: return {}
 
-                    network_ips = self.connector.get_ips_for_service(link['to_node'])
-                    if network not in network_ips: continue
-                    res["|".join(network_ips[network])] = link['command']
+        for link in rules_for_network['links']:
+            if link['from_node'] != from_service: continue
+            if not 'to_node' in link: continue
+            to_node_ips = self.connector.get_ips_for_service(link['to_node'])
+            if network not in to_node_ips: continue
+            for ip in to_node_ips[network]:
+                res[ip] = link['command']
         return res
 
     def check_starting_condition(self, event):
@@ -219,15 +216,12 @@ class NetworkController(object):
                 if not (info['service_name'] and info['container_id'] and info['container_name']): continue
 
                 network_rules = self.read_network_rules()
-
                 self.start_thread_for_qos(**info, network_rules=network_rules)
+
                 if self.sniffer.is_sniffer_enabled(): self.sniffer.start_thread_for_sniffing(info)
 
             except Exception as ex:
-                logging.error("An error occurred in container listener.",
-                              exc_info=True)
-
-
+                logging.error("An error occurred in container listener.", exc_info=True)
                 continue
 
 
@@ -267,7 +261,7 @@ class NetworkController(object):
         return infra
 
     @classmethod
-    def apply_network_rule(cls, adapter, ifb_interface , in_rule, out_rule, create="TRUE"):
+    def apply_general_network_rules(cls, adapter, ifb_interface , in_rule, out_rule):
         """
         Executes the 'apply_rule.sh' script in order to inject the right network characteristics to the specific
         emulated nodes.
@@ -275,9 +269,8 @@ class NetworkController(object):
         :param ifb_interface: The id of the virtual adapter that the system will create
         :param in_rule: The ingress NetEm rule
         :param out_rule: The egress NetEm rule
-        :param create: If true, it is the first time that the Fogify applies rules in this emulated node
         """
         subprocess.run(
-            [os.path.dirname(os.path.abspath(__file__)) + '/apply_rule.sh', adapter, in_rule, out_rule, ifb_interface,
-             str(create).lower()]
+            [os.path.dirname(os.path.abspath(__file__)) + '/apply_rule.sh', adapter, in_rule, out_rule, ifb_interface]
+            , stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb')
         )

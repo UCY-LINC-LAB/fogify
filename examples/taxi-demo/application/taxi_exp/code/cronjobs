@@ -1,0 +1,4 @@
+#!/bin/bash
+PATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/games:/usr/games
+SHELL=/bin/bash
+* * * * * source /tmp/.env >> /code/cron.log 2>&1 &&  python /code/send_metrics_to_server.py >> /code/cron.log 2>&1

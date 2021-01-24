@@ -112,25 +112,17 @@ class Network(BaseModel):
         temp = []
         from_to, to_from = cls.get_link_rules(copy.deepcopy(link))
         if from_to:
-            temp.append({
-                    'from_node': link['from_node'],
-                    'to_node': link['to_node'],
-                    'command': from_to
-                })
+            temp.append(dict(
+                from_node=link['from_node'], to_node=link['to_node'], command=from_to))
         if to_from:
-            temp.append({
-                    'from_node': link['to_node'],
-                    'to_node': link['from_node'],
-                    'command': to_from
-                })
-
+            temp.append(dict(
+                from_node=link['to_node'], to_node=link['from_node'], command=to_from))
         return temp
 
 
     @classmethod
     def get_link_rules(cls, link):
         from_to, to_from = None, None
-        print("link: ", link)
         if 'from_node' in link and 'to_node' in link:
 
             if 'properties' in link:
@@ -218,15 +210,14 @@ class FogifyModel(object):
 
     @property
     def all_networks(self):
-        res = []
-        for network in self.networks:
-            cur = {'name': network.name}
-            res.append(cur)
+        res = [{'name': network.name} for network in self.networks]
+        res = self.__get_networks_from_services(res)
+        return res
 
+    def __get_networks_from_services(self, res):
         for topology in self.topology:
             service = copy.deepcopy(self.services[topology.service])
             if 'networks' not in service: continue
-
             for network in service['networks']:
                 if network not in [i['name'] for i in res]:
                     res.append({"name": network})

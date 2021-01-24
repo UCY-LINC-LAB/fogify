@@ -1,0 +1,277 @@
+services:
+  control-plane:
+    environment:
+      K8S_NODE_TYPE: control-plane
+      NODE_TYPE: CLOUD_NODE
+    hostname: control-plane
+    image: rainbowh2020/k8s-test-cluster:latest
+    labels:
+      eu.rainbow-h2020.node-type: control-plane
+    ports:
+    - 36443:6443
+    privileged: true
+    restart: on-failure:1
+    security_opt:
+    - seccomp=unconfined
+    - apparmor=unconfined
+    tmpfs:
+    - /tmp
+    - /run
+    volumes:
+    - /var
+    - /lib/modules:/lib/modules:ro
+    - ./data/kubeconfig:/rainbow/kubeconfig:rw
+  worker0:
+    depends_on:
+    - control-plane
+    environment:
+      K8S_NODE_TYPE: worker
+    image: rainbowh2020/k8s-test-cluster:latest
+    labels:
+      eu.rainbow-h2020.node-type: worker
+    privileged: true
+    restart: on-failure:1
+    security_opt:
+    - seccomp=unconfined
+    - apparmor=unconfined
+    tmpfs:
+    - /tmp
+    - /run
+    volumes:
+    - /var
+    - /lib/modules:/lib/modules:ro
+    - ./data/kubeconfig:/rainbow/kubeconfig:ro
+  worker1:
+    depends_on:
+    - control-plane
+    environment:
+      K8S_NODE_TYPE: worker
+    image: rainbowh2020/k8s-test-cluster:latest
+    labels:
+      eu.rainbow-h2020.node-type: worker
+    privileged: true
+    restart: on-failure:1
+    security_opt:
+    - seccomp=unconfined
+    - apparmor=unconfined
+    tmpfs:
+    - /tmp
+    - /run
+    volumes:
+    - /var
+    - /lib/modules:/lib/modules:ro
+    - ./data/kubeconfig:/rainbow/kubeconfig:ro
+  worker2:
+    depends_on:
+    - control-plane
+    environment:
+      K8S_NODE_TYPE: worker
+    image: rainbowh2020/k8s-test-cluster:latest
+    labels:
+      eu.rainbow-h2020.node-type: worker
+    privileged: true
+    restart: on-failure:1
+    security_opt:
+    - seccomp=unconfined
+    - apparmor=unconfined
+    tmpfs:
+    - /tmp
+    - /run
+    volumes:
+    - /var
+    - /lib/modules:/lib/modules:ro
+    - ./data/kubeconfig:/rainbow/kubeconfig:ro
+version: '3.8'
+x-fogify:
+  networks:
+  - bidirectional: {}
+    capacity: null
+    links:
+    - bidirectional: false
+      downlink:
+        latency:
+          delay: 0.01ms
+          deviation: 0.01ms
+      from_node: control-plane
+      to_node: worker-0
+      uplink:
+        latency:
+          delay: 0.01ms
+          deviation: 0.01ms
+    - bidirectional: false
+      downlink:
+        latency:
+          delay: 24.73ms
+          deviation: 8.38ms
+      from_node: control-plane
+      to_node: worker-1
+      uplink:
+        latency:
+          delay: 24.73ms
+          deviation: 8.38ms
+    - bidirectional: false
+      downlink:
+        latency:
+          delay: 6.57ms
+          deviation: 0.06ms
+      from_node: control-plane
+      to_node: worker-2
+      uplink:
+        latency:
+          delay: 6.57ms
+          deviation: 0.06ms
+    - bidirectional: false
+      downlink:
+        latency:
+          delay: 0.01ms
+          deviation: 0.01ms
+      from_node: worker-0
+      to_node: control-plane
+      uplink:
+        latency:
+          delay: 0.01ms
+          deviation: 0.01ms
+    - bidirectional: false
+      downlink:
+        latency:
+          delay: 24.73ms
+          deviation: 8.38ms
+      from_node: worker-0
+      to_node: worker-1
+      uplink:
+        latency:
+          delay: 24.73ms
+          deviation: 8.38ms
+    - bidirectional: false
+      downlink:
+        latency:
+          delay: 6.57ms
+          deviation: 0.06ms
+      from_node: worker-0
+      to_node: worker-2
+      uplink:
+        latency:
+          delay: 6.57ms
+          deviation: 0.06ms
+    - bidirectional: false
+      downlink:
+        latency:
+          delay: 17.41ms
+          deviation: 8.60ms
+      from_node: worker-1
+      to_node: control-plane
+      uplink:
+        latency:
+          delay: 17.41ms
+          deviation: 8.60ms
+    - bidirectional: false
+      downlink:
+        latency:
+          delay: 17.41ms
+          deviation: 8.60ms
+      from_node: worker-1
+      to_node: worker-0
+      uplink:
+        latency:
+          delay: 17.41ms
+          deviation: 8.60ms
+    - bidirectional: false
+      downlink:
+        latency:
+          delay: 21.98ms
+          deviation: 7.90ms
+      from_node: worker-1
+      to_node: worker-2
+      uplink:
+        latency:
+          delay: 21.98ms
+          deviation: 7.90ms
+    - bidirectional: false
+      downlink:
+        latency:
+          delay: 6.58ms
+          deviation: 0.07ms
+      from_node: worker-2
+      to_node: control-plane
+      uplink:
+        latency:
+          delay: 6.58ms
+          deviation: 0.07ms
+    - bidirectional: false
+      downlink:
+        latency:
+          delay: 6.58ms
+          deviation: 0.07ms
+      from_node: worker-2
+      to_node: worker-0
+      uplink:
+        latency:
+          delay: 6.58ms
+          deviation: 0.07ms
+    - bidirectional: false
+      downlink:
+        latency:
+          delay: 26.61ms
+          deviation: 11.48ms
+      from_node: worker-2
+      to_node: worker-1
+      uplink:
+        latency:
+          delay: 26.61ms
+          deviation: 11.48ms
+    name: internet
+  nodes:
+  - capabilities:
+      disk: ''
+      memory: 4.0G
+      processor:
+        clock_speed: 3100
+        cores: 2
+    name: control-plane
+  - capabilities:
+      disk: ''
+      memory: 4.0G
+      processor:
+        clock_speed: 3100
+        cores: 2
+    name: worker-0
+  - capabilities:
+      disk: ''
+      memory: 1G
+      processor:
+        clock_speed: 1200
+        cores: 4
+    name: worker-1
+  - capabilities:
+      disk: ''
+      memory: 1G
+      processor:
+        clock_speed: 1200
+        cores: 4
+    name: worker-2
+  scenarios: []
+  topology:
+  - label: control-plane
+    networks:
+    - internet
+    node: control-plane
+    replicas: 1
+    service: control-plane
+  - label: worker-0
+    networks:
+    - internet
+    node: worker-0
+    replicas: 1
+    service: worker0
+  - label: worker-1
+    networks:
+    - internet
+    node: worker-1
+    replicas: 1
+    service: worker1
+  - label: worker-2
+    networks:
+    - internet
+    node: worker-2
+    replicas: 1
+    service: worker2
