@@ -11,11 +11,11 @@ def get_connector(**kwargs) -> BasicConnector:
     default_params = dict(
         model=None,
         path=os.getcwd() + os.environ['UPLOAD_FOLDER'] if 'UPLOAD_FOLDER' in os.environ else "",
-        frequency=int(os.environ['CPU_FREQ']) if 'CPU_FREQ' in os.environ else 2400,
-        cpu_oversubscription=int(
-            os.environ['CPU_OVERSUBSCRIPTION_PERCENTAGE']) if 'CPU_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0,
-        ram_oversubscription=int(
-            os.environ['RAM_OVERSUBSCRIPTION_PERCENTAGE']) if 'RAM_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0,
+        frequency=float(os.environ['CPU_FREQ']) if 'CPU_FREQ' in os.environ else 2400.0,
+        cpu_oversubscription=float(
+            os.environ['CPU_OVERSUBSCRIPTION_PERCENTAGE']) if 'CPU_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0.0,
+        ram_oversubscription=float(
+            os.environ['RAM_OVERSUBSCRIPTION_PERCENTAGE']) if 'RAM_OVERSUBSCRIPTION_PERCENTAGE' in os.environ else 0.0,
         node_name=os.environ['MANAGER_NAME'] if 'MANAGER_NAME' in os.environ else 'localhost',
         host_ip=os.environ['HOST_IP'] if 'HOST_IP' in os.environ else None
     )
