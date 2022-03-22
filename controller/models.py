@@ -1,5 +1,6 @@
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+
 from controller.controller import Controller
 
 db = Controller.db
@@ -42,12 +43,8 @@ class Annotation(db.Model):
     params = db.Column(db.String(500), nullable=True)
 
     def to_dict(self):
-        return {
-            "timestamp": self.timestamp,
-            "annotation": self.annotation,
-            "instance_name": self.instance_name,
-            "params": self.params
-        }
+        return {"timestamp": self.timestamp, "annotation": self.annotation, "instance_name": self.instance_name,
+                "params": self.params}
 
     @classmethod
     def create(cls, annotation, instance_names="Topology", params=None):

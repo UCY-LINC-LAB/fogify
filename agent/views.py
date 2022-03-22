@@ -1,10 +1,15 @@
+import copy
+import json
 import logging
 import os
+import threading
 from datetime import datetime
+
 import docker
 from flask import current_app as app
 from flask import request
 from flask.views import MethodView
+
 from agent.models import Status, Record, Metric, Packet
 from utils.monitoring import MetricCollector
 from utils.network import NetworkController
@@ -28,8 +33,10 @@ class SnifferAPI(MethodView):
     def __transform_record(self, record):
         src_obj = self.ip_to_info_helper(record['src_ip'])
         dest_obj = self.ip_to_info_helper(record['dest_ip'])
-        record['src_instance'] = src_obj[0] if src_obj else record['src_ip']
-        record['dest_instance'] = dest_obj[0] if dest_obj else record['dest_ip']
+        record['src_instance'] = src_obj[0].replace("monitoring_network_cache:fogify_", "") if src_obj else record[
+            'src_ip']
+        record['dest_instance'] = dest_obj[0].replace("monitoring_network_cache:fogify_", "") if dest_obj else record[
+            'dest_ip']
         record['network'] = None if src_obj is None else src_obj[2]
         if record['network'] is None:
             record['network'] = None if dest_obj is None else dest_obj[2]
@@ -74,9 +81,8 @@ class MonitoringAPI(MethodView):
                 res[r.instance_name].append(temp)
             return res
         except Exception as e:
-            logging.error("An error occurred on monitoring view. The metrics did not retrieved.",
-                          exc_info=True)
-            return { "Error": "{0}".format(e)}
+            logging.error("An error occurred on monitoring view. The metrics did not retrieved.", exc_info=True)
+            return {"Error": "{0}".format(e)}
 
     def __transform_record(self, r):
         temp = {i.metric_name: i.value for i in r.metrics}
@@ -113,64 +119,72 @@ class TopologyAPI(MethodView):
     """ Fogify Controller communicate with the agents through this API to apply network rules or to clean a deployment """
 
     def delete(self):
-        connector=app.config['CONNECTOR']
+        connector = app.config['CONNECTOR']
         path = connector.path
         MetricCollector().remove_record_file(path + "metrics/")
+        network_controller = app.config['NETWORK_CONTROLLER']
+        network_controller.remove_cached_ips()
+        os.putenv('EMULATION_IS_RUNNING', 'FALSE')
         return {"message": "The topology is down."}
 
     def post(self):
+        network_controller = app.config['NETWORK_CONTROLLER']
         connector = app.config['CONNECTOR']
-        if 'file' in request.files:
-            file = request.files['file']
-        NetworkController(connector).save_network_rules(file)
-        return {"message": "OK"}
+        if 'file' in request.data:
+            print(request.data.to_dict())
+            file = request.data['file']
+            file = json.loads(file)
+            print("--------------file----------------", file)
+            network_controller.save_network_rules(file)
+            return {"message": "OK"}
+        else:
+            network_rules = network_controller.read_network_rules
+            os.putenv('EMULATION_IS_RUNNING', 'TRUE')
+            infos = connector.get_local_containers_infos()
+            for info in infos:
+                threading.Thread(target=NetworkController.apply_network_qos_for_event,
+                    args=(network_controller, info, network_rules, False)).start()
+            return {"message": "OK"}
 
 
 class ActionsAPI(MethodView):
     """ Fogify Controller send ad-hoc actions through ActionAPI """
 
-    def get_common_requirements(self):
-        connector = app.config['CONNECTOR']
-        net_controller = NetworkController(connector)
-        network_rules = net_controller.read_network_rules()
-        return connector, net_controller, network_rules
-
     def get_rules_and_container_data(self, instance_name, network_rules):
-        if instance_name.rfind("_") > 0:
-            service_name = instance_name[:instance_name.rfind("_")]
-        elif instance_name.rfind(".") > 0:
-            service_name = instance_name[:instance_name.rfind(".")]
+        connector = app.config['CONNECTOR']
+        service_name = connector.get_service_from_name(instance_name)
         service_network_rule = network_rules[service_name] if service_name in network_rules else {}
         return service_name, service_network_rule
 
     def merge_links(self, old_links, new_links):
         if len(old_links) == 0: return new_links
-        new_link_dict = {new_link['from_node'] + "___" + new_link['to_node']: new_link['command'] for new_link in new_links}
-        old_link_dict = {old_link['from_node'] + "___" + old_link['to_node']: old_link['command'] for old_link in old_links}
+        new_link_dict = {new_link['from_node'] + "___" + new_link['to_node']: new_link['command'] for new_link in
+                         new_links}
+        old_link_dict = {old_link['from_node'] + "___" + old_link['to_node']: old_link['command'] for old_link in
+                         old_links}
         old_link_dict.update(new_link_dict)
         fin_links = []
         for key, value in old_link_dict.items():
             fin_links.append(dict(from_node=key.split("___")[0], to_node=key.split("___")[1], command=value))
         return fin_links
 
-
     def common_link_and_network(self, commands, instances):
-
         if 'network' not in commands: return {}
         network, uplink, downlink, links = self.__get_link_and_network_parameters(commands)
-        connector, net_controller, network_rules = self.get_common_requirements()
+        connector = app.config['CONNECTOR']
+        network_controller = app.config['NETWORK_CONTROLLER']
+        network_rules = copy.deepcopy(network_controller.read_network_rules)
         for instance in instances:
             instance_name = connector.instance_name(instance.name)
             service_name, service_network_rules = self.get_rules_and_container_data(instance_name, network_rules)
             if network != 'all':
                 # Update network rules for the service
-                service_network_rules[network]['links'] = self.merge_links(service_network_rules[network]['links'], links)
+                service_network_rules[network]['links'] = self.merge_links(service_network_rules[network]['links'],
+                                                                           links)
                 if uplink: service_network_rules[network]['uplink'] = uplink
                 if downlink: service_network_rules[network]['downlink'] = downlink
-                network_rules[service_name] = service_network_rules
-                net_controller.save_network_rules(network_rules)
-
-            net_controller.execute_network_commands(service_name, instance.id, instance.name, service_network_rules)
+                network_rules[service_name] = service_network_rules  # net_controller.save_network_rules(network_rules)
+            network_controller.execute_network_commands(service_name, instance.id, service_network_rules)
 
     def __get_link_and_network_parameters(self, commands):
         links = commands['links'] if 'links' in commands else []
@@ -186,7 +200,6 @@ class ActionsAPI(MethodView):
     def network(self, commands, instances):
         command = commands['network']
         self.common_link_and_network(command, instances)
-
 
     def stress(self, commands, instances):
         for instance in instances:
@@ -210,7 +223,6 @@ class ActionsAPI(MethodView):
     def command(self, commands, instances):
         for instance in instances:
             instance.exec_run(commands['command'], detach=True)
-
 
     def post(self):
         client = docker.from_env()

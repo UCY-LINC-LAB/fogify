@@ -25,12 +25,7 @@ class Controller(object):
         app.config['UPLOAD_FOLDER'] = "/current_infrastructure/"
         os.environ['UPLOAD_FOLDER'] = "/current_infrastructure/"
 
-        from controller.views import TopologyAPI, \
-            MonitoringAPI, \
-            ActionsAPI, \
-            ControlAPI, \
-            AnnotationAPI, \
-            DistributionAPI, \
+        from controller.views import TopologyAPI, MonitoringAPI, ActionsAPI, ControlAPI, AnnotationAPI, DistributionAPI, \
             SnifferAPI
 
         # Introduce the routes of the API
@@ -42,7 +37,5 @@ class Controller(object):
         app.add_url_rule('/control/<string:service>/', view_func=ControlAPI.as_view('control'))
         app.add_url_rule('/generate-network-distribution/<string:name>/',
                          view_func=DistributionAPI.as_view('NetworkDistribution'))
-        # from .models import Status
-        # Status.update_config(self.initiate_swarm_manager(), "swarm-ca")
-        # app.run(debug=False, host='0.0.0.0')
+
         self.app = app

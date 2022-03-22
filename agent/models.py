@@ -1,4 +1,6 @@
-from sqlalchemy import Index
+import logging
+
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import relationship
 
 from .agent import Agent
@@ -15,9 +17,22 @@ class Status(db.Model):
 
     @classmethod
     def update_config(cls, value, name="counter"):
-        status = Status(name=name, value=value)
-        db.session.merge(status)
-        db.session.commit()
+        try:
+            status = Status(name=name, value=value)
+            db.session.merge(status)
+            db.session.commit()
+        except SQLAlchemyError:
+            logging.info("update_config was failed to update the database")
+            db.session.rollback()
+
+    @classmethod
+    def remove_all(cls):
+        try:
+            db.session.query(Status).delete()
+            db.session.commit()
+        except SQLAlchemyError:
+            logging.info("remove_all was failed to remove the status db")
+            db.session.rollback()
 
 
 class Metric(db.Model):
@@ -38,8 +53,10 @@ class Packet(db.Model):
     protocol = db.Column(db.String(250))
     size = db.Column(db.Integer())
     count = db.Column(db.Integer())
-    out = db.Column(db.Boolean())
     timestamp = db.Column(db.DateTime())
+    network = db.Column(db.String(250))
+    src_port = db.Column(db.String(250))
+    dest_port = db.Column(db.String(250))
 
 
 class Record(db.Model):
@@ -51,13 +68,12 @@ class Record(db.Model):
     timestamp = db.Column(db.DateTime())
     metrics = relationship("Metric", backref='record')
     count = db.Column(db.Integer())
-    __table_args__ = (
-        db.Index('timestamp_service', timestamp.desc(), instance_name),
-    )
+    __table_args__ = (db.Index('timestamp_service', timestamp.desc(), instance_name),)
 
     def get_metric_by_name(self, name: str) -> Metric:
         for i in self.metrics:
             if i.metric_name == name:
                 return i
+
 
 db.create_all()

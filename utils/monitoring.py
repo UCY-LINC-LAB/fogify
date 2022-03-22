@@ -8,14 +8,12 @@ import docker
 import requests
 
 from agent.models import Status, Metric, db, Record
-
 from utils.docker_manager import get_container_ip_property, get_ip_from_network_object, ContainerNetworkNamespace
-
 
 
 class cAdvisorHandler(object):
 
-    def __init__(self, ip, port, project, client = docker.from_env()):
+    def __init__(self, ip, port, project, client=docker.from_env()):
         self.ip = ip
         self.port = port
         self.project = project
@@ -28,13 +26,13 @@ class cAdvisorHandler(object):
         self.client = client
 
     def retrieve_docker_metrics(self):
-        containers = [ i for i in self.client.containers.list() if i.name.startswith("fogify_")]
+        containers = [i for i in self.client.containers.list() if i.name.startswith("fogify_")]
         res = {}
         for container in containers:
             try:
                 stats = self.get_stats_from_cadvisor(container)
                 res.update(stats)
-            except Exception as ex:
+            except Exception:
                 logging.error("Monitoring agent did not capture the metrics this time")
                 continue
 
@@ -42,14 +40,14 @@ class cAdvisorHandler(object):
 
     def get_stats_from_cadvisor(self, container):
         stats = requests.get("http://%s:%s/api/v2.0/stats/docker/%s" % (self.ip, self.port, container.id)).json()
-        stats["/docker/%s" % container.id] = {"stats": stats["/docker/%s" % container.id]}
-        stats["/docker/%s" % container.id]['aliases'] = [container.name]
-        stats["/docker/%s" % container.id]['id'] = container.id
-        stats["/docker/%s" % container.id]['limits'] = dict(memory=container.attrs['HostConfig']['Memory'],
-            cpu=container.attrs['HostConfig']['NanoCpus'])
+        key = f"/docker/{container.id}"
+        stats[key] = {"stats": stats[key], "aliases": [container.name], "id": container.id,
+            "limits": dict(memory=container.attrs['HostConfig']['Memory'],
+                           cpu=container.attrs['HostConfig']['NanoCpus'])}
         return stats
 
     def retrieve_machine_info(self):
+        print("self.ip, self.port", self.ip, self.port)
         self.machine = requests.get("http://%s:%s/api/v1.3/machine" % (self.ip, self.port)).json()
 
     def set_current_instance_name(self, instance_name: str):
@@ -63,7 +61,7 @@ class cAdvisorHandler(object):
             if alias.startswith(self.project):
                 return alias
         return None
-    
+
     def get_last_stats(self):
         return self.current_instance['stats'][-1]
 
@@ -80,7 +78,7 @@ class cAdvisorHandler(object):
         return float(self.get_last_stats()['memory']['usage'])
 
     def get_last_stats_memory_util(self):
-        return 100*self.get_last_stats_memory_usage()/self.get_mem_quota()
+        return 100 * self.get_last_stats_memory_usage() / self.get_mem_quota()
 
     def get_last_saved_record(self, instance_name):
         return Record.query.filter_by(instance_name=instance_name).order_by(Record.count.desc()).limit(1).first()
@@ -107,9 +105,9 @@ class cAdvisorHandler(object):
 
     def get_cpu_specs(self):
         return float(self.current_instance['limits']['cpu'])
-    
+
     def get_mem_specs(self):
-        return self.current_instance['limits']['memory']#self.current_instance['spec']['memory']
+        return self.current_instance['limits']['memory']  # self.current_instance['spec']['memory']
 
     def get_mem_quota(self):
         mem_specs = self.get_mem_specs()
@@ -121,7 +119,7 @@ class cAdvisorHandler(object):
         cpu_specs = self.get_cpu_specs()
         if not cpu_specs: return
         return cpu_specs
-    
+
     def get_cpu_mask(self):
         try:
             return int(self.get_cpu_specs()['mask'].split("-")[-1]) + 1
@@ -135,12 +133,12 @@ class cAdvisorHandler(object):
 
     def get_cpu_mask_to_period_ratio(self):
         return self.get_cpu_mask() / self.get_cpu_period()
-    
+
     def get_mem_quota(self):
         memory = self.get_mem_specs()
         mem_specs = memory if memory else self.machine['memory_capacity']
         return float(mem_specs)
-    
+
     def millis_interval(self, start, end):
         """start and end are datetime instances"""
         diff = end - start
@@ -151,7 +149,8 @@ class cAdvisorHandler(object):
 
     def get_metrics(self):
         return self.metrics
-    
+
+
 class MetricCollector(object):
 
     def get_custom_metrics(self, instance, connector):
@@ -178,7 +177,7 @@ class MetricCollector(object):
         db.session.commit()
 
     def set_cache_ip(self, ip, container_name, network_name):
-        Status.update_config(ip, "monitoring_network_cache:"+container_name + "|" + network_name + "|")
+        Status.update_config(ip, "monitoring_network_cache:" + container_name + "|" + network_name + "|")
 
     def get_ip(self, container, cadv_net):
         old_ip = self.get_cache_ip(container.name, cadv_net["name"])
@@ -200,7 +199,7 @@ class MetricCollector(object):
         disk = Metric(metric_name="disk_bytes", value=cAdvisor_handler.get_last_stats_disk_usage())
         return [cpu_util, cpu, memory, memory_util, disk]
 
-    def get_network_metrics(self, cAdvisor_handler:cAdvisorHandler):
+    def get_network_metrics(self, cAdvisor_handler: cAdvisorHandler):
         current_container = docker.from_env().containers.get(cAdvisor_handler.current_instance["id"])
         nets = self.get_ips_to_networks_dict(current_container)
         res = []
@@ -219,9 +218,8 @@ class MetricCollector(object):
         return nets
 
     def start_monitoring(self, agent_ip, connector, interval):
-
         print("Monitoring Agent Instantiation")
-        cAdvisor_handler = cAdvisorHandler(agent_ip,'9090', 'fogify')
+        cAdvisor_handler = cAdvisorHandler(agent_ip, '9090', 'fogify')
         while (True):
             count = Status.query.filter_by(name="counter").first()
             count = 0 if count is None else int(count.value)
@@ -254,7 +252,7 @@ class MetricCollector(object):
 
                 db.session.add(r)
                 db.session.commit()
-            except Exception as ex:
+            except Exception:
                 logging.error("An error occurred in monitoring agent. The metrics will not be stored at this time.",
                               exc_info=True)
                 continue

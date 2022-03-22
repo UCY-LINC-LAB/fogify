@@ -111,7 +111,7 @@ class TestModelFunctions(InitializationTest):
             'test-net',
             'from-node',
             'to-node',
-            properties=network_inputs['test-net'][0]
+            parameters={'properties':network_inputs['test-net'][0]}
         )
         net = None
         for i in self.fogify.networks:
@@ -136,7 +136,7 @@ class TestModelFunctions(InitializationTest):
                 'does-not-exist-network',
                 'from-node',
                 'to-node',
-                properties=network_inputs['test-net'][0]
+                parameters={'properties':network_inputs['test-net'][0]}
             )
 
     def test_topology_model(self):
@@ -414,10 +414,11 @@ class TestAPIs(InitializationTest):
     @mock.patch('requests.post')
     @mock.patch('requests.get')
     def test_deploy(self, mock_get, mock_post, mock_clean_metrics, mock_clean_annotations, mock_undeploy):
-        mock_clean_metrics.return_value = Mock(ok=True)
-        mock_clean_annotations.return_value = Mock(ok=True)
-        mock_undeploy.return_value = Mock(ok=True)
+        mock_clean_metrics.return_value = Mock(ok=True, status_code=200)
+        mock_clean_annotations.return_value = Mock(ok=True, status_code=200)
+        mock_undeploy.return_value = Mock(ok=True, status_code=200)
         mock_post.return_value = Mock(ok=True)
+        mock_post.return_value.status_code=200
         mock_post.return_value.json.return_value = {}
         with self.assertRaises(ExceptionFogifySDK):
             self.fogify.deploy()
@@ -441,6 +442,7 @@ class TestAPIs(InitializationTest):
         }
 
         mock_get.return_value = Mock(ok=True)
+        mock_get.return_value.status_code = 200
         mock_get.return_value.json.return_value = {
             "service-1": [
                 "service-1"

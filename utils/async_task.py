@@ -1,15 +1,13 @@
-import subprocess
 from threading import Thread
 
 
 class AsyncTask(Thread):
 
-    def __init__(self, obj, func, args=[], kwargs={}):
-
+    def __init__(self, obj, func, args=None, kwargs=None):
         self.obj = obj
         self.func = func
-        self.args = args
-        self.kwargs = kwargs
+        self.args = args if args is not None else []
+        self.kwargs = kwargs if kwargs is not None else {}
         super(AsyncTask, self).__init__()
 
     def run(self):

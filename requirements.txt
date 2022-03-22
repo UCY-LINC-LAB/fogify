@@ -1,4 +1,5 @@
-Flask
+Flask==1.1.2
+werkzeug==1.0.1
 Flask-API
 requests
 docker
@@ -10,3 +11,5 @@ py-cpuinfo
 netifaces
 nsenter
 uWSGI
+pyshark
+python-iptables

@@ -16,7 +16,7 @@ ADD requirements.txt /code/
 RUN pip install -r requirements.txt
 
 RUN apt-get update && apt-get install -y stress && apt-get -y install cron rsyslog
-
+RUN apt-get -y install iperf
 
 EXPOSE 8000
 # cron tab

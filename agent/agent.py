@@ -1,10 +1,11 @@
 import os
+
 from flask_sqlalchemy import SQLAlchemy
+
 from connectors import get_connector
 from utils.async_task import AsyncTask
 from utils.host_info import HostInfo
 from utils.network import NetworkController
-
 
 
 class Agent(object):
@@ -34,11 +35,12 @@ class Agent(object):
 
         connector = get_connector()
         app.config['CONNECTOR'] = connector
+        app.config['NETWORK_CONTROLLER'] = NetworkController(connector)
         node_labels = {}
 
         if 'LABELS' in os.environ:
-            node_labels = {i.split(":")[0]: i.split(":")[1]
-                           for i in os.environ['LABELS'].split(",") if len(i.split(":")) == 2}
+            node_labels = {i.split(":")[0]: i.split(":")[1] for i in os.environ['LABELS'].split(",") if
+                           len(i.split(":")) == 2}
 
         node_labels.update(HostInfo.get_all_properties())
         connector.inject_labels(node_labels, HOST_IP=os.environ['HOST_IP'] if 'HOST_IP' in os.environ else None)
@@ -55,14 +57,14 @@ class Agent(object):
                          view_func=DistributionAPI.as_view('NetworkDistribution'))
 
         # The thread that runs the monitoring agent
-        metricController = MetricCollector()
-        metricControllerTask = AsyncTask(metricController, 'start_monitoring', [args.agent_ip, connector, 5])
-        metricControllerTask.start()
+        metric_controller = MetricCollector()
+        metric_controller_task = AsyncTask(metric_controller, 'start_monitoring', [args.agent_ip, connector, 5])
+        metric_controller_task.start()
 
         # The thread that inspect containers and apply network QoS
-        networkController = NetworkController(connector)
-        networkControllerTask = AsyncTask(networkController, 'listen', [])
-        networkControllerTask.start()
+        network_controller = NetworkController(connector)
+        network_controller_task = AsyncTask(network_controller, 'listen', [])
+        network_controller_task.start()
 
         self.app = app
         self.args = args

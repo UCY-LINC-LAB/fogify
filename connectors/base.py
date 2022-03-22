@@ -1,5 +1,7 @@
-from FogifyModel.base import Node
 from abc import ABC, abstractmethod
+
+from FogifyModel.base import Node
+
 
 class BasicConnector(ABC):
 
@@ -17,7 +19,6 @@ class BasicConnector(ABC):
         :return: A dictionary of <Node-id: Node-ip>
         """
         pass
-
 
     @abstractmethod
     def scale(self, service, instances):
@@ -134,3 +135,10 @@ class BasicConnector(ABC):
         :return:
         """
         pass
+
+    def get_local_containers_infos(self):
+        raise NotImplementedError
+
+    @staticmethod
+    def get_service_from_name(name):
+        raise NotImplementedError

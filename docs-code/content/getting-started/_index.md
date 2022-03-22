@@ -377,36 +377,37 @@ Similarly, after 15 seconds the network get worse with 150ms and, finally, after
     scenarios:
     - name: scenario_network_error
       actions: 
-        - time: 5
-          instance_type: mec-svc-1
+        - time: 20
+          instance_type: car-1
           instances: 1
+          position: 0
           action:
             type: network
             parameters:
-                network: internet
+                network: MEC-net-1
                 uplink:
                     latency:
                       delay: 50ms
-        - time: 15
-          instance_type: mec-svc-1
+        - time: 20
+          instance_type: car-1
           instances: 1
+          position: 1
           action:
             type: network
             parameters:
-                network: internet
+                network: MEC-net-1
                 uplink:
                     latency:
                       delay: 150ms
-        - time: 5
-          instance_type: mec-svc-1
+        - time: 0
+          instance_type: car-2
           instances: 1
+          position: 2
           action:
-            type: network
+            type: scale-in
             parameters:
-                network: internet
-                uplink:
-                    latency:
-                      delay: 3000ms
+              num-of-instances: 1
+              
 {{</ code >}}
 
 In order to execute the scenario, FogifySDK provides the `scenario_execution` function that submits a scenario to Fogify.

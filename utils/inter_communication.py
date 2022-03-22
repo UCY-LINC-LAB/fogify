@@ -1,9 +1,13 @@
+import json
 import logging
 import os
 import socket
-import requests
-from connectors.base import BasicConnector
 from enum import Enum
+
+import requests
+
+from connectors.base import BasicConnector
+
 
 class Communicator(object):
     """
@@ -23,7 +27,6 @@ class Communicator(object):
         self.connector = connector
 
     def __instance_ids(self, instance_id: str = None, instance_type: str = None):
-
         docker_instances = self.connector.get_all_instances()
 
         if instance_id in docker_instances:
@@ -40,34 +43,36 @@ class Communicator(object):
         return {}
 
     def agents__perform_action(self, commands: dict = {}, instance_id: str = None, instance_type: str = None, **kwargs):
-
         selected_instances = self.__instance_ids(instance_id, instance_type)
         res = {}
         for i in selected_instances:
-            res.update(
-                requests.post(
+            print("selected_instances", i)
+            res.update(requests.post(self.URLs.agent_action.value % socket.gethostbyname(i),
+                json={'instances': selected_instances[i], 'commands': commands},
+                headers={'Content-Type': "application/json"}).json())
+        return res
 
-                    self.URLs.agent_action.value % socket.gethostbyname(i), json={
-                        'instances': selected_instances[i],
-                        'commands': commands
-                    }, headers={'Content-Type': "application/json"}
-                ).json()
-            )
+    def agents__notify_emulation_started(self):
+        nodes = self.connector.get_nodes()
+        res = {}
+        for i in nodes:
+            res.update({nodes[i]: requests.post(self.URLs.agent_topology.value % nodes[i])})
         return res
 
     def agents__forward_network_file(self, network_file):
         nodes = self.connector.get_nodes()
         res = {}
         for i in nodes:
+            print("------network_file------", network_file)
             res.update({nodes[i]: requests.post(self.URLs.agent_topology.value % nodes[i],
-                              files={'file': network_file}).json()})
+                                                data={'file': json.dumps(network_file)}).json()})
         return res
 
-    def agents__get_metrics(self, query: str = None)->list:
-        return self.agents__get(self.URLs.agent_metrics, query)
+    def agents__get_metrics(self, query: str = None) -> list:
+        return self.agents__get(self.URLs.agent_metrics.value, query)
 
-    def agents__get_packets(self, query: str = None)->list:
-        return self.agents__get(self.URLs.agent_packet.value, query)
+    def agents__get_packets(self, query: str = None) -> list:
+        return self.agents__get(self.URLs.agent_packet.value, query, 'array')
 
     def agents__delete_metrics(self):
         return self.agents__delete(self.URLs.agent_metrics.value, "metrics")
@@ -75,38 +80,47 @@ class Communicator(object):
     def agents__delete_packets(self):
         return self.agents__delete(self.URLs.agent_packet.value, "packets")
 
-    def agents__delete(self, url: URLs, action_type: str):
+    def agents__delete(self, url: str, action_type: str):
         nodes = self.connector.get_nodes()
         res = {}
         for i in nodes:
             try:
+                print(i)
+                print('nodes', nodes[i])
+                print('url', url % nodes[i])
                 r = requests.delete(url % nodes[i]).json()
+                print('r', r)
                 res.update(r)
-            except ConnectionError as e:
-                logging.error( 'The agent of node %s is offline'%i, exc_info=True)
-        return {"message": "The %s are empty now"%action_type}
+            except ConnectionError:
+                logging.error('The agent of node %s is offline' % i, exc_info=True)
+        return {"message": "The %s are empty now" % action_type}
 
-    def agents__get(self, url: URLs, query: str):
+    def agents__get(self, url: URLs, query: str, type_='object'):
         nodes = self.connector.get_nodes()
-        res = {}
-        str_url = url.value
+        is_response_object = type_ == 'object'
+        res = {} if is_response_object else []
+        str_url = url
         for i in nodes:
             try:
                 str_url = str_url % nodes[i]
                 str_url = str_url + "?" + query if query != "" else str_url
                 r = requests.get(str_url).json()
-                res.update(r)
-            except ConnectionError as e:
-                logging.error( 'The agent of node %s is offline'%i, exc_info=True)
-        return res
+                print(r)
+                if is_response_object:
+                    res.update(r)
+                else:
+                    res.extend(r)
+            except ConnectionError:
+                logging.error('The agent of node %s is offline' % i, exc_info=True)
+            except ValueError:
+                logging.error('The agent of node %s is value error' % i, exc_info=True)
+        return res if is_response_object else {'res': res}
 
     def agents__disseminate_net_distribution(self, name: str, file) -> dict:
-
         nodes = self.connector.get_nodes()
         res = {}
         for i in nodes:
-            requests.post(self.URLs.agent_distribution.value % (nodes[i], name),
-                              files={'file': file})
+            requests.post(self.URLs.agent_distribution.value % (nodes[i], name), files={'file': file})
 
         return {"generated-distribution": res}
 
@@ -116,4 +130,3 @@ class Communicator(object):
         action_url = self.URLs.controller_link_updates.value % (
             os.environ['CONTROLLER_IP'] if 'CONTROLLER_IP' in os.environ else '0.0.0.0', str_set)
         requests.post(action_url, headers={'Content-Type': "application/json"})
-

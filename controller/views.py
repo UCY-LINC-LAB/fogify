@@ -1,22 +1,22 @@
 import logging
 import os
-import socket
-import traceback
+import time
 
-from flask_api import exceptions
-import requests
 import yaml
 from flask import current_app as app
 from flask import request
 from flask.views import MethodView
+from flask_api import exceptions
+
+from FogifyModel.actions import StressAction, VerticalScalingAction, CommandAction
 from FogifyModel.base import FogifyModel
+from FogifyModel.base import Network
 from connectors import get_connector_class, get_connector
 from controller.models import Status, Annotation
-from FogifyModel.actions import StressAction, VerticalScalingAction, CommandAction
-from FogifyModel.base import Network
 from utils.async_task import AsyncTask
 from utils.inter_communication import Communicator
 from utils.network import NetworkController
+
 ConnectorClass = get_connector_class()
 
 
@@ -65,7 +65,7 @@ class TopologyAPI(MethodView):
             if not os.path.exists(path): os.mkdir(path)
             file.save(os.path.join(path, "docker-compose.yaml"))
         f = open(os.path.join(path, "docker-compose.yaml"), "r")
-        infra = yaml.load(f)
+        infra = yaml.safe_load(f)
 
         model = FogifyModel(infra)
 
@@ -74,48 +74,45 @@ class TopologyAPI(MethodView):
             controller_response = connector.generate_files()
             yaml.dump(controller_response, open(path + "fogified-swarm.yaml", 'w'), default_flow_style=False)
             networks = model.generate_network_rules()
-        except Exception as ex:
-            logging.error("An error occurred on monitoring view. The metrics did not retrieved.",
-                          exc_info=True)
+        except Exception:
+            logging.error("An error occurred on monitoring view. The metrics did not retrieved.", exc_info=True)
             raise exceptions.APIException("Fogify could not generate the orchestrator files."
                                           "Please check your fogify model again.")
 
-
         yaml.dump(networks, open(path + "fogified-network.yaml", 'w'), default_flow_style=False)
-
-        t = AsyncTask(self, 'submition', [connector, path, model.all_networks])
+        time.sleep(1)
+        t = AsyncTask(self, 'submission', [connector, path, model.all_networks])
         t.start()
 
-        return {
-            "message": "OK",
-            "swarm": controller_response,
-            "networks": networks
-        }
+        return {"message": "OK", "swarm": controller_response, "networks": networks}
 
     def remove(self, connector):
         """ A utility function that destroys a topology """
         connector.down()
         Annotation.create(Annotation.TYPES.UNDEPLOY.value)
 
-    def submition(self, connector, path, networks):
+    def submission(self, connector, path, networks):
         """ A utility function that deploys a topology """
-        file = open(path + "fogified-network.yaml", 'rb')
-        Communicator(connector).agents__forward_network_file(file)
+        file = open(path + "fogified-network.yaml", 'r')
+        obj = yaml.safe_load(file)
+        print("========file============", obj)
 
+        Communicator(connector).agents__forward_network_file(obj)
         for network in networks:
             try:
                 connector.create_network(network)
             except Exception:
-                logging.error("The system could not create %s network."%network)
+                logging.error("The system could not create %s network." % network)
 
         # submit the current deployment
         try:
             connector.deploy()
-        except Exception as ex:
+            time.sleep(3)  # wait to disseminate the information of starting container to hosts
+        except Exception:
             logging.error("An error occured in the deployment.", exc_info=True)
             Status.update_config('error')
             return
-
+        Communicator(connector).agents__notify_emulation_started()
         Status.update_config('running')
         Annotation.create(Annotation.TYPES.DEPLOY.value)
 
@@ -141,15 +138,13 @@ class MonitoringAPI(MethodView):
             return Communicator(get_connector()).agents__get_metrics(query)
 
         except Exception as e:
-            return {
-                "Error": "{0}".format(e)
-            }
+            return {"Error": "{0}".format(e)}
 
 
 class ActionsAPI(MethodView):
     """ This API class applies the actions to a running topology"""
 
-    def links(self,  params):
+    def links(self, params):
         """
         {'network': 'internet', 'links': [{'from_node': 'cloud-server', 'to_node': 'mec-svc-1', 'bidirectional': False, 
         'properties': {'latency': {'delay': '1500ms'}}}], 'instance_type': 'cloud-server', 'instances': 1}
@@ -170,11 +165,10 @@ class ActionsAPI(MethodView):
         commands['links'] = res
 
         Annotation.create(Annotation.TYPES.UPDATE_LINKS.value, instance_names=params['instance_type'],
-                          params="parameters: " + "Network" + "=>" + commands['network'] + ", link number=>"
-                                 + str(len(commands['links'])))
+                          params=f"parameters: Network => {commands['network']}, link number=> {len(commands['links'])}")
         return commands
 
-    def horizontal_scaling(self, connector,  params):
+    def horizontal_scaling(self, connector, params):
         instances = int(params['instances'])
         if params['type'] == 'up':
             service_count = int(connector.count_services(params['instance_type'])) + instances
@@ -184,13 +178,13 @@ class ActionsAPI(MethodView):
             service_count = int(connector.count_services(params['instance_type'])) - instances
             service_count = 0 if service_count < 0 else service_count
             Annotation.create(Annotation.TYPES.H_SCALE_DOWN.value, instance_names=params['instance_type'],
-                              params="num of instances: " + str(instances))
+                              params=f"Num of instances: {str(instances)}")
         connector.scale(params['instance_type'], service_count)
 
     def vertical_scaling(self, params):
         vaction = VerticalScalingAction(**params['action'])
         Annotation.create(Annotation.TYPES.V_SCALE.value, instance_names=params['action']['instance_type'],
-                          params="parameters: " + vaction.get_command() + "=>" + vaction.get_value())
+                          params=f"Parameters: {vaction.get_command()} => {vaction.get_value()}")
         return {vaction.get_command(): vaction.get_value()}
 
     def network(self, params):
@@ -205,27 +199,24 @@ class ActionsAPI(MethodView):
 
         commands['network'] = network
         Annotation.create(Annotation.TYPES.NETWORK.value, instance_names=params['instance_type'],
-                          params="parameters: " + "Network" + "=>" + commands['network'] + ", uplink=>"
-                                 + commands['uplink'] + ", downlink=>" + commands['downlink'])
+                          params=f"Parameters: Network => {commands['network']}, uplink=>{commands['uplink']} , downlink=>{commands['downlink']}")
         return commands
 
     def stress(self, connector, params):
         if 'instance_id' in params: name = params['instance_id']
         if 'instance_type' in params: name = params['instance_type']
-        service_cpu = connector.get_running_container_processing(
-            connector.instance_name(name).split(".")[0]
-        )
+        service_cpu = connector.get_running_container_processing(connector.instance_name(name).split(".")[0])
         if not service_cpu: service_cpu = 1
 
         commands = StressAction(**params['action']).get_command(service_cpu)
         Annotation.create(Annotation.TYPES.STRESS.value, instance_names=params['instance_type'],
-                          params="parameters: " + commands)
+                          params=f"Parameters: {commands}")
         return commands
 
     def command(self, params):
         commands = {"command": CommandAction(**params['action']).get_command()}
         Annotation.create(Annotation.TYPES.COMMAND.value, instance_names=params['instance_type'],
-                          params="parameters: " + commands['command'])
+                          params=f"Parameters: {commands['command']}")
         return commands
 
     def post(self, action_type: str):
@@ -244,7 +235,7 @@ class ActionsAPI(MethodView):
         params = data['params']
 
         if action_type == "horizontal_scaling":
-            self.horizontal_scaling(connector,  params)
+            self.horizontal_scaling(connector, params)
             return {"message": "OK"}
 
         commands = {}
@@ -268,12 +259,12 @@ class ControlAPI(MethodView):
 
         try:
             return {"credits": get_connector().get_manager_info()}
-        except Exception as ex:
+        except Exception:
             logging.error("The system does not return the credits of the manager.", exc_info=True)
             return {"credits": ""}
 
     def post(self, service):
-        commands, res = {'links':{'network': 'all'}}, []
+        commands, res = {'links': {'network': 'all'}}, []
         for instance_type in service.split("|"):
             res.append(Communicator(get_connector()).agents__perform_action(commands, instance_type=instance_type))
         return {"message": "OK"}
@@ -297,8 +288,9 @@ class DistributionAPI(MethodView):
             line_arr = line.split("=")
             if len(line_arr) == 2: res[line_arr[0].strip()] = line_arr[1].strip()
 
-        Communicator(get_connector()).agents__disseminate_net_distribution(
-            name, open(os.path.join(path, name + ".dist"), 'rb'))
+        Communicator(get_connector()).agents__disseminate_net_distribution(name,
+                                                                           open(os.path.join(path, name + ".dist"),
+                                                                                'rb'))
 
         return {"generated-distribution": res}
 
@@ -322,8 +314,5 @@ class SnifferAPI(MethodView):
             query += "packet_type=" + packet_type if packet_type else ""
             return Communicator(get_connector()).agents__get_packets(query)
         except Exception as e:
-            logging.error("The system could not return the sniffer's data.",
-                          exc_info=True)
-            return {
-                "Error": "{0}".format(e)
-            }
+            logging.error("The system could not return the sniffer's data.", exc_info=True)
+            return {"Error": "{0}".format(e)}
