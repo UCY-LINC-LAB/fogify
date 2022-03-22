@@ -131,10 +131,8 @@ class TopologyAPI(MethodView):
         network_controller = app.config['NETWORK_CONTROLLER']
         connector = app.config['CONNECTOR']
         if 'file' in request.data:
-            print(request.data.to_dict())
             file = request.data['file']
             file = json.loads(file)
-            print("--------------file----------------", file)
             network_controller.save_network_rules(file)
             return {"message": "OK"}
         else:

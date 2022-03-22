@@ -47,7 +47,6 @@ class cAdvisorHandler(object):
         return stats
 
     def retrieve_machine_info(self):
-        print("self.ip, self.port", self.ip, self.port)
         self.machine = requests.get("http://%s:%s/api/v1.3/machine" % (self.ip, self.port)).json()
 
     def set_current_instance_name(self, instance_name: str):

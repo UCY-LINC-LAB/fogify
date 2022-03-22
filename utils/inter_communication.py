@@ -63,7 +63,6 @@ class Communicator(object):
         nodes = self.connector.get_nodes()
         res = {}
         for i in nodes:
-            print("------network_file------", network_file)
             res.update({nodes[i]: requests.post(self.URLs.agent_topology.value % nodes[i],
                                                 data={'file': json.dumps(network_file)}).json()})
         return res

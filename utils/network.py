@@ -79,8 +79,6 @@ class NetworkController:
 
                 self.apply_firewall_rules(eth, network, rules.get('firewall_rules'))
 
-                print("rules", rules)
-                print("packet_monitoring", is_packet_monitoring_enabled)
                 if is_packet_monitoring_enabled:
                     self.sniffer.start_thread_for_sniffing(container_id, service_name, eth, network)
 

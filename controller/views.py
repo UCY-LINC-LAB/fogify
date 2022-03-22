@@ -95,7 +95,6 @@ class TopologyAPI(MethodView):
         """ A utility function that deploys a topology """
         file = open(path + "fogified-network.yaml", 'r')
         obj = yaml.safe_load(file)
-        print("========file============", obj)
 
         Communicator(connector).agents__forward_network_file(obj)
         for network in networks:

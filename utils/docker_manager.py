@@ -13,15 +13,12 @@ class ContainerNetworkNamespace(Namespace):
     def __init__(self, container_id):
         proc = os.environ["NAMESPACE_PATH"] if "NAMESPACE_PATH" in os.environ else "/proc/"
         pid = self.get_pid_from_container(container_id)
-        print("AAAA PID ", pid)
-        print("AAA " + proc + "/" + str(pid) + "/ns/net")
         Namespace.__init__(self, proc + "/" + str(pid) + "/ns/net", 'net')
 
     def get_pid_from_container(self, container_id):
         try:
             res = subprocess.getoutput("docker inspect %s --format '{{.State.Pid}}' " % container_id)
             res = res.split(" ")[-1]
-            print("container_id, res", container_id, res)
             ContainerNetworkNamespace.evaluate_pid(res)
             return res
         except Exception:
