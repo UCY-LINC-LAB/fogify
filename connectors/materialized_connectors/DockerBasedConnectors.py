@@ -1,6 +1,5 @@
 import copy
 import json
-import logging
 import os
 import socket
 import subprocess
@@ -11,6 +10,9 @@ from flask_api import exceptions
 
 from FogifyModel.base import Node, FogifyModel
 from connectors.base import BasicConnector
+from utils.logging import FogifyLogger
+
+logger = FogifyLogger(__name__)
 
 
 class CommonDockerSuperclass(BasicConnector):
@@ -19,6 +21,17 @@ class CommonDockerSuperclass(BasicConnector):
 
     class ModelTranslationException(Exception):
         pass
+
+
+    def general_command_for_network_creation(self, network, com):
+        try:
+            output = subprocess.check_output(com, stderr=subprocess.STDOUT).decode()
+            logger.info(f"Network creation process output {output}")
+        except subprocess.CalledProcessError as e:
+            if e.output.decode().find("already exists")>0:
+                logger.info(f"The network {network} already exists.")
+            else:
+                logger.error(f"Error at network creation {e.output.decode()}")
 
     def __init__(self, model: FogifyModel = None,
                  path=os.getcwd() + os.environ['UPLOAD_FOLDER'] if 'UPLOAD_FOLDER' in os.environ else "",
@@ -125,6 +138,7 @@ class CommonDockerSuperclass(BasicConnector):
             'lower_memory_bound': lower_memory_bound}
 
     def inject_labels(self, labels={}, **kwargs):
+        "This method should be implemented by each connector"
         pass
 
     def get_container_ips(self, container_id):
@@ -136,7 +150,7 @@ class CommonDockerSuperclass(BasicConnector):
         try:
             return subprocess.getoutput("docker inspect --format='{{.GraphDriver.Data.MergedDir}}' %s" % container_id)
         except Exception:
-            logging.error(
+            logger.error(
                 "The system did not find the host's docker disk space (that is used for user-defined metrics).",
                 exc_info=True)
             return None
@@ -174,8 +188,6 @@ class DockerComposeConnector(CommonDockerSuperclass):
         subprocess.check_output(
             ['docker-compose', '-f', self.path + self.file, '-p', 'fogify', '--compatibility', 'up', '-d'])
 
-        if count is None: return
-
         finished = False
         for _ in range(int(timeout / 5)):
             sleep(5)
@@ -199,7 +211,7 @@ class DockerComposeConnector(CommonDockerSuperclass):
                     fin_res[node_name].append(name)
             return fin_res
         except Exception:
-            logging.error("The connector could not return the docker instances.", exc_info=True)
+            logger.error("The connector could not return the docker instances.", exc_info=True)
             return {}
 
     def down(self, timeout=60):
@@ -207,7 +219,7 @@ class DockerComposeConnector(CommonDockerSuperclass):
             subprocess.check_output(
                 ['docker-compose', '-f', self.path + self.file, '-p', 'fogify', 'down', '--remove-orphans'])
         except Exception:
-            logging.error("The undeploy failed. Please undeploy the stack manually (e.g. docker stop $(docker ps -q) )",
+            logger.error("The undeploy failed. Please undeploy the stack manually (e.g. docker stop $(docker ps -q) )",
                           exc_info=True)
         # check the services
         finished = False
@@ -217,7 +229,7 @@ class DockerComposeConnector(CommonDockerSuperclass):
             if finished: return
 
         if not finished:
-            logging.error("The services did not removed yet. Please check the issue manually.", exc_info=True)
+            logger.error("The services did not removed yet. Please check the issue manually.", exc_info=True)
 
     def get_nodes(self):
         name = os.environ['MANAGER_NAME'] if 'MANAGER_NAME' in os.environ else 'localhost'
@@ -228,7 +240,7 @@ class DockerComposeConnector(CommonDockerSuperclass):
         :param network: a network object contains network `name` and optional parameters of `subnet` and `gateway` of the network
         """
         com = ['docker', 'network', 'create', '-d', 'bridge', '--attachable', network['name']]
-        subprocess.check_output(com)
+        self.general_command_for_network_creation(network['name'], com)
 
     @classmethod
     def return_deployment(cls):
@@ -268,7 +280,7 @@ class DockerComposeConnector(CommonDockerSuperclass):
             com = "docker inspect fogify_%s --format '{{.HostConfig.NanoCPUs}}'" % service
             return int(subprocess.getoutput(com)) / 1000000000
         except Exception as ex:
-            print(ex)
+            logger.error(f"Running container processing execution returns an exception {ex}")
             return None
 
     def get_container_ip_for_network(self, container_id, network):
@@ -286,7 +298,7 @@ class DockerComposeConnector(CommonDockerSuperclass):
             try:
                 containers.append(json.loads(name_id_pair))
             except Exception:
-                logging.warning('The service %s returns invalid Container-ip %s' % (service, name_id_pair))
+                logger.warning('The service %s returns invalid Container-ip %s' % (service, name_id_pair))
 
         for container in containers:
             for name in container:
@@ -331,7 +343,7 @@ class SwarmConnector(CommonDockerSuperclass):
             com = "docker service inspect fogify_%s  --format '{{.Spec.TaskTemplate.Resources.Limits.NanoCPUs}}'" % service
             return int(subprocess.getoutput(com)) / 1000000000
         except Exception as ex:
-            print(ex)
+            logger.error(f"Getting running container processing returns an exception {ex}")
             return None
 
     @staticmethod
@@ -353,7 +365,6 @@ class SwarmConnector(CommonDockerSuperclass):
     def count_services(cls, service_name: str = None, status: str = "Running"):
         count = 0
         all_instances = cls.get_all_instances().items()
-        print(all_instances)
         for node, instances in all_instances:
             count += len(instances)
         return count
@@ -366,7 +377,7 @@ class SwarmConnector(CommonDockerSuperclass):
         try:
             subprocess.check_output(['docker', 'stack', 'rm', 'fogify'])
         except Exception as e:
-            print(e)
+            logger.error(f"Fogify Stack is not removed by the Controller due to {e}")
         # check the services
         finished = False
         for _ in range(int(timeout / 5)):
@@ -391,8 +402,6 @@ class SwarmConnector(CommonDockerSuperclass):
         :param timeout: The maximum number of seconds that the system waits until set the deployment as faulty
         """
         count = self.model.service_count()
-
-        if count is None: return
 
         subprocess.check_output(
             ['docker', 'stack', 'deploy', '--prune', '--compose-file', self.path + self.file, 'fogify'])
@@ -432,7 +441,9 @@ class SwarmConnector(CommonDockerSuperclass):
         return docker.from_env().swarm.attrs['JoinTokens']['Manager']
 
     def create_network(self, network):
-        subprocess.check_output(['docker', 'network', 'create', '-d', 'overlay', '--attachable', network['name']])
+        com = ['docker', 'network', 'create', '-d', 'overlay', '--attachable', network['name']]
+        self.general_command_for_network_creation(network['name'], com)
+
 
     @classmethod
     def return_deployment(cls):

@@ -1,6 +1,5 @@
 import copy
 import json
-import logging
 import os
 import subprocess
 import time
@@ -15,11 +14,13 @@ from utils import Cache
 from utils.docker_manager import ContainerNetworkNamespace, \
     get_ip_from_network_object, get_container_ip_property
 from utils.inter_communication import Communicator
+from utils.logging import FogifyLogger
 from utils.sniffer import SnifferHandler
 from utils.units import RateUnit
 
 SH = "/bin/sh"
 
+logger = FogifyLogger(__name__)
 
 class NetworkController:
     """
@@ -48,7 +49,6 @@ class NetworkController:
         path = self.connector.path
         file_name = "network.yaml"
         if not os.path.exists(path): os.mkdir(path)
-        print(data)
         if type(data) == dict:
             yaml.dump(data, open(os.path.join(path, file_name), 'w'), default_flow_style=False)
             return
@@ -129,7 +129,7 @@ class NetworkController:
             eth = get_container_ip_property(ip)
             return eth.split(" ")[-1] if eth else None
         except Exception:
-            logging.error("The system does not return the adapter of the container/network pair (%s,%s)." % (
+            logger.error("The system does not return the adapter of the container/network pair (%s,%s)." % (
             container_id, network), exc_info=True)
 
     @staticmethod
@@ -246,6 +246,7 @@ class NetworkController:
         This function starts a new thread in order to apply the network QoS on a specific emulated instance
         """
         self.apply_net_qos(service_name, container_id, network_rules, inform_controller)
+        logger.info(f"Network QoS applied on container {container_id} of the service {service_name}.")
 
     def listen(self):
         """
@@ -258,6 +259,7 @@ class NetworkController:
         self.sniffer.start_thread_for_sniffing_storage()
 
         client = docker.from_env()
+        logger.info("Network Controller listens docker socket.")
         for event in client.events(decode=True):
             try:
                 if not self.check_starting_condition(event):
@@ -267,7 +269,7 @@ class NetworkController:
                 self.apply_network_qos_for_event(info, network_rules)
 
             except Exception:
-                logging.error("An error occurred in container listener.", exc_info=True)
+                logger.error("An error occurred in container listener.", exc_info=True)
                 continue
 
     def apply_network_qos_for_event(self, info, network_rules, inform_controller=True):
@@ -329,7 +331,7 @@ class NetworkController:
 
         subprocess.run(
             [os.path.dirname(os.path.abspath(__file__)) + '/apply_rule.sh', adapter, in_rule, out_rule, ifb_interface,
-             rate_in, rate_out]# , stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb')
+             rate_in, rate_out], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb')
             )
 
     @staticmethod
@@ -356,5 +358,7 @@ class NetworkController:
             return "1bps", in_rule
         return rate_in, in_rule
 
-    def remove_cached_ips(self):
+    def remove_cached_data(self):
+        self.__class__.__cached_rules = None
         Cache.clean_up()
+        logger.info("Network Controller removed cached data.")

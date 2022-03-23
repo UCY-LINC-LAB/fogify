@@ -5,7 +5,10 @@ from flask_sqlalchemy import SQLAlchemy
 from connectors import get_connector
 from utils.async_task import AsyncTask
 from utils.host_info import HostInfo
+from utils.logging import FogifyLogger
 from utils.network import NetworkController
+
+logger = FogifyLogger(__name__)
 
 
 class Agent(object):
@@ -42,7 +45,7 @@ class Agent(object):
             node_labels = {i.split(":")[0]: i.split(":")[1] for i in os.environ['LABELS'].split(",") if
                            len(i.split(":")) == 2}
 
-        node_labels.update(HostInfo.get_all_properties())
+        node_labels.update(HostInfo.get_all_properties())  # TODO update this part to introduce custom compute devices
         connector.inject_labels(node_labels, HOST_IP=os.environ['HOST_IP'] if 'HOST_IP' in os.environ else None)
 
         from utils.monitoring import MetricCollector
@@ -55,16 +58,19 @@ class Agent(object):
         app.add_url_rule('/packets/', view_func=SnifferAPI.as_view('Packet'))
         app.add_url_rule('/generate-network-distribution/<string:name>/',
                          view_func=DistributionAPI.as_view('NetworkDistribution'))
-
+        logger.info("Agent routes are installed")
         # The thread that runs the monitoring agent
         metric_controller = MetricCollector()
         metric_controller_task = AsyncTask(metric_controller, 'start_monitoring', [args.agent_ip, connector, 5])
         metric_controller_task.start()
+        logger.info("Monitoring process is started")
 
         # The thread that inspect containers and apply network QoS
         network_controller = NetworkController(connector)
         network_controller_task = AsyncTask(network_controller, 'listen', [])
         network_controller_task.start()
+        logger.info("Agent network controller is started")
+
 
         self.app = app
         self.args = args

@@ -4,25 +4,28 @@ import subprocess
 
 from nsenter import Namespace
 
+from utils.logging import FogifyLogger
+
 
 class ContainerNetworkNamespaceException(Exception): pass
+logger = FogifyLogger(__name__)
 
 
 class ContainerNetworkNamespace(Namespace):
 
-    def __init__(self, container_id):
+    def __init__(self, container_id: str):
         proc = os.environ["NAMESPACE_PATH"] if "NAMESPACE_PATH" in os.environ else "/proc/"
         pid = self.get_pid_from_container(container_id)
         Namespace.__init__(self, proc + "/" + str(pid) + "/ns/net", 'net')
 
-    def get_pid_from_container(self, container_id):
+    def get_pid_from_container(self, container_id: str):
         try:
             res = subprocess.getoutput("docker inspect %s --format '{{.State.Pid}}' " % container_id)
             res = res.split(" ")[-1]
             ContainerNetworkNamespace.evaluate_pid(res)
             return res
         except Exception:
-            logging.error("The system did not return the container's pid.", exc_info=True)
+            logger.error("The system did not return the container's pid.", exc_info=True)
 
     @staticmethod
     def evaluate_pid(pid):

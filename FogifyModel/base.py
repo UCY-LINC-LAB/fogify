@@ -1,9 +1,10 @@
 import copy
+from abc import ABC
 
 from FogifyModel.actions import NetworkAction
 
 
-class BaseModel(object):
+class BaseModel(ABC):
     class ModelValidationException(Exception):
         pass
 
@@ -48,7 +49,7 @@ class Node(BaseModel):
 
     def validate(self):
         if self.get_memory_unit() not in ["G", "M"]:
-            raise ValidationError("Model does not provide other metrics than G or M")
+            raise Node.ModelValidationException("Model does not provide other metrics than G or M")
 
 
 class Network(BaseModel):
@@ -96,7 +97,7 @@ class Network(BaseModel):
         elif hasattr(self, 'bidirectional'):
             return self.get_bidirectional_links(copy.deepcopy(self.bidirectional))
         else:
-            raise BaseModel.ModelValidationException(
+            raise Network.ModelValidationException(
                 "You have to specify uplink or bidirectional characteristics (%s)" % self.__dict__)
 
     def get_downlink(self):
@@ -105,7 +106,7 @@ class Network(BaseModel):
         elif hasattr(self, 'bidirectional'):
             return self.get_bidirectional_links(copy.deepcopy(self.bidirectional))
         else:
-            raise BaseModel.ModelValidationException(
+            raise Network.ModelValidationException(
                 "You have to specify uplink or bidirectional characteristics (%s)" % self.__dict__)
 
     def __str__(self):
@@ -140,7 +141,7 @@ class Network(BaseModel):
                 from_to = {'uplink': NetworkAction(**link['uplink']).get_command(),
                     'downlink': NetworkAction(**link['downlink']).get_command()}
             else:
-                raise BaseModel.ModelValidationException("The link has not the proper structure", str(link))
+                raise Network.ModelValidationException("The link has not the proper structure", str(link))
             if 'bidirectional' in link and link['bidirectional']:
                 to_from = {'uplink': from_to['uplink'], 'downlink': from_to['downlink'], }
         return from_to, to_from
@@ -267,7 +268,11 @@ class FogifyModel(object):
 
         return real_node
 
-    def service_count(self): return sum([i.replicas for i in self.topology])
+    def service_count(self):
+        res = sum([i.replicas for i in self.topology])
+        if res == 0:
+            raise BaseModel.ModelValidationException("Services do not exist in your model")
+        return res
 
     @property
     def topology(self): return self.deployment.get_topologies()

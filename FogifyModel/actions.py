@@ -1,5 +1,9 @@
-class BaseAction(object):
+from abc import ABC, abstractmethod
 
+
+class BaseAction(ABC):
+
+    @abstractmethod
     def get_command(self, *args, **kargs):
         raise NotImplementedError
 
@@ -7,7 +11,7 @@ class BaseAction(object):
         return self.get_command()
 
 
-class CommandAction(object):
+class CommandAction(BaseAction):
     """
     With this action, users can inject terminal commands to their services
     """

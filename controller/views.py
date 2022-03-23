@@ -15,9 +15,12 @@ from connectors import get_connector_class, get_connector
 from controller.models import Status, Annotation
 from utils.async_task import AsyncTask
 from utils.inter_communication import Communicator
+from utils.logging import FogifyLogger
 from utils.network import NetworkController
 
 ConnectorClass = get_connector_class()
+
+logger = FogifyLogger(__name__)
 
 
 class AnnotationAPI(MethodView):
@@ -98,10 +101,7 @@ class TopologyAPI(MethodView):
 
         Communicator(connector).agents__forward_network_file(obj)
         for network in networks:
-            try:
-                connector.create_network(network)
-            except Exception:
-                logging.error("The system could not create %s network." % network)
+            connector.create_network(network)
 
         # submit the current deployment
         try:

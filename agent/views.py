@@ -123,7 +123,7 @@ class TopologyAPI(MethodView):
         path = connector.path
         MetricCollector().remove_record_file(path + "metrics/")
         network_controller = app.config['NETWORK_CONTROLLER']
-        network_controller.remove_cached_ips()
+        network_controller.remove_cached_data()
         os.putenv('EMULATION_IS_RUNNING', 'FALSE')
         return {"message": "The topology is down."}
 

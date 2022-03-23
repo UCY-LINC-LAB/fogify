@@ -7,17 +7,21 @@ from datetime import datetime
 import pyshark
 
 from utils.docker_manager import ContainerNetworkNamespace
+from utils.logging import FogifyLogger
 
 buffer = deque()
+logger = FogifyLogger(__name__)
 
 
 class SnifferHandler(object):
 
     def __init__(self, buffer: deque = None,
-            periodicity=int(os.environ['SNIFFING_PERIODICITY']) if 'SNIFFING_PERIODICITY' in os.environ and os.environ[
-                'SNIFFING_PERIODICITY'].isnumeric() else 15, ):
+                 periodicity=int(os.environ['SNIFFING_PERIODICITY']) if 'SNIFFING_PERIODICITY' in os.environ and
+                                                                        os.environ[
+                                                                            'SNIFFING_PERIODICITY'].isnumeric() else 15, ):
         self.periodicity = periodicity
         self.buffer = buffer if buffer is not None else deque()
+        logger.info("Packet-level monitoring initialization")
 
     def start_thread_for_sniffing_storage(self):
         storage = SniffingStorage(self.buffer, self.periodicity)
@@ -29,6 +33,8 @@ class SnifferHandler(object):
             with ContainerNetworkNamespace(container_id):
                 sniffer = Sniffer(_buffer, container_name, eth, network)
                 sniffer.sniff()
+                logger.info(
+                    f"Packet-level monitoring thread is started for container {container_name} ({container_id}) and network {network}")
 
         threading.Thread(target=network_sniffing,
                          args=(self.buffer, container_id, container_name, eth, network)).start()
@@ -59,8 +65,8 @@ class Sniffer(object):
                 dst_mac = packet.eth.dst  # destination
                 size = packet.ip.len
                 packet = {"packet_id": self.id_prefix, "network_interface": self.eth, "src_mac": src_mac,
-                    "dest_mac": dst_mac, "src_ip": src_addr, "dest_ip": dst_addr, "src_port": src_port,
-                    "dest_port": dst_port, "protocol": protocol, "size": size, "network": self.network}
+                          "dest_mac": dst_mac, "src_ip": src_addr, "dest_ip": dst_addr, "src_port": src_port,
+                          "dest_port": dst_port, "protocol": protocol, "size": size, "network": self.network}
                 if packet is not None:
                     self.buffer.appendleft(packet)
             except AttributeError:
@@ -74,6 +80,8 @@ class SniffingStorage(object):
         self.buffer = buffer
         self.ip_to_info = {}
         self.periodicity = periodicity if periodicity is not None else 15
+        logger.info("Packet-level monitoring storage initialization")
+
 
     def retrieve_packets_from_buffer(self):
         res = {}
@@ -97,8 +105,8 @@ class SniffingStorage(object):
             vals = i.split("|")
             new_res.append(
                 Packet(service_id=vals[0], src_ip=vals[1], dest_ip=vals[2], protocol=vals[3], network=vals[4],
-                    src_port=vals[5], dest_port=vals[6], timestamp=datetime.now(), size=res[i]["size"],
-                    count=res[i]["count"], ))
+                       src_port=vals[5], dest_port=vals[6], timestamp=datetime.now(), size=res[i]["size"],
+                       count=res[i]["count"], ))
         db.session.bulk_save_objects(new_res)
         db.session.commit()
 

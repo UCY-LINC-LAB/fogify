@@ -1,5 +1,4 @@
 import json
-import logging
 from os.path import exists
 from time import sleep
 
@@ -9,6 +8,9 @@ import requests
 
 from agent.models import Status, Metric, db, Record
 from utils.docker_manager import get_container_ip_property, get_ip_from_network_object, ContainerNetworkNamespace
+from utils.logging import FogifyLogger
+
+logger = FogifyLogger(__name__)
 
 
 class cAdvisorHandler(object):
@@ -33,7 +35,7 @@ class cAdvisorHandler(object):
                 stats = self.get_stats_from_cadvisor(container)
                 res.update(stats)
             except Exception:
-                logging.error("Monitoring agent did not capture the metrics this time")
+                logger.warning("Monitoring agent did not capture the metrics this time")
                 continue
 
         self.metrics = res
@@ -123,7 +125,7 @@ class cAdvisorHandler(object):
         try:
             return int(self.get_cpu_specs()['mask'].split("-")[-1]) + 1
         except Exception:
-            logging.error('There is no mask in cpu specs', exc_info=True)
+            logger.warning('There is no mask in cpu specs', exc_info=True)
             return 0
 
     def get_cpu_period(self):
@@ -217,7 +219,7 @@ class MetricCollector(object):
         return nets
 
     def start_monitoring(self, agent_ip, connector, interval):
-        print("Monitoring Agent Instantiation")
+        logger.info("Monitoring Agent Instantiation")
         cAdvisor_handler = cAdvisorHandler(agent_ip, '9090', 'fogify')
         while (True):
             count = Status.query.filter_by(name="counter").first()
@@ -252,6 +254,6 @@ class MetricCollector(object):
                 db.session.add(r)
                 db.session.commit()
             except Exception:
-                logging.error("An error occurred in monitoring agent. The metrics will not be stored at this time.",
+                logger.warning("An error occurred in monitoring agent. The metrics will not be stored at this time.",
                               exc_info=True)
                 continue

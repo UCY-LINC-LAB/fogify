@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import socket
 from enum import Enum
@@ -7,7 +6,9 @@ from enum import Enum
 import requests
 
 from connectors.base import BasicConnector
+from utils.logging import FogifyLogger
 
+logger = FogifyLogger(__name__)
 
 class Communicator(object):
     """
@@ -46,10 +47,11 @@ class Communicator(object):
         selected_instances = self.__instance_ids(instance_id, instance_type)
         res = {}
         for i in selected_instances:
-            print("selected_instances", i)
+
             res.update(requests.post(self.URLs.agent_action.value % socket.gethostbyname(i),
                 json={'instances': selected_instances[i], 'commands': commands},
                 headers={'Content-Type': "application/json"}).json())
+            logger.info(f"Commands {commands} are performed on {selected_instances[i]}({i})")
         return res
 
     def agents__notify_emulation_started(self):
@@ -84,14 +86,11 @@ class Communicator(object):
         res = {}
         for i in nodes:
             try:
-                print(i)
-                print('nodes', nodes[i])
-                print('url', url % nodes[i])
                 r = requests.delete(url % nodes[i]).json()
-                print('r', r)
+                logger.info(f"DELETE http request for the agent at {nodes[i]}({i}) is executed ({r})")
                 res.update(r)
             except ConnectionError:
-                logging.error('The agent of node %s is offline' % i, exc_info=True)
+                logger.error('The agent of node %s is offline' % i, exc_info=True)
         return {"message": "The %s are empty now" % action_type}
 
     def agents__get(self, url: URLs, query: str, type_='object'):
@@ -104,15 +103,15 @@ class Communicator(object):
                 str_url = str_url % nodes[i]
                 str_url = str_url + "?" + query if query != "" else str_url
                 r = requests.get(str_url).json()
-                print(r)
                 if is_response_object:
                     res.update(r)
                 else:
                     res.extend(r)
+                logger.info(f"GET http request for the agent at {nodes[i]}({i}) is executed ({r})")
             except ConnectionError:
-                logging.error('The agent of node %s is offline' % i, exc_info=True)
+                logger.error('The agent of node %s is offline' % i, exc_info=True)
             except ValueError:
-                logging.error('The agent of node %s is value error' % i, exc_info=True)
+                logger.error('The agent of node %s is value error' % i, exc_info=True)
         return res if is_response_object else {'res': res}
 
     def agents__disseminate_net_distribution(self, name: str, file) -> dict:

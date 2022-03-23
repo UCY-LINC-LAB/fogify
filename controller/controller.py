@@ -2,6 +2,9 @@ import os
 
 from flask_sqlalchemy import SQLAlchemy
 
+from utils.logging import FogifyLogger
+logger = FogifyLogger(__name__)
+
 
 class Controller(object):
     """ The Controller includes essential functionalities of the controller API"""
@@ -37,5 +40,5 @@ class Controller(object):
         app.add_url_rule('/control/<string:service>/', view_func=ControlAPI.as_view('control'))
         app.add_url_rule('/generate-network-distribution/<string:name>/',
                          view_func=DistributionAPI.as_view('NetworkDistribution'))
-
+        logger.info("Controller routes are installed")
         self.app = app
