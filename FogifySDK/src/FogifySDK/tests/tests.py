@@ -9,6 +9,10 @@ import yaml
 
 from ..FogifySDK import FogifySDK, ExceptionFogifySDK
 
+FOGIFIED_DOCKER_COMPOSE_FILE = "fogified-docker-compose.yaml"
+TIME_FORMAT = "%a, %d %b %Y %H:%M:%S %Z"
+SERVICE__2_1 = "service-2.1"
+SERVICE__1_1 = "service-1.1"
 
 class InitializationTest(unittest.TestCase):
     url = "controller:5000"
@@ -38,175 +42,74 @@ class TestModelFunctions(InitializationTest):
     def test_node_model(self):
         self.fogify.add_node('test', 2, 1400, "2G")
         self.assertListEqual(self.fogify.nodes, [
-            dict(
-                name='test',
-                capabilities=dict(
-                    processor=dict(
-                        cores=2,
-                        clock_speed=1400),
-                    memory="2G",
-                    disk=""
-                )
+            dict(name='test', capabilities=dict(processor=dict(cores=2, clock_speed=1400), memory="2G", disk="")
 
-            )
-        ])
+                )])
         with self.assertRaises(ExceptionFogifySDK):
             self.fogify.add_node('test', 2, 1400, "2G")
 
     def test_network_model(self):
-        network_inputs = {
-            'test-net-bidirectional': dict(bandwidth='10Mbps', latency=dict(delay='20ms')),
-            'test-net': [
-                dict(bandwidth='10Mbps', latency=dict(delay='20ms')),
-                dict(bandwidth='5Mbps', latency=dict(delay='5ms'))
-            ]
-        }
-        self.fogify.add_bidirectional_network(
-            name='test-net-bidirectional',
-            bidirectional=network_inputs['test-net-bidirectional']
-        )
+        network_inputs = {'test-net-bidirectional': dict(bandwidth='10Mbps', latency=dict(delay='20ms')),
+            'test-net': [dict(bandwidth='10Mbps', latency=dict(delay='20ms')),
+                dict(bandwidth='5Mbps', latency=dict(delay='5ms'))]}
+        self.fogify.add_bidirectional_network(name='test-net-bidirectional',
+            bidirectional=network_inputs['test-net-bidirectional'])
 
         self.assertListEqual(self.fogify.networks, [
-            dict(
-                name='test-net-bidirectional',
-                bidirectional=network_inputs['test-net-bidirectional'],
-                capacity=None
-            )
-        ])
+            dict(name='test-net-bidirectional', bidirectional=network_inputs['test-net-bidirectional'], capacity=None)])
 
-        self.fogify.add_network(
-            name='test-net',
-            uplink=network_inputs['test-net'][0],
-            downlink=network_inputs['test-net'][1]
-        )
+        self.fogify.add_network(name='test-net', uplink=network_inputs['test-net'][0],
+            downlink=network_inputs['test-net'][1])
 
         self.assertListEqual(self.fogify.networks, [
-            dict(
-                name='test-net-bidirectional',
-                bidirectional=network_inputs['test-net-bidirectional'],
-                capacity=None
-            ),
-            dict(
-                name='test-net',
-                uplink=network_inputs['test-net'][0],
-                downlink=network_inputs['test-net'][1],
-                capacity=None
-            )
-        ])
+            dict(name='test-net-bidirectional', bidirectional=network_inputs['test-net-bidirectional'], capacity=None),
+            dict(name='test-net', uplink=network_inputs['test-net'][0], downlink=network_inputs['test-net'][1],
+                capacity=None)])
 
         with self.assertRaises(ExceptionFogifySDK):
-            self.fogify.add_bidirectional_network(
-                'test-net-bidirectional',
-                network_inputs['test-net-bidirectional']
-            )
+            self.fogify.add_bidirectional_network('test-net-bidirectional', network_inputs['test-net-bidirectional'])
 
         with self.assertRaises(ExceptionFogifySDK):
-            self.fogify.add_network(
-                'test-net',
-                network_inputs['test-net'][0],
-                network_inputs['test-net'][1]
-            )
+            self.fogify.add_network('test-net', network_inputs['test-net'][0], network_inputs['test-net'][1])
 
-        self.fogify.add_link(
-            'test-net',
-            'from-node',
-            'to-node',
-            parameters={'properties':network_inputs['test-net'][0]}
-        )
+        self.fogify.add_link('test-net', 'from-node', 'to-node',
+            parameters={'properties': network_inputs['test-net'][0]})
         net = None
         for i in self.fogify.networks:
             if i['name'] == 'test-net':
                 net = i
                 break
 
-        self.assertListEqual(
-            net['links'],
-            [
-                dict(
-                    from_node='from-node',
-                    to_node='to-node',
-                    bidirectional=True,
-                    properties=network_inputs['test-net'][0]
-                )
-            ]
-        )
+        self.assertListEqual(net['links'], [dict(from_node='from-node', to_node='to-node', bidirectional=True,
+            properties=network_inputs['test-net'][0])])
 
         with self.assertRaises(ExceptionFogifySDK):
-            self.fogify.add_link(
-                'does-not-exist-network',
-                'from-node',
-                'to-node',
-                parameters={'properties':network_inputs['test-net'][0]}
-            )
+            self.fogify.add_link('does-not-exist-network', 'from-node', 'to-node',
+                parameters={'properties': network_inputs['test-net'][0]})
 
     def test_topology_model(self):
         self.tearDown()
         self.setUp()
 
         with self.assertRaises(ExceptionFogifySDK):
-            self.fogify.add_topology_node(
-                'test',
-                'service',
-                'device',
-                ['test-network'],
-                1
-            )
+            self.fogify.add_topology_node('test', 'service', 'device', ['test-network'], 1)
 
         with self.assertRaises(ExceptionFogifySDK):
-            self.fogify.add_topology_node(
-                'moc-service',
-                'moc-service',
-                'device',
-                ['test-network'],
-                1
-            )
+            self.fogify.add_topology_node('moc-service', 'moc-service', 'device', ['test-network'], 1)
 
         self.fogify.add_node('device', 2, 1400, "2G")
 
         with self.assertRaises(ExceptionFogifySDK):
-            self.fogify.add_topology_node(
-                'moc-service',
-                'moc-service',
-                'device',
-                ['test-network'],
-                1
-            )
+            self.fogify.add_topology_node('moc-service', 'moc-service', 'device', ['test-network'], 1)
 
         self.fogify.add_bidirectional_network('test-network', dict(bandwidth='10Mbps', latency=dict(delay='20ms')))
-        self.fogify.add_topology_node(
-            'moc-service',
-            'moc-service',
-            'device',
-            ['test-network'],
-            1
-        )
-        self.assertListEqual(
-            self.fogify.topology,
-            [
-                {
-                    'label': 'moc-service',
-                    'service': 'moc-service',
-                    'node': 'device',
-                    'networks': ['test-network'],
-                    'replicas': 1
-                }
-            ]
-        )
+        self.fogify.add_topology_node('moc-service', 'moc-service', 'device', ['test-network'], 1)
+        self.assertListEqual(self.fogify.topology, [
+            {'label': 'moc-service', 'service': 'moc-service', 'node': 'device', 'networks': ['test-network'],
+                'replicas': 1}])
         with self.assertRaises(ExceptionFogifySDK):
-            self.fogify.add_topology_node(
-                'moc-service',
-                'moc-service',
-                'device',
-                ['test-network'],
-                1
-            )
-        self.fogify.add_topology_node(
-            'moc-service-2',
-            'moc-service',
-            'device',
-            ['test-network'],
-            1
-        )
+            self.fogify.add_topology_node('moc-service', 'moc-service', 'device', ['test-network'], 1)
+        self.fogify.add_topology_node('moc-service-2', 'moc-service', 'device', ['test-network'], 1)
 
 
 class TestModelTranslation(InitializationTest):
@@ -222,10 +125,10 @@ class TestModelTranslation(InitializationTest):
         self.assertDictEqual(obj1, obj2)
 
         with self.assertRaises(FileNotFoundError):
-            open("fogified-docker-compose.yaml", "rb").close()
+            open(FOGIFIED_DOCKER_COMPOSE_FILE, "rb").close()
         self.fogify.upload_file(False)
-        open("fogified-docker-compose.yaml", "rb").close()
-        os.remove("fogified-docker-compose.yaml")
+        open(FOGIFIED_DOCKER_COMPOSE_FILE, "rb").close()
+        os.remove(FOGIFIED_DOCKER_COMPOSE_FILE)
 
 
 # request('get', url, params=params, **kwargs)
@@ -240,10 +143,7 @@ class TestAPIs(InitializationTest):
         mock_delete.return_value = Mock(ok=True)
         mock_delete.return_value.json.return_value = {"message": "The monitorings are empty now"}
         res = self.fogify.clean_metrics()
-        self.assertDictEqual(
-            res,
-            {"message": "The monitorings are empty now"}
-        )
+        self.assertDictEqual(res, {"message": "The monitorings are empty now"})
         with self.assertRaises(AttributeError):
             self.fogify.data
 
@@ -252,27 +152,12 @@ class TestAPIs(InitializationTest):
         mock_delete.return_value = Mock(ok=True)
         mock_delete.return_value.json.return_value = {"message": "Annotations are clear"}
         res = self.fogify.clean_annotations()
-        self.assertDictEqual(
-            res,
-            {"message": "Annotations are clear"}
-        )
+        self.assertDictEqual(res, {"message": "Annotations are clear"})
 
     @mock.patch('requests.get')
     def test_get_annotations(self, mock_get):
-        annotation_object = [
-            {
-                "timestamp": "",
-                "annotation": "START",
-                "instance_name": "None",
-                "params": ""
-            },
-            {
-                "timestamp": "",
-                "annotation": "DEPLOY",
-                "instance_name": "None",
-                "params": ""
-            }
-        ]
+        annotation_object = [{"timestamp": "", "annotation": "START", "instance_name": "None", "params": ""},
+            {"timestamp": "", "annotation": "DEPLOY", "instance_name": "None", "params": ""}]
         mock_get.return_value = Mock(ok=True)
         mock_get.return_value.json.return_value = annotation_object
         self.fogify.get_annotations()
@@ -283,24 +168,14 @@ class TestAPIs(InitializationTest):
 
     @mock.patch('requests.get')
     def test_get_metrics_from(self, mock_get):
-        monitoring_object = {
-            "service-1.1": [
-                {"count": 1,
-                 "metric-1": 5,
-                 "metric-2": 10,
-                 "timestamp": time.strftime("%a, %d %b %Y %H:%M:%S %Z", datetime.utcnow().utctimetuple())
-                 }
-            ],
-            "service-2.1": [{
-                "count": 1,
-                "metric-1": 5,
-                "metric-2": 10,
-                "timestamp": time.strftime("%a, %d %b %Y %H:%M:%S %Z", datetime.utcnow().utctimetuple())
-            }]
-        }
+        monitoring_object = {SERVICE__1_1: [{"count": 1, "metric-1": 5, "metric-2": 10,
+                                              "timestamp": time.strftime(TIME_FORMAT,
+                                                                         datetime.utcnow().utctimetuple())}],
+            SERVICE__2_1: [{"count": 1, "metric-1": 5, "metric-2": 10,
+                "timestamp": time.strftime(TIME_FORMAT, datetime.utcnow().utctimetuple())}]}
         mock_get.return_value = Mock(ok=True)
         mock_get.return_value.json.return_value = monitoring_object
-        metrics = self.fogify.get_metrics_from("service-2.1")
+        metrics = self.fogify.get_metrics_from(SERVICE__2_1)
         count_row = metrics.shape[0]
         count_col = metrics.shape[1]
         self.assertEqual(count_row, 1)
@@ -308,30 +183,20 @@ class TestAPIs(InitializationTest):
 
         self.assertEqual(len(self.fogify.data), 2)
 
-        metrics = self.fogify.get_metrics_from("service-2.1")
+        metrics = self.fogify.get_metrics_from(SERVICE__2_1)
         count_row = metrics.shape[0]
         count_col = metrics.shape[1]
         self.assertEqual(count_row, 1)
         self.assertEqual(count_col, 3)
 
-        monitoring_object = {
-            "service-1.1": [
-                {"count": 2,
-                 "metric-1": 5,
-                 "metric-2": 10,
-                 "timestamp": time.strftime("%a, %d %b %Y %H:%M:%S %Z", datetime.utcnow().utctimetuple())
-                 }
-            ],
-            "service-2.1": [{
-                "count": 2,
-                "metric-1": 5,
-                "metric-2": 10,
-                "timestamp": time.strftime("%a, %d %b %Y %H:%M:%S %Z", datetime.utcnow().utctimetuple())
-            }]
-        }
+        monitoring_object = {SERVICE__1_1: [{"count": 2, "metric-1": 5, "metric-2": 10,
+                                              "timestamp": time.strftime(TIME_FORMAT,
+                                                                         datetime.utcnow().utctimetuple())}],
+            SERVICE__2_1: [{"count": 2, "metric-1": 5, "metric-2": 10,
+                "timestamp": time.strftime(TIME_FORMAT, datetime.utcnow().utctimetuple())}]}
         mock_get.return_value = Mock(ok=True)
         mock_get.return_value.json.return_value = monitoring_object
-        metrics = self.fogify.get_metrics_from("service-2.1")
+        metrics = self.fogify.get_metrics_from(SERVICE__2_1)
         count_row = metrics.shape[0]
         count_col = metrics.shape[1]
         self.assertEqual(count_row, 2)
@@ -340,36 +205,17 @@ class TestAPIs(InitializationTest):
     @mock.patch('requests.get')
     def test_get_network_packets_from(self, mock_get):
         packets_object = {"res": [
-            {
-                "timestamp": time.strftime("%a, %d %b %Y %H:%M:%S %Z", datetime.utcnow().utctimetuple()),
-                "service_id": "service-1.1",
-                "src_instance": "service-1.1",
-                "dest_instance": "service-1.2",
-                "network": "test-network",
-                "src_ip": "10.0.0.1",
-                "dest_ip": "10.0.0.2",
-                "protocol": "TCP",
-                "size": 200,
-                "count": 10,
-                "out": True
-            },
-            {
-                "timestamp": time.strftime("%a, %d %b %Y %H:%M:%S %Z", datetime.utcnow().utctimetuple()),
-                "service_id": "service-1.1",
-                "src_instance": "service-1.2",
-                "dest_instance": "service-1.1",
-                "network": "test-network",
-                "src_ip": "10.0.0.2",
-                "dest_ip": "10.0.0.1",
-                "protocol": "TCP",
-                "size": 150,
-                "count": 10,
-                "out": False
-            }
-        ]}
+            {"timestamp": time.strftime(TIME_FORMAT, datetime.utcnow().utctimetuple()),
+                "service_id": SERVICE__1_1, "src_instance": SERVICE__1_1, "dest_instance": "service-1.2",
+                "network": "test-network", "src_ip": "10.0.0.1", "dest_ip": "10.0.0.2", "protocol": "TCP", "size": 200,
+                "count": 10, "out": True},
+            {"timestamp": time.strftime(TIME_FORMAT, datetime.utcnow().utctimetuple()),
+                "service_id": SERVICE__1_1, "src_instance": "service-1.2", "dest_instance": SERVICE__1_1,
+                "network": "test-network", "src_ip": "10.0.0.2", "dest_ip": "10.0.0.1", "protocol": "TCP", "size": 150,
+                "count": 10, "out": False}]}
         mock_get.return_value = Mock(ok=True)
         mock_get.return_value.json.return_value = packets_object
-        data = self.fogify.get_network_packets_from("service-1.1")
+        data = self.fogify.get_network_packets_from(SERVICE__1_1)
         count_row = data.shape[0]
         count_col = data.shape[1]
         self.assertEqual(count_row, 2)
@@ -378,7 +224,7 @@ class TestAPIs(InitializationTest):
         mock_get.return_value = Mock(ok=True)
         mock_get.return_value.json.return_value = {}
         with self.assertRaises(ExceptionFogifySDK):
-            self.fogify.get_network_packets_from("service-1.1")
+            self.fogify.get_network_packets_from(SERVICE__1_1)
 
     @mock.patch('requests.request')
     def test_actions(self, mock_post):
@@ -387,26 +233,26 @@ class TestAPIs(InitializationTest):
         with self.assertRaises(ExceptionFogifySDK):
             self.fogify.action("non-type", test={})
 
-        self.assertDictEqual(self.fogify.horizontal_scaling_up("service-1.1"), {"message": "ok"})
-        self.assertDictEqual(self.fogify.horizontal_scaling_down("service-1.1"), {"message": "ok"})
+        self.assertDictEqual(self.fogify.horizontal_scaling_up(SERVICE__1_1), {"message": "ok"})
+        self.assertDictEqual(self.fogify.horizontal_scaling_down(SERVICE__1_1), {"message": "ok"})
 
         with self.assertRaises(ExceptionFogifySDK):
-            self.fogify.vertical_scaling("service-1.1")
+            self.fogify.vertical_scaling(SERVICE__1_1)
         with self.assertRaises(ExceptionFogifySDK):
-            self.fogify.vertical_scaling("service-1.1", cpu="4")
+            self.fogify.vertical_scaling(SERVICE__1_1, cpu="4")
         with self.assertRaises(ExceptionFogifySDK):
-            self.fogify.vertical_scaling("service-1.1", cpu="+test")
+            self.fogify.vertical_scaling(SERVICE__1_1, cpu="+test")
         with self.assertRaises(ExceptionFogifySDK):
-            self.fogify.vertical_scaling("service-1.1", cpu="+40", memory="2g")
-        self.fogify.vertical_scaling("service-1.1", cpu="+40")
-        self.assertDictEqual(self.fogify.vertical_scaling("service-1.1", cpu="+40"), {"message": "ok"})
-        self.assertDictEqual(self.fogify.vertical_scaling("service-1.1", memory="2g"), {"message": "ok"})
+            self.fogify.vertical_scaling(SERVICE__1_1, cpu="+40", memory="2g")
+        self.fogify.vertical_scaling(SERVICE__1_1, cpu="+40")
+        self.assertDictEqual(self.fogify.vertical_scaling(SERVICE__1_1, cpu="+40"), {"message": "ok"})
+        self.assertDictEqual(self.fogify.vertical_scaling(SERVICE__1_1, memory="2g"), {"message": "ok"})
 
-        self.assertDictEqual(self.fogify.update_network("service-1.1", "test-network"), {"message": "ok"})
+        self.assertDictEqual(self.fogify.update_network(SERVICE__1_1, "test-network"), {"message": "ok"})
         with self.assertRaises(ExceptionFogifySDK):
-            self.fogify.stress("service-1.1")
+            self.fogify.stress(SERVICE__1_1)
 
-        self.assertDictEqual(self.fogify.stress("service-1.1", cpu=5), {"message": "ok"})
+        self.assertDictEqual(self.fogify.stress(SERVICE__1_1, cpu=5), {"message": "ok"})
 
     @mock.patch('FogifySDK.FogifySDK.undeploy')
     @mock.patch('FogifySDK.FogifySDK.clean_annotations')
@@ -418,52 +264,23 @@ class TestAPIs(InitializationTest):
         mock_clean_annotations.return_value = Mock(ok=True, status_code=200)
         mock_undeploy.return_value = Mock(ok=True, status_code=200)
         mock_post.return_value = Mock(ok=True)
-        mock_post.return_value.status_code=200
+        mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {}
         with self.assertRaises(ExceptionFogifySDK):
             self.fogify.deploy()
-        mock_post.return_value.json.return_value = {
-            "message": "OK",
-            "swarm": {
-                "services": {
-                    "service-1": {
-                        "deploy": {
-                            "replicas": 1
-                        }
-                    },
-                    "service-2": {
-                        "deploy": {
-                            "replicas": 1
-                        }
-                    }
-                }
-            },
-            "networks": {}
-        }
+        mock_post.return_value.json.return_value = {"message": "OK",
+            "swarm": {"services": {"service-1": {"deploy": {"replicas": 1}}, "service-2": {"deploy": {"replicas": 1}}}},
+            "networks": {}}
 
         mock_get.return_value = Mock(ok=True)
         mock_get.return_value.status_code = 200
-        mock_get.return_value.json.return_value = {
-            "service-1": [
-                "service-1"
-            ],
-            "service-2": [
-                "service-2"
-            ]
-        }
-        self.assertDictEqual(self.fogify.deploy(), {
-            "message": "The services are deployed ( {'service-1': 1, 'service-2': 1} )"
-        })
+        mock_get.return_value.json.return_value = {"service-1": ["service-1"], "service-2": ["service-2"]}
+        self.assertDictEqual(self.fogify.deploy(),
+                             {"message": "The services are deployed ( {'service-1': 1, 'service-2': 1} )"})
 
-        mock_get.return_value.json.return_value = {
-            "service-1": [
-            ],
-            "service-2": [
-            ]
-        }
+        mock_get.return_value.json.return_value = {"service-1": [], "service-2": []}
         with self.assertRaises(ExceptionFogifySDK):
             self.fogify.deploy(1)
-
 
     @mock.patch('requests.delete')
     @mock.patch('requests.get')
@@ -480,21 +297,13 @@ class TestAPIs(InitializationTest):
         mock_delete.return_value.status_code = 200
         mock_delete.return_value.json.return_value = {"message": "The topology is down."}
         mock_get.return_value = Mock(ok=True)
-        mock_get.return_value.json.return_value = {
-            "service-1": [
-                "service-1"
-            ],
-            "service-2": [
-                "service-2"
-            ]
-        }
+        mock_get.return_value.json.return_value = {"service-1": ["service-1"], "service-2": ["service-2"]}
         with self.assertRaises(ExceptionFogifySDK):
             self.fogify.undeploy(1)
         mock_get.return_value = Mock(ok=True)
         mock_get.return_value.json.return_value = {}
-        self.assertDictEqual(self.fogify.undeploy(), {
-            "message": "The 0 services are undeployed"
-        })
+        self.assertDictEqual(self.fogify.undeploy(), {"message": "The 0 services are undeployed"})
+
 
 if __name__ == '__main__':
     unittest.main()

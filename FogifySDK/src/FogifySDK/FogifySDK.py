@@ -1,5 +1,6 @@
 import copy
 import datetime
+import logging
 import os
 import time
 from enum import Enum
@@ -19,6 +20,8 @@ MONITORING_URL = "/monitorings/"
 
 
 class FogifySDK(object):
+
+    logger = logging.getLogger(f'FogifySDK')
 
     def __init__(self, url: str, docker_compose: str = None):
         self.url = url
@@ -279,39 +282,22 @@ class FogifySDK(object):
             raise ExceptionFogifySDK(f"The API did not return proper response for that action ({str(res)})")
 
     def scenario_execution(self, name: str = None, remove_previous_metrics: bool = True):
-        print("Scenario execution process: ")
+        self.logger.info(f"Scenario {name} execution process is started")
         from tqdm import tqdm
         if remove_previous_metrics:
             self.clean_metrics()
 
         if len(self.scenarios) == 0:
             raise ExceptionFogifySDK("There is no scenarios")
-        if name is None:
-            selected_scenarios = self.scenarios[0]
-        else:
-            for i in self.scenarios:
-                if i['name'] == name:
-                    selected_scenarios = i
-                    break
+        selected_scenarios = self.__get_scenario_by_name(name)
         selected_scenarios['actions'] = sorted(selected_scenarios['actions'], key=lambda x: x['position'])
 
         pbar = tqdm(total=sum([int(i['time']) for i in selected_scenarios['actions']]))
         start = datetime.datetime.now()
-        seconds_time_delta = 0
         remaining_time = 0
         for i in selected_scenarios['actions']:
             bucket_time = i['time']
-            """
-            # if bucket_time!=0:
-            #     bucket_time = bucket_time - seconds_time_delta
-            #     if bucket_time<0:
-            #         remaining_time+=seconds_time_delta
-            #         seconds_time_delta = 0
-            #         bucket_time = 0
-            #     else:
-            #         bucket_time = int(round(bucket_time))
-            """
-            for j in range(bucket_time):
+            for _ in range(bucket_time):
                 pbar.update(1)
                 if remaining_time > 0:
                     remaining_time -= 1
@@ -319,26 +305,32 @@ class FogifySDK(object):
                 time.sleep(1)
 
             try:
-                before_action = datetime.datetime.now()
-                action = i['action'] if 'action' in i else {}
-                type_action = action['type'] if 'type' in action else ""
-                params = action['parameters'] if 'parameters' in action else {}
-                params['instance_type'] = i['instance_type'] if 'instance_type' in i else ""
-                params['instances'] = i['instances'] if 'instances' in i else ""
-                if action != "NOOP":
+                action = i.get('action', {})
+                type_action = action.get('type', '')
+                params = action.get('parameters', {})
+                params['instance_type'] = i.get('instance_type', '')
+                params['instances'] = i.get('instances', '')
+                if type_action.upper() != "NOOP":
                     self.action(type_action.upper(), **params)
-                after_action = datetime.datetime.now()
-                time_delta = after_action - before_action
-                seconds_time_delta += time_delta.total_seconds()
             except Exception as e:
-                print("There was a problem at the scenario execution process %s" % e)
-                print("The input data is %s" % action)
+                self.logger.error(f"There was a problem at the scenario execution process {e}")
+                self.logger.error(f"The input data is {action}")
         pbar.close()
-        print("Scenario is finished")
+        self.logger.info(f"Scenario {name} is finished")
         stop = datetime.datetime.now()
         if remove_previous_metrics:
             self.get_metrics()
         return start, stop
+
+    def __get_scenario_by_name(self, name):
+        if name is None:
+            selected_scenarios = self.scenarios[0]
+        else:
+            for i in self.scenarios:
+                if i['name'] == name:
+                    selected_scenarios = i
+                    break
+        return selected_scenarios
 
     def add_node(self, name: str, cpu_cores: int, cpu_freq: int, memory: str, disk=""):
         self.check_docker_swarm_existence()
@@ -363,8 +355,9 @@ class FogifySDK(object):
                 raise ExceptionFogifySDK("The network already exists")
         self.networks.append(dict(name=name, bidirectional=bidirectional, capacity=capacity))
 
-    def update_network(self, instance_type: str, network: str, network_characteristics: dict = {},
+    def update_network(self, instance_type: str, network: str, network_characteristics: dict = None,
                        num_of_instances: int = 1):
+        network_characteristics = network_characteristics if network_characteristics is not None else {}
         network_characteristics['network'] = network
         return self.action(FogifySDK.Action_type.NETWORK.value, instance_type=instance_type, instances=num_of_instances,
             network=network_characteristics)
