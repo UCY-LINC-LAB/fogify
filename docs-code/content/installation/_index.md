@@ -19,7 +19,7 @@ According to the Orchestration, Fogify needs a pre-installed Docker Swarm Orches
 With the following command, the user can easily install a Docker Swarm Manager (master Node). 
 
 {{< code lang="bash" >}}
-docker swarm init
+docker swarm init --advertise-addr <hosts_ip>
 {{< /code >}}
 
 The latter command will generate a result similar to: 

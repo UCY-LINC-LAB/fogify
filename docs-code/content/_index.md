@@ -232,6 +232,25 @@ ___
 
 <p/>
 
+## Who is using it?
+ 
+<div class="row">
+    <p></p>
+    <div class="col-lg-2 offset-2" style="margin-top: 40px">
+        <img class="img-fluid" src="UCY.jpg" />
+    </div>
+    <div class="col-lg-2 offset-1" style="margin-top: 40px">
+        <img class="img-fluid" src="UNIC.jpg" />
+    </div>
+    <div class="col-lg-2 offset-1" style="margin-top: 40px">
+        <img class="img-fluid" src="AUTH.jpg" />
+    </div>
+</div>
+
+   
+
+
+<p/>
 
 
 <div class="row  justify-content-center">
@@ -250,7 +269,6 @@ ___
 ### The Team
 The creators of the Fogify are members of the [Laboratory for Internet Computing (LInC), University of Cyprus](http://linc.ucy.ac.cy/).
 You can find more information about our research activity visit our publications' [page](http://linc.ucy.ac.cy/index.php?id=12) and our [on-going projects](http://linc.ucy.ac.cy/index.php?id=13).
-
 
 ### Publications
 
@@ -286,6 +304,27 @@ series    = {SEC ’20}
 } 
 {{</code>}}
 
+### Videos
+
+The video presentation of the SEC2020 and the one minute demo presentation of Fogify.
+
+<div class="row">
+    <p></p>
+    <div class="col-lg-4 offset-1" style="margin-top: 40px; text-align: center;">
+            <div class="col-12" style="text-align: center"><h5><b>Paper's presentation at SEC</b></h5></div>
+    <div class="embed-responsive embed-responsive-16by9">
+    <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/d_6bJzJidas" allowfullscreen></iframe>
+    
+</div>
+</div>
+<div class="col-lg-4 offset-2" style="margin-top: 40px; text-align: center;">
+        <div class="col-12" style="text-align: center"><h5><b>One minute demo presentation</b></h5></div>
+    <div class="embed-responsive embed-responsive-16by9">
+  <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/PthMM6rC89o" allowfullscreen></iframe>
+</div>
+</div>
+</div>
+
 #### Other Related Publications
 <p/>
 A. Michailidou, A. Gounaris, M. Symeonides and D. Trihinas, "EQUALITY: Quality-aware intensive analytics on the edge",  *Information Systems, Volume 105, 2022, ISSN 0306-4379*
@@ -298,6 +337,27 @@ M. Symeonides, D. Trihinas, G. Pallis and M. D. Dikaiakos "Demo: Emulating 5G-Re
 
 
 
-### Acknowledgements
+### Awards & Acknowledgements
+
+
+<div class="row">
+    <p></p>
+    <div class="col-lg-4 offset-1" style="margin-top: 40px; text-align: center;">
+        <img class="img-fluid" src="bestdemo.png" />
+    </div>
+    <div class="col-lg-3 offset-2" style="margin-top: 40px; text-align: center;">
+        <img class="img-fluid" src="rainbow_logo.png" />
+    </div>
+</div>
+
+
+<div class="row">
+
+<div class="col-lg-12">
+
+The demo of the Fogify (Emulating Geo-distributed Fog Resources) is awarded with the best demo award in SEC2020. 
 This work is partially supported by the EU Commission through [RAINBOW](https://rainbow-h2020.eu/)  871403 (ICT-15-2019-2020) project 
 and by the Cyprus Research and Innovation Foundation through COMPLEMENTARY/0916/0916/0171 project.
+
+</div>
+</div>
