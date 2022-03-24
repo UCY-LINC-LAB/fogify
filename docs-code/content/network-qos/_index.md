@@ -21,6 +21,14 @@ In our model, one specifies multiple parameters for network connectivity like de
         latency:
           delay: 20ms
         drop: 0.01%
+      packet_level_monitoring: 'TRUE'  # optional property
+      firewall_rules:  # optional property
+        - protocol: TCP # optional property
+          from_port: 80 # optional property
+          to_port: 8080 # optional property
+          type: DROP # optional property
+          from: fog-node-label-1 # optional property
+          to: fog-node-label-2 # optional property
 {{</code>}}
 ## Parameters
 
@@ -44,7 +52,7 @@ maximum percent of difference between previous delay value and the current one.
 Both `delay` and `deviation` are measured in `ms`.
 Finally, users can determine the `distribution`
 of the delay's values. The by-default available distributions are `uniform`, `gaussian`, `pareto` and `paretonormal`, however,
-users can upload their own ping delay traces and the system generates any custom distribution [TODO add link]()
+users can upload their own ping delay traces and the system generates any custom distribution.
 
 {{<code lang="yaml">}}
 ...
@@ -63,6 +71,16 @@ users can upload their own ping delay traces and the system generates any custom
 In current version of Fogify, `Capacity` does not effect the deployment. 
 We are working on that feature and we will provide it in near future.
  {{< /panel >}}
+
+### Packet Level Monitoring
+
+
+### Firewall Rules
+
+Users can attach firewall rules to a network through `firewall_rules` field. 
+Specifically, a firewall rule object includes the connection `protocol` (`TCP`, `UDP`), `type` (`DROP`, `ACCEPT`, `REDIRECT`), source port (`from_port`) & destination port (`to_port`), and source fog node (`from`) & destination fog node (`to`). 
+All fields are optional, but a firewall rule object should have at least one. 
+ At a low level, Fogify utilizes the Linux iptables tool that allows the system to apply the IP packet filter rules of the Linux kernel firewall, implemented as different Netfilter modules.
 
 ### Links
 With `links` users are able to define specific characteristics on top of packets that transfer between pears of emulated nodes. 

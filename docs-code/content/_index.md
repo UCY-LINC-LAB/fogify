@@ -286,6 +286,17 @@ series    = {SEC ’20}
 } 
 {{</code>}}
 
+#### Other Related Publications
+<p/>
+A. Michailidou, A. Gounaris, M. Symeonides and D. Trihinas, "EQUALITY: Quality-aware intensive analytics on the edge",  *Information Systems, Volume 105, 2022, ISSN 0306-4379*
+
+M. Symeonides, D. Trihinas, G. Pallis, M. D. Dikaiakos, C. Psomas and I. Krikidis "5G-Slicer: An emulator for mobile IoT 
+applications deployed over 5G network slices", *2022 ACM/IEEE Conference on Internet of Things Design and Implementation 
+(IoTDI), 2022* (more details at the [5G-Slicer documentation](/fogify/5g-slicer.html))
+
+M. Symeonides, D. Trihinas, G. Pallis and M. D. Dikaiakos "Demo: Emulating 5G-Ready Mobile IoT Services", *2022 ACM/IEEE Conference on Internet of Things Design and Implementation (IoTDI), 2022*
+
+
 
 ### Acknowledgements
 This work is partially supported by the EU Commission through [RAINBOW](https://rainbow-h2020.eu/)  871403 (ICT-15-2019-2020) project 
