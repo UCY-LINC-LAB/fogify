@@ -119,9 +119,6 @@ class TopologyAPI(MethodView):
     """ Fogify Controller communicate with the agents through this API to apply network rules or to clean a deployment """
 
     def delete(self):
-        connector = app.config['CONNECTOR']
-        path = connector.path
-        MetricCollector().remove_record_file(path + "metrics/")
         network_controller = app.config['NETWORK_CONTROLLER']
         network_controller.remove_cached_data()
         os.putenv('EMULATION_IS_RUNNING', 'FALSE')

@@ -92,6 +92,8 @@ class TopologyAPI(MethodView):
     def remove(self, connector):
         """ A utility function that destroys a topology """
         connector.down()
+        Communicator(connector).agents__notify_emulation_deleted()
+
         Annotation.create(Annotation.TYPES.UNDEPLOY.value)
 
     def submission(self, connector, path, networks):

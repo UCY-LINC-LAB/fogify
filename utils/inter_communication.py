@@ -54,6 +54,9 @@ class Communicator(object):
             logger.info(f"Commands {commands} are performed on {selected_instances[i]}({i})")
         return res
 
+    def agents__notify_emulation_deleted(self):
+        return self.agents__delete(self.URLs.agent_topology.value, "topology")
+
     def agents__notify_emulation_started(self):
         nodes = self.connector.get_nodes()
         res = {}

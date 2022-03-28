@@ -309,10 +309,14 @@ class NetworkController:
         """
         Reads the network rules file and returns a dictionary with the rules
         """
-        if self.__class__.__cached_rules: return copy.deepcopy(self.__class__.__cached_rules)
+        key = "network_rules"
+        cached = Cache.get(key)
+        if cached == "TRUE" and self.__class__.__cached_rules:
+            return copy.deepcopy(self.__class__.__cached_rules)
         f = open(os.path.join(self.connector.path, "network.yaml"), "r")
         infra = yaml.load(f, Loader=yaml.UnsafeLoader)
         f.close()
+        Cache.put(key, "TRUE")
         self.__class__.__cached_rules = infra
         return infra
 
@@ -359,6 +363,5 @@ class NetworkController:
         return rate_in, in_rule
 
     def remove_cached_data(self):
-        self.__class__.__cached_rules = None
         Cache.clean_up()
         logger.info("Network Controller removed cached data.")
