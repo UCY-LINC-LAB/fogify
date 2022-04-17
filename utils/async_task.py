@@ -20,3 +20,6 @@ class AsyncTask(Thread):
             return func(self.obj, **self.kwargs)
 
         return func(self.obj)
+
+    def stop(self):
+        self.join()

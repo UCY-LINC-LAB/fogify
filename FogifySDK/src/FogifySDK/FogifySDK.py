@@ -209,7 +209,7 @@ class FogifySDK(object):
         res = pd.DataFrame.from_records(self.data[service])
         res.timestamp = pd.to_datetime(res['timestamp']).dt.tz_localize(None)
         res.set_index('timestamp', inplace=True)
-        return res
+        return res.sort_values(by="count")
 
     def clean_metrics(self):
         if hasattr(self, 'data'):

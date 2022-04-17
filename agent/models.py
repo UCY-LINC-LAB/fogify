@@ -63,7 +63,7 @@ class Record(db.Model):
     """
     It represents the monitoring measurement. A measurement is connected with multiple Records.
     """
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.String(250), primary_key=True)
     instance_name = db.Column(db.String(250))
     timestamp = db.Column(db.DateTime())
     metrics = relationship("Metric", backref='record')
@@ -74,6 +74,13 @@ class Record(db.Model):
         for i in self.metrics:
             if i.metric_name == name:
                 return i
+
+    def __init__(self, **kwargs):
+        instance_name = kwargs.get('instance_name', '')
+        count = kwargs.get('count', '')
+        kwargs['id'] = f"{instance_name}-{count}"
+        super(Record, self).__init__(**kwargs)
+
 
 
 db.create_all()

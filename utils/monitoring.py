@@ -7,6 +7,7 @@ import docker
 import requests
 
 from agent.models import Status, Metric, db, Record
+from utils.async_task import AsyncTask
 from utils.docker_manager import get_container_ip_property, get_ip_from_network_object, ContainerNetworkNamespace
 from utils.logging import FogifyLogger
 
@@ -219,18 +220,27 @@ class MetricCollector(object):
         return nets
 
     def start_monitoring(self, agent_ip, connector, interval):
+        self.shoud_run = True
         logger.info("Monitoring Agent Instantiation")
         cAdvisor_handler = cAdvisorHandler(agent_ip, '9090', 'fogify')
-        while (True):
+        while (self.shoud_run):
             count = Status.query.filter_by(name="counter").first()
             count = 0 if count is None else int(count.value)
+            count += 1
             cAdvisor_handler.retrieve_docker_metrics()
             metrics = cAdvisor_handler.get_metrics()
             self.store_metrics(cAdvisor_handler, connector, count, metrics)
-
-            count += 1
             Status.update_config(str(count))
             sleep(interval)
+
+    def start_monitoring_thread(self, agent_ip, connector, interval):
+        self.running_thread = AsyncTask(self, 'start_monitoring', [agent_ip, connector, interval])
+        self.running_thread.start()
+
+    def stop_running_thread(self):
+        if self.running_thread:
+            self.shoud_run = False
+            self.running_thread.stop()
 
     def store_metrics(self, cAdvisor_handler, connector, count, metrics):
         for i in metrics:
@@ -251,7 +261,7 @@ class MetricCollector(object):
                 r.metrics.extend(self.get_network_metrics(cAdvisor_handler))
                 r.metrics.extend(self.get_custom_metrics(current_instance, connector))
 
-                db.session.add(r)
+                db.session.merge(r)
                 db.session.commit()
             except Exception:
                 logger.warning("An error occurred in monitoring agent. The metrics will not be stored at this time.",
