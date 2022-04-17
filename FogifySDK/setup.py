@@ -8,7 +8,7 @@ with open('./requirements.txt') as f:
 
 setuptools.setup(
     name="FogifySDK",
-    version="0.0.2",
+    version="0.0.3",
     author="Moysis Symeonides",
     author_email="symeonidis.moysis@cs.ucy.ac.cy",
     description="The fogify's SDK library",
