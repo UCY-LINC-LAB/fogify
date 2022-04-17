@@ -1,5 +1,5 @@
 +++
-title = "Network QoS"
+title = "Network QoS and VNFs"
 description = ""
 weight = 5
 +++
@@ -74,6 +74,9 @@ We are working on that feature and we will provide it in near future.
 
 ### Packet Level Monitoring
 
+Packet level monitoring enables the monitoring and analysis of network's packets statistics. 
+The default value of `packet_level_monitoring` is `FALSE`, since this procedure is too compute intensive. 
+If the users need to inspect the packet traffic should set `packet_level_monitoring` to `TRUE`. 
 
 ### Firewall Rules
 

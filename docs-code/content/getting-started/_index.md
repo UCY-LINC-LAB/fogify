@@ -305,10 +305,10 @@ The combination of services, nodes and templates allows users to create more com
         - internet
 {{</ code >}}
 
-For more details about topologies and blueprints you can visit the [documentation page]().
+For more details about topologies and blueprints you can visit the [documentation page](/fogify/blueprints.html).
 
 ## Step 5: Deploy the topology
-Even if users can use a [RESTful API]() to deploy topologies on Fogify, 
+Even if users can use a [RESTful API](/fogify/fogifysdk.html) to deploy topologies on Fogify, 
 the easiest way is by utilizing the FogifySDK (integrated with Jupyter). The following lines of code illustrate the use of FogifySDK. 
 Specifically, the user imports the SDK, instantiates a fogify object that includes information about the controller's url 
 and the topology description file, and, finally, executes the `deploy` function that submits the topology to the fogify's Controller.

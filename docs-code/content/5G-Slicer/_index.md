@@ -54,7 +54,8 @@ leaving 5G-Slicer responsible for translating it into an emulated environment. <
 					Positioning & Mobility
 				</h4>
 				<p class="card-text text-muted">
-					Controlling the link quality,  such  as  network  latency,  bandwidth,  error  rate,  etc.,and  even  reproduce  real-world  node-to-node  and  node-to-network connection traces
+The system provides positioning provisions and can alter at runtime the entities' locations controlling
+ in such a way the link quality, such as network latency,  bandwidth,  error rate,  etc.  
 				</p>
 			</div>
 		</div>
@@ -100,7 +101,7 @@ leaving 5G-Slicer responsible for translating it into an emulated environment. <
 
 ---
 
-## Overview
+## 5G-Slicer Overview
 <p></p>
 
 <div class="container-md">
