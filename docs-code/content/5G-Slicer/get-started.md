@@ -42,19 +42,19 @@ services:
 
   ui:
     build: .
-    image: 5g-slicer-jupiter
+    image: fogemulator/5g-slicer-jupyter:v0.01
     volumes:
       - ./:/home/jovyan/work
     ports:
       - 8888:8888
-      - 5600:5600
+      - 5555:5555
     environment:
       - "JUPYTER_ENABLE_LAB=yes"
       - "GRANT_SUDO=yes"
     user: root
     command: ['start.sh', 'jupyter', 'lab']
   controller:
-    image: fogify 
+    image: fogemulator/fogify:v0.02
     entrypoint: [ "python", "/code/fogify/main.py", "--controller"]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -75,7 +75,7 @@ services:
       MANAGER_IP: ${MANAGER_IP}
       MANAGER_NAME: ${MANAGER_NAME}
   agent:
-    image: fogify 
+    image: fogemulator/fogify:v0.02
     entrypoint: [ "python", "/code/fogify/main.py", "--agent", "--agent-ip", "${HOST_IP}"]
     extra_hosts:
       - ${MANAGER_NAME}:${MANAGER_IP}
@@ -129,7 +129,13 @@ Similarly with Fogify, 5G-Slicer provides the `SlicerSDK` (equivalent to FogifyS
 Furthermore, `SlicerSDK` offers a wide range of new visualisations (like interactive maps) and programming functions(e.g. move ad-hoc actions and trajectories).
 The following image is a snapshot of the `SlicerSDK` jupyter-enabled interface. 
 
-TODO introduce image
+<p></p>
+<div class="row">
+    <div class="col-md-8 offset-2">
+        <img class="img-fluid" src="/fogify/5gslicer-UI.png" />
+    </div>
+</div>
+<p></p>
 
 ## 5G-Slicer Model Example
 
@@ -143,26 +149,16 @@ users describe their application via docker-compose files. Following yaml file d
 ```yaml
 version: '3.7'
 services:
-  cloud-server:
-    image: taxi-exp:0.0.1
+  cloud_service:
+    image: bus-exp:0.0.1
+  edge_service:
+    image: bus-exp:0.0.1
+  bus_service:
+    image: bus-exp:0.0.1
     environment:
-      NODE_TYPE: CLOUD_NODE
-  car-workload:
-    image: taxi-exp:0.0.1
-    environment:
-      NODE_TYPE: IOT_NODE
+      - "NODE_TYPE=IOT_NODE"
     volumes:
-      - /home/ubuntu/data:/data
-  mec-svc-1:
-    image: taxi-exp:0.0.1
-    environment:
-      NODE_TYPE: EDGE_NODE
-      REGION: bronx
-  mec-svc-2:
-    image: taxi-exp:0.0.1
-    environment:
-      NODE_TYPE: EDGE_NODE
-      REGION: brooklyn
+      - "/home/ubuntu/data:/data"
 ```
 
 ### 5G-Slicer-enriched Fogify Model
@@ -188,13 +184,14 @@ x-fogify:
 
 #### 5G Network Slice description
 
-Contrary to the `nodes`, in 5G-Slicer, users can describe network slices, under the `network` field.
+In 5G-Slicer, users can describe network slices, under the `network` field.
 Specifically, a slice includes radio units (`RUs`) locations, `midhaul_qos` and `backhaul_qos` that are the QoS characteristics for midhaul 
 (RU-to-RU and Edge-to-edge connections), wireless connection type (`wireless_connection_type`) like MIMO, and 
-its parameters (`radio_access_qos`).
+its parameters (`parameters`).
 
 ```yaml
   - network_type: slice
+    name: edge-net-1
     midhaul_qos:
       latency:
         delay: 3ms
@@ -206,7 +203,7 @@ its parameters (`radio_access_qos`).
         deviation: 1ms
       bandwidth: 100mbps
     wireless_connection_type: MIMO
-    radio_access_qos:
+    parameters:
       transmit_power: 30  # dbm
       carrier_frequency: 28  # gigahrz
       bandwidth: 100  # megahrz
@@ -221,7 +218,6 @@ its parameters (`radio_access_qos`).
     RUs:
       - lat: 35.14996886033924
         lon: 33.410295020090246
-    name: edge-net-1
 ```   
 
 #### Topology
@@ -359,7 +355,24 @@ At the end, when the deployment is over, the system generates a simple message t
 
 ### Interactive Map
 
+5G-Slicer provides an interactive map that depicts the positions of mobile nodes (blue markers), edge modes (red markers), 
+and the network coverage (blue circles). Furthermore, users can move the mobile nodes (blue markers) and the system will
+ update the connectivity of the moving node.
 
-### Display Metrics
+<p></p>
+<div class="row">
+    <div class="col-md-12">
+        <img class="img-fluid" src="/fogify/interactive-map.png" />
+    </div>
+</div>
+<p></p>
 
 ### Run Mobility Scenario
+
+The mobility scenarios extend the scenario primitive of Fogify model and execution. 
+During the mobility scenario execution, the movement of the mobility nodes can be seen on the interactive map.
+When a mobility scenario is finished, users can request the monitoring data via the start and end time of the scenario.
+The following plot illustrates an example of network ingoing and outgoing 
+traffic generated after the execution of a mobility scenario.
+
+![running deployment](/fogify/mobility-eval.png)
