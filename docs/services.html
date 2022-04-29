@@ -45,7 +45,12 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
-                                  <i class='fab fa-github'></i>
+                                  <i class='fab fa-github'></i> Fogify
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/5G-Slicer" target="_blank">
+                                  <i class='fab fa-github'></i> 5G-Slicer
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -112,7 +117,7 @@
     <li data-nav-id="/fogify/network-qos.html" class="nav-item my-1
         ">
         
-        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS</h6></a>
+        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS and VNFs</h6></a>
     </li>
     <li data-nav-id="/fogify/blueprints.html" class="nav-item my-1
         ">
@@ -138,6 +143,31 @@
         ">
         
         <a class="nav-link p-0" href="/fogify/fogifysdk.html"><h6>FogifySDK</h6></a>
+    </li>
+    <li data-nav-id="/fogify/5g-slicer.html" class="nav-item my-1 haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/5g-slicer.html"><h6>5G-Slicer Extension</h6></a>
+        <ul class="list-unstyled ml-2">
+        <li data-nav-id="/fogify/5g-slicer/get-started.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/get-started.html" class="nav-link p-0">
+                    5G-Slicer Getting Started
+                </a>
+        </li>
+        <li data-nav-id="/fogify/5g-slicer/slice-model.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/slice-model.html" class="nav-link p-0">
+                    Network Slice Modeling
+                </a>
+        </li>
+        <li data-nav-id="/fogify/5g-slicer/use-case.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/use-case.html" class="nav-link p-0">
+                    Dublin&#39;s Buses Use-case
+                </a>
+        </li>
+        </ul>
     </li>
     <li data-nav-id="/fogify/faq.html" class="nav-item my-1
         ">
@@ -207,13 +237,12 @@ A simple example of a dockerfile is the following:</p>
         </button>
     </div>
     <div id="clipboard_0e7473bcb8">
-    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Docker" data-lang="Docker"><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#00a8c8">FROM</span><span style="color:#d88200"> ubuntu:18.04</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#00a8c8">COPY</span> . /app<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#00a8c8">RUN</span> make /app<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#00a8c8">CMD</span> python /app/app.py<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div>
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Docker" data-lang="Docker"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#00a8c8">FROM</span><span style="color:#d88200"> ubuntu:18.04</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#00a8c8">COPY</span> . /app<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#00a8c8">RUN</span> make /app<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#00a8c8">CMD</span> python /app/app.py<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div>
     </div>
 </div>
 
@@ -247,10 +276,9 @@ which illustrates that the image contains the version <code>0.1</code> of the <c
         </button>
     </div>
     <div id="clipboard_07551f0037">
-    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Docker" data-lang="Docker"><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>docker build -t simple-app:0.1 . <span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div>
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Docker" data-lang="Docker"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>docker build -t simple-app:0.1 . <span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div>
     </div>
 </div>
 
@@ -277,10 +305,9 @@ which illustrates that the image contains the version <code>0.1</code> of the <c
         </button>
     </div>
     <div id="clipboard_82249e87d8">
-    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Docker" data-lang="Docker"><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>docker image ls<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div>
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Docker" data-lang="Docker"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>docker image ls<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div>
     </div>
 </div>
 
@@ -327,10 +354,9 @@ For instance the following command creates a docker container from the <code>sim
         </button>
     </div>
     <div id="clipboard_5870e1b224">
-    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Docker" data-lang="Docker"><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>docker run simple-app:0.1 <span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div>
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Docker" data-lang="Docker"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>docker run simple-app:0.1 <span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div>
     </div>
 </div>
 
@@ -367,39 +393,38 @@ To illustrate the functionalities of docker-compose, followingly, we present an 
         </button>
     </div>
     <div id="clipboard_9d3a4093ce">
-    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
-<span style="color:#f92672">services</span><span style="color:#111">:</span>  <span style="color:#75715e"># The list of the available services</span>
-  <span style="color:#f92672">zookeeper</span><span style="color:#111">:</span>  <span style="color:#75715e"># The service name that we use as service identifier</span>
-    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">zookeeper </span> <span style="color:#75715e"># The image of the service</span>
-    <span style="color:#f92672">restart</span><span style="color:#111">:</span> <span style="color:#ae81ff">always</span>
-  <span style="color:#f92672">nimbus</span><span style="color:#111">:</span>  
-    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">storm:2.1.0 </span>
-    <span style="color:#f92672">command</span><span style="color:#111">:</span> <span style="color:#ae81ff">storm nimbus</span>
-    <span style="color:#f92672">depends_on</span><span style="color:#111">:</span>  
-      - <span style="color:#ae81ff">zookeeper </span> <span style="color:#75715e"># This determines that the service nimbus will wait until the zookeeper starts</span>
-    <span style="color:#f92672">restart</span><span style="color:#111">:</span> <span style="color:#ae81ff">always</span>
-    <span style="color:#f92672">ports</span><span style="color:#111">:</span> <span style="color:#75715e"># On this port the service receives external requests (host-port:container-port)</span>
-      - <span style="color:#ae81ff">6627</span><span style="color:#111">:</span><span style="color:#ae81ff">6627</span> 
-    <span style="color:#f92672">volumes</span><span style="color:#111">:</span> <span style="color:#75715e"># We can pass specific files into the service file system (host-path:container-path)</span>
-       - <span style="color:#ae81ff">/home/TestTopology.jar:/example/TestTopology.jar  </span>
-  <span style="color:#f92672">ui</span><span style="color:#111">:</span>
-    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">storm:2.1.0</span>
-    <span style="color:#f92672">command</span><span style="color:#111">:</span> <span style="color:#ae81ff">storm ui</span>
-    <span style="color:#f92672">depends_on</span><span style="color:#111">:</span>
-      - <span style="color:#ae81ff">nimbus</span>
-      - <span style="color:#ae81ff">zookeeper</span>
-    <span style="color:#f92672">restart</span><span style="color:#111">:</span> <span style="color:#ae81ff">always</span>
-    <span style="color:#f92672">ports</span><span style="color:#111">:</span>
-      - <span style="color:#ae81ff">8080</span><span style="color:#111">:</span><span style="color:#ae81ff">8080</span>
-  <span style="color:#f92672">supervisor</span><span style="color:#111">:</span>
-    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">storm:2.1.0</span>
-    <span style="color:#f92672">command</span><span style="color:#111">:</span> <span style="color:#ae81ff">storm supervisor</span>
-    <span style="color:#f92672">depends_on</span><span style="color:#111">:</span>
-      - <span style="color:#ae81ff">nimbus</span>
-      - <span style="color:#ae81ff">zookeeper</span>
-    <span style="color:#f92672">restart</span><span style="color:#111">:</span> <span style="color:#ae81ff">always</span>
-
-</code></pre></div>
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">services</span><span style="color:#111">:</span>  <span style="color:#75715e"># The list of the available services</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">zookeeper</span><span style="color:#111">:</span>  <span style="color:#75715e"># The service name that we use as service identifier</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">zookeeper </span> <span style="color:#75715e"># The image of the service</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">restart</span><span style="color:#111">:</span> <span style="color:#ae81ff">always</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">nimbus</span><span style="color:#111">:</span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">storm:2.1.0 </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">command</span><span style="color:#111">:</span> <span style="color:#ae81ff">storm nimbus</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">depends_on</span><span style="color:#111">:</span>  
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">zookeeper </span> <span style="color:#75715e"># This determines that the service nimbus will wait until the zookeeper starts</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">restart</span><span style="color:#111">:</span> <span style="color:#ae81ff">always</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span><span style="color:#111">:</span> <span style="color:#75715e"># On this port the service receives external requests (host-port:container-port)</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">6627</span><span style="color:#111">:</span><span style="color:#ae81ff">6627</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span><span style="color:#111">:</span> <span style="color:#75715e"># We can pass specific files into the service file system (host-path:container-path)</span>
+</span></span><span style="display:flex;"><span>       - <span style="color:#ae81ff">/home/TestTopology.jar:/example/TestTopology.jar  </span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ui</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">storm:2.1.0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">command</span><span style="color:#111">:</span> <span style="color:#ae81ff">storm ui</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">depends_on</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">nimbus</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">zookeeper</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">restart</span><span style="color:#111">:</span> <span style="color:#ae81ff">always</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">8080</span><span style="color:#111">:</span><span style="color:#ae81ff">8080</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">supervisor</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">storm:2.1.0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">command</span><span style="color:#111">:</span> <span style="color:#ae81ff">storm supervisor</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">depends_on</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">nimbus</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">zookeeper</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">restart</span><span style="color:#111">:</span> <span style="color:#ae81ff">always</span>
+</span></span></code></pre></div>
     </div>
 </div>
 

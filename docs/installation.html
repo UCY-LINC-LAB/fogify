@@ -45,7 +45,12 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
-                                  <i class='fab fa-github'></i>
+                                  <i class='fab fa-github'></i> Fogify
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/5G-Slicer" target="_blank">
+                                  <i class='fab fa-github'></i> 5G-Slicer
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -112,7 +117,7 @@
     <li data-nav-id="/fogify/network-qos.html" class="nav-item my-1
         ">
         
-        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS</h6></a>
+        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS and VNFs</h6></a>
     </li>
     <li data-nav-id="/fogify/blueprints.html" class="nav-item my-1
         ">
@@ -138,6 +143,13 @@
         ">
         
         <a class="nav-link p-0" href="/fogify/fogifysdk.html"><h6>FogifySDK</h6></a>
+    </li>
+    <li data-nav-id="/fogify/5g-slicer.html" class="nav-item my-1 haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/5g-slicer.html"><h6>5G-Slicer Extension</h6></a>
+        <ul class="list-unstyled ml-2">
+        </ul>
     </li>
     <li data-nav-id="/fogify/faq.html" class="nav-item my-1
         ">
@@ -198,10 +210,9 @@ With the following command, the user can easily install a Docker Swarm Manager (
         </button>
     </div>
     <div id="clipboard_ebb027a202">
-    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-docker swarm init --advertise-addr &lt;hosts_ip&gt;
-
-</code></pre></div>
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>docker swarm init --advertise-addr &lt;hosts_ip&gt;
+</span></span></code></pre></div>
     </div>
 </div>
 
@@ -209,7 +220,7 @@ docker swarm init --advertise-addr &lt;hosts_ip&gt;
 
 
 <p>The latter command will generate a result similar to:</p>
-<pre><code>Swarm initialized: current node (dxn1zf6l61qsb1josjja83ngz) is now a manager.
+<pre tabindex="0"><code>Swarm initialized: current node (dxn1zf6l61qsb1josjja83ngz) is now a manager.
 
 To add a worker to this swarm, run the following command:
 
@@ -217,7 +228,7 @@ To add a worker to this swarm, run the following command:
     --token SWMTKN-1-49nj1cmql0jkz5s954yi3oex3nedyz0fb0xx14ie39trti4wxv-8vxv8rssmk743ojnwacrr2e7c \
     192.168.99.100:2377
 
-To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
+To add a manager to this swarm, run &#39;docker swarm join-token manager&#39; and follow the instructions.
 </code></pre><p>At this time, the Docker Swarm cluster consists of one node which is Manager and Worker.
 If a user needs to add more nodes, he/she can run the following command on each extra node.</p>
 
@@ -239,14 +250,13 @@ If a user needs to add more nodes, he/she can run the following command on each 
         </button>
     </div>
     <div id="clipboard_65f9e61dd5">
-    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-
-$ docker swarm join <span style="color:#8045ff">\
-</span><span style="color:#8045ff"></span>    --token SWMTKN-1-49nj1cmql0jkz5s954yi3oex3nedyz0fb0xx14ie39trti4wxv-8vxv8rssmk743ojnwacrr2e7c <span style="color:#8045ff">\
-</span><span style="color:#8045ff"></span>    192.168.99.100:2377
-    
-
-</code></pre></div>
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ docker swarm join <span style="color:#8045ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#8045ff"></span>    --token SWMTKN-1-49nj1cmql0jkz5s954yi3oex3nedyz0fb0xx14ie39trti4wxv-8vxv8rssmk743ojnwacrr2e7c <span style="color:#8045ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#8045ff"></span>    192.168.99.100:2377
+</span></span><span style="display:flex;"><span>    
+</span></span></code></pre></div>
     </div>
 </div>
 
@@ -276,10 +286,9 @@ On Debian-based destributions, tc-tool comes bundled with iproute, so in order t
         </button>
     </div>
     <div id="clipboard_d32e0e99be">
-    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-apt-get install iproute
-
-</code></pre></div>
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>apt-get install iproute
+</span></span></code></pre></div>
     </div>
 </div>
 

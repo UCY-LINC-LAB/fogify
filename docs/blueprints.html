@@ -45,7 +45,12 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
-                                  <i class='fab fa-github'></i>
+                                  <i class='fab fa-github'></i> Fogify
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/5G-Slicer" target="_blank">
+                                  <i class='fab fa-github'></i> 5G-Slicer
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -112,7 +117,7 @@
     <li data-nav-id="/fogify/network-qos.html" class="nav-item my-1
         ">
         
-        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS</h6></a>
+        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS and VNFs</h6></a>
     </li>
     <li data-nav-id="/fogify/blueprints.html" class="nav-item my-1 parent active
         ">
@@ -138,6 +143,31 @@
         ">
         
         <a class="nav-link p-0" href="/fogify/fogifysdk.html"><h6>FogifySDK</h6></a>
+    </li>
+    <li data-nav-id="/fogify/5g-slicer.html" class="nav-item my-1 haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/5g-slicer.html"><h6>5G-Slicer Extension</h6></a>
+        <ul class="list-unstyled ml-2">
+        <li data-nav-id="/fogify/5g-slicer/get-started.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/get-started.html" class="nav-link p-0">
+                    5G-Slicer Getting Started
+                </a>
+        </li>
+        <li data-nav-id="/fogify/5g-slicer/slice-model.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/slice-model.html" class="nav-link p-0">
+                    Network Slice Modeling
+                </a>
+        </li>
+        <li data-nav-id="/fogify/5g-slicer/use-case.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/use-case.html" class="nav-link p-0">
+                    Dublin&#39;s Buses Use-case
+                </a>
+        </li>
+        </ul>
     </li>
     <li data-nav-id="/fogify/faq.html" class="nav-item my-1
         ">
@@ -196,22 +226,21 @@ that will execute the <code>nimbus</code> and <code>supervisor</code> services r
         </button>
     </div>
     <div id="clipboard_e5c2c776ec">
-    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
-    <span style="color:#f92672">topology</span><span style="color:#111">:</span>
-        - <span style="color:#f92672">node</span><span style="color:#111">:</span> <span style="color:#ae81ff">node-sm </span> <span style="color:#75715e"># Node template as described in Node profiles</span>
-          <span style="color:#f92672">service</span><span style="color:#111">:</span> <span style="color:#ae81ff">nimbus </span> <span style="color:#75715e"># Service as described in docker-compose services</span>
-          <span style="color:#f92672">label</span><span style="color:#111">:</span> <span style="color:#ae81ff">nimbus </span> <span style="color:#75715e"># label/identifier of the emulated fog node </span>
-          <span style="color:#f92672">replicas</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span>  <span style="color:#75715e"># replication factor of the node</span>
-          <span style="color:#f92672">networks</span><span style="color:#111">:</span>  <span style="color:#75715e"># a list of the networks that the node is connected to</span>
-            - <span style="color:#ae81ff">internet</span>
-        - <span style="color:#f92672">node</span><span style="color:#111">:</span> <span style="color:#ae81ff">node-sm</span>
-          <span style="color:#f92672">service</span><span style="color:#111">:</span> <span style="color:#ae81ff">supervisor</span>
-          <span style="color:#f92672">label</span><span style="color:#111">:</span> <span style="color:#ae81ff">supervisor</span>
-          <span style="color:#f92672">replicas</span><span style="color:#111">:</span> <span style="color:#ae81ff">2</span>
-          <span style="color:#f92672">networks</span><span style="color:#111">:</span>
-            - <span style="color:#ae81ff">internet</span>
-
-</code></pre></div>
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">topology</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">node</span><span style="color:#111">:</span> <span style="color:#ae81ff">node-sm </span> <span style="color:#75715e"># Node template as described in Node profiles</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">service</span><span style="color:#111">:</span> <span style="color:#ae81ff">nimbus </span> <span style="color:#75715e"># Service as described in docker-compose services</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">label</span><span style="color:#111">:</span> <span style="color:#ae81ff">nimbus </span> <span style="color:#75715e"># label/identifier of the emulated fog node </span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">replicas</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span>  <span style="color:#75715e"># replication factor of the node</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">networks</span><span style="color:#111">:</span>  <span style="color:#75715e"># a list of the networks that the node is connected to</span>
+</span></span><span style="display:flex;"><span>            - <span style="color:#ae81ff">internet</span>
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">node</span><span style="color:#111">:</span> <span style="color:#ae81ff">node-sm</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">service</span><span style="color:#111">:</span> <span style="color:#ae81ff">supervisor</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">label</span><span style="color:#111">:</span> <span style="color:#ae81ff">supervisor</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">replicas</span><span style="color:#111">:</span> <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">networks</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>            - <span style="color:#ae81ff">internet</span>
+</span></span></code></pre></div>
     </div>
 </div>
 
@@ -256,27 +285,26 @@ If there is a need for node-specific network QoS, user can override them. Follow
         </button>
     </div>
     <div id="clipboard_a3a06e8611">
-    <div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
-<span style="color:#111">...</span><span style="color:#ae81ff">.</span>
-        - <span style="color:#f92672">node</span><span style="color:#111">:</span> <span style="color:#ae81ff">node-sm</span>
-          <span style="color:#f92672">service</span><span style="color:#111">:</span> <span style="color:#ae81ff">supervisor</span>
-          <span style="color:#f92672">label</span><span style="color:#111">:</span> <span style="color:#ae81ff">supervisor</span>
-          <span style="color:#f92672">replicas</span><span style="color:#111">:</span> <span style="color:#ae81ff">2</span>
-          <span style="color:#f92672">networks</span><span style="color:#111">:</span>
-            - <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">internet</span>
-              <span style="color:#f92672">uplink</span><span style="color:#111">:</span>
-                <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">1Mbps</span>
-                <span style="color:#f92672">latency</span><span style="color:#111">:</span>
-                  <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">200ms</span>
-                <span style="color:#f92672">drop</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.01</span><span style="color:#ae81ff">%</span>
-              <span style="color:#f92672">downlink</span><span style="color:#111">:</span>
-                <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">1Mbps</span>
-                <span style="color:#f92672">latency</span><span style="color:#111">:</span>
-                  <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">200ms</span>
-                <span style="color:#f92672">drop</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.01</span><span style="color:#ae81ff">%</span>
-<span style="color:#111">...</span><span style="color:#ae81ff">.</span>
-
-</code></pre></div>
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#111">...</span><span style="color:#ae81ff">.</span>
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">node</span><span style="color:#111">:</span> <span style="color:#ae81ff">node-sm</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">service</span><span style="color:#111">:</span> <span style="color:#ae81ff">supervisor</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">label</span><span style="color:#111">:</span> <span style="color:#ae81ff">supervisor</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">replicas</span><span style="color:#111">:</span> <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">networks</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>            - <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">internet</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">uplink</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">1Mbps</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">200ms</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">drop</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.01</span><span style="color:#ae81ff">%</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">downlink</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">1Mbps</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">200ms</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">drop</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.01</span><span style="color:#ae81ff">%</span>
+</span></span><span style="display:flex;"><span><span style="color:#111">...</span><span style="color:#ae81ff">.</span>
+</span></span></code></pre></div>
     </div>
 </div>
 
@@ -305,7 +333,7 @@ If there is a need for node-specific network QoS, user can override them. Follow
 
     <h4 class="text-white text-center">Read more</h4>
 
-    <div class="d-flex justify-content-center"><a class="p-1 mr-3 d-inline-block text-white" href="/fogify/network-qos.html" title="Network QoS"><i class="fas fa-chevron-left p-1"></i>Network QoS</a>
+    <div class="d-flex justify-content-center"><a class="p-1 mr-3 d-inline-block text-white" href="/fogify/network-qos.html" title="Network QoS and VNFs"><i class="fas fa-chevron-left p-1"></i>Network QoS and VNFs</a>
         <a class="p-1 ml-3 d-inline-block text-white text-right" href="/fogify/actions-and-scenarios.html" title="Actions &amp; Scenarios">Actions &amp; Scenarios<i class="fas fa-chevron-right p-1"></i></a>
     </div>
 </div>
