@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html><head>
+
+    <meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="canonical" href="https://ucy-linc-lab.github.io/fogify/network-qos.html">
+
+    <title>
+        
+        Network QoS and VNFs | Fogify: A Fog Computing Emulator Framework
+        
+    </title>
+
+    
+    <link href="https://ucy-linc-lab.github.io/fogify/css/fontawesome.min.css" rel="stylesheet">
+
+    
+    <link rel="stylesheet" href="https://ucy-linc-lab.github.io/fogify/css/ace.min.css">
+
+    
+    
+        
+    
+
+</head>
+<body><nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow sticky-top" id="navbarMain">
+    <div class="container">
+        <div>
+            <a class="navbar-brand" href="/fogify">
+                Fogify: A Fog Computing Emulator Framework
+            </a>
+        </div>
+        
+            <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#navbarMainCollapse" aria-controls="navbarMainCollapse" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMainCollapse">
+              <ul class="navbar-nav ml-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="http://linc.ucy.ac.cy/" target="_blank">
+                                  More from us
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <i class='fab fa-github'></i> Fogify
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/5G-Slicer" target="_blank">
+                                  <i class='fab fa-github'></i> 5G-Slicer
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://hub.docker.com/u/fogemulator" target="_blank">
+                                  <i class='fab fa-docker'></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <button class='btn btn-success mt-n1'>Download</button>
+                                </a>
+                            </li>
+              </ul>
+            </div>
+    </div>
+</nav>
+<div class="container-fluid">
+            <div class="row">
+
+                <div class="docs-sidenav order-0 col-12 col-md-3 col-lg-2 col-xl-2 position-sticky border-right"><nav class="navbar navbar-expand-md navbar-light pl-0">
+    <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#sidenav-left-collapse" aria-controls="sidenav-left-collapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+     <div class="collapse navbar-collapse align-items-start flex-column" id="sidenav-left-collapse">
+            <form class="form-inline my-2 my-lg-0 searchbox">
+                <input class="form-control mr-sm-2 w-100" data-search-input id="search-by" type="text" placeholder="Search">
+            </form>
+         <ul class="navbar-nav flex-column pt-3">
+    <li data-nav-id="/fogify/installation.html" class="nav-item my-1 haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/installation.html"><h6>Installation</h6></a>
+        <ul class="list-unstyled ml-2">
+        <li data-nav-id="/fogify/installation/as-a-service.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/as-a-service.html" class="nav-link p-0">
+                    Fogify in Docker-compose
+                </a>
+        </li>
+        <li data-nav-id="/fogify/installation/bare-metal.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/bare-metal.html" class="nav-link p-0">
+                    Bare-metal Installation
+                </a>
+        </li>
+        </ul>
+    </li>
+    <li data-nav-id="/fogify/getting-started.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/getting-started.html"><h6>Getting started</h6></a>
+    </li>
+    <li data-nav-id="/fogify/services.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/services.html"><h6>Services</h6></a>
+    </li>
+    <li data-nav-id="/fogify/node-profiles.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/node-profiles.html"><h6>Node Profiles</h6></a>
+    </li>
+    <li data-nav-id="/fogify/network-qos.html" class="nav-item my-1 parent active
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS and VNFs</h6></a>
+    </li>
+    <li data-nav-id="/fogify/blueprints.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/blueprints.html"><h6>Blueprints</h6></a>
+    </li>
+    <li data-nav-id="/fogify/actions-and-scenarios.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/actions-and-scenarios.html"><h6>Actions &amp; Scenarios</h6></a>
+    </li>
+    <li data-nav-id="/fogify/monitoring.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/monitoring.html"><h6>Monitoring</h6></a>
+    </li>
+    <li data-nav-id="/fogify/connection-3rd-parties.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/connection-3rd-parties.html"><h6>Connection with third parties and API</h6></a>
+    </li>
+    <li data-nav-id="/fogify/fogifysdk.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/fogifysdk.html"><h6>FogifySDK</h6></a>
+    </li>
+    <li data-nav-id="/fogify/5g-slicer.html" class="nav-item my-1 haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/5g-slicer.html"><h6>5G-Slicer Extension</h6></a>
+        <ul class="list-unstyled ml-2">
+        <li data-nav-id="/fogify/5g-slicer/get-started.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/get-started.html" class="nav-link p-0">
+                    5G-Slicer Getting Started
+                </a>
+        </li>
+        <li data-nav-id="/fogify/5g-slicer/slice-model.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/slice-model.html" class="nav-link p-0">
+                    Network Slice Modeling
+                </a>
+        </li>
+        <li data-nav-id="/fogify/5g-slicer/use-case.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/use-case.html" class="nav-link p-0">
+                    Dublin&#39;s Buses Use-case
+                </a>
+        </li>
+        </ul>
+    </li>
+    <li data-nav-id="/fogify/faq.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/faq.html"><h6>Frequently Asked Questions (FAQs)</h6></a>
+    </li>
+        </ul>
+    </div>
+</nav>
+
+
+</div>
+                <div class="docs-toc large order-lg-2 order-md-0 order-xs-1 col-12 col-lg-2 col-xl-2 position-sticky border-left"><div class="docs-toc">
+	<nav id="TableOfContents">
+  <ul>
+    <li><a href="#description">Description</a></li>
+    <li><a href="#parameters">Parameters</a>
+      <ul>
+        <li><a href="#name">Name</a></li>
+        <li><a href="#uplink--downlink">Uplink &amp; Downlink</a></li>
+        <li><a href="#network-latency">Network Latency</a></li>
+        <li><a href="#capacity">Capacity</a></li>
+        <li><a href="#packet-level-monitoring">Packet Level Monitoring</a></li>
+        <li><a href="#firewall-rules">Firewall Rules</a></li>
+        <li><a href="#links">Links</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</div>
+</div>
+                <div class="main col-12 order-1 col-md-9 col-lg-10 col-xl-8 py-3">
+                
+
+<h1>Network QoS and VNFs</h1>
+
+<h2 id="description">Description</h2>
+<p>We consider that an application spans on different nodes and sites through one or more network connections.
+There could be significant heterogeneity in the upward and downward links due to widely different link capacities.
+In our model, one specifies multiple parameters for network connectivity like delay, packet loss rate, packet corruption, etc.
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_c20d214c16">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_c20d214c16">
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">internet</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">uplink</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">10Mbps</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">20ms</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">drop</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.01</span><span style="color:#ae81ff">%</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">downlink</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">10Mbps</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">20ms</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">drop</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.01</span><span style="color:#ae81ff">%</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">packet_level_monitoring</span><span style="color:#111">:</span> <span style="color:#d88200">&#39;TRUE&#39;</span>  <span style="color:#75715e"># optional property</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">firewall_rules</span><span style="color:#111">:</span>  <span style="color:#75715e"># optional property</span>
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">protocol</span><span style="color:#111">:</span> <span style="color:#ae81ff">TCP</span> <span style="color:#75715e"># optional property</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">from_port</span><span style="color:#111">:</span> <span style="color:#ae81ff">80</span> <span style="color:#75715e"># optional property</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">to_port</span><span style="color:#111">:</span> <span style="color:#ae81ff">8080</span> <span style="color:#75715e"># optional property</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">type</span><span style="color:#111">:</span> <span style="color:#ae81ff">DROP</span> <span style="color:#75715e"># optional property</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">from</span><span style="color:#111">:</span> <span style="color:#ae81ff">fog-node-label-1</span> <span style="color:#75715e"># optional property</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">to</span><span style="color:#111">:</span> <span style="color:#ae81ff">fog-node-label-2</span> <span style="color:#75715e"># optional property</span>
+</span></span></code></pre></div>
+    </div>
+</div>
+
+
+
+</p>
+<h2 id="parameters">Parameters</h2>
+<h3 id="name">Name</h3>
+<p><code>Name</code> is the identifier of the network profile. Users use <code>name</code> to specify which fog node is connected to specific networks.</p>
+<h3 id="uplink--downlink">Uplink &amp; Downlink</h3>
+<p>Fogify provides users the ability to define different <code>uplink</code> and <code>downlink</code> characteristics.
+Specifically, users can define network <code>latency</code>, <code>bandwidth</code> and <code>drop</code> packet rate.
+We should note here that if a user would like to determine a general characteristic between two nodes,
+user has to specify both <code>uplink</code> and <code>downlink</code>. For instance, if the network delay between two nodes, A and B, is <code>6ms</code>
+user should determine <code>3ms</code> uplink and <code>3ms</code> downlink in both nodes.
+The measurement unit of <code>bandwidth</code> is <code>Mbps</code> while the <code>drop</code> rate is determined by a percentage (e.g. <code>0.1%</code>).
+The next subsection illustrates the network <code>latency</code> definition since it can be much more complex than <code>bandwidth</code> or <code>drop</code> rate.</p>
+<h3 id="network-latency">Network Latency</h3>
+<p><code>Latency</code> is composed of the average network <code>delay</code> and the optional properties of <code>deviation</code>,
+which is the deviation between the mean and the max/min values of the delay, and the <code>correlation</code>, which determines the
+maximum percent of difference between previous delay value and the current one.
+Both <code>delay</code> and <code>deviation</code> are measured in <code>ms</code>.
+Finally, users can determine the <code>distribution</code>
+of the delay&rsquo;s values. The by-default available distributions are <code>uniform</code>, <code>gaussian</code>, <code>pareto</code> and <code>paretonormal</code>, however,
+users can upload their own ping delay traces and the system generates any custom distribution.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_fb64d5d5ab">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_fb64d5d5ab">
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#111">...</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">20ms</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">deviation</span><span style="color:#111">:</span> <span style="color:#ae81ff">5ms</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">correlation</span><span style="color:#111">:</span> <span style="color:#ae81ff">20</span><span style="color:#ae81ff">%</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">distribution</span><span style="color:#111">:</span> <span style="color:#ae81ff">uniform</span>
+</span></span><span style="display:flex;"><span><span style="color:#111">...</span>
+</span></span></code></pre></div>
+    </div>
+</div>
+
+
+
+
+<h3 id="capacity">Capacity</h3>
+<p><code>Capacity</code> restricts the number of connected devices on a network.</p>
+
+
+<div class="card my-3 border-top-0 border-right-0 border-bottom-0 border-left border-info rounded" style="border-width:4px !important;">
+    <div class="wrap border border-left-0 rounded">
+        
+        <div class="card-body pt-1">
+            In current version of Fogify, <code>Capacity</code> does not effect the deployment.
+We are working on that feature and we will provide it in near future.
+        </div>
+    </div>
+</div>
+
+<h3 id="packet-level-monitoring">Packet Level Monitoring</h3>
+<p>Packet level monitoring enables the monitoring and analysis of network&rsquo;s packets statistics.
+The default value of <code>packet_level_monitoring</code> is <code>FALSE</code>, since this procedure is too compute intensive.
+If the users need to inspect the packet traffic should set <code>packet_level_monitoring</code> to <code>TRUE</code>.</p>
+<h3 id="firewall-rules">Firewall Rules</h3>
+<p>Users can attach firewall rules to a network through <code>firewall_rules</code> field.
+Specifically, a firewall rule object includes the connection <code>protocol</code> (<code>TCP</code>, <code>UDP</code>), <code>type</code> (<code>DROP</code>, <code>ACCEPT</code>, <code>REDIRECT</code>), source port (<code>from_port</code>) &amp; destination port (<code>to_port</code>), and source fog node (<code>from</code>) &amp; destination fog node (<code>to</code>).
+All fields are optional, but a firewall rule object should have at least one.
+At a low level, Fogify utilizes the Linux iptables tool that allows the system to apply the IP packet filter rules of the Linux kernel firewall, implemented as different Netfilter modules.</p>
+<h3 id="links">Links</h3>
+<p>With <code>links</code> users are able to define specific characteristics on top of packets that transfer between pears of emulated nodes.
+The definition of a <code>link</code>, user should define the <code>from_node</code> property that determines the source of the packets,
+<code>to_node</code> property that specifies the destination of the packets, and the <code>properties</code>, which are the similar as the network properties.
+A boolean optional field, named <code>bidirectional</code>, determines if a similar rule will be applied to the <code>from_node</code> to <code>to_node</code> link.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_46bca95bb6">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_46bca95bb6">
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#111">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">internet</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">uplink</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">10Mbps</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">20ms</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">drop</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.01</span><span style="color:#ae81ff">%</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">downlink</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">10Mbps</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">20ms</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">drop</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.01</span><span style="color:#ae81ff">%</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">links</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">from_node</span><span style="color:#111">:</span> <span style="color:#d88200">&#34;cloud-server&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">to_node</span><span style="color:#111">:</span> <span style="color:#d88200">&#34;mec-svc-1&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">bidirectional</span><span style="color:#111">:</span> <span style="color:#00a8c8">true</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">properties</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">200ms</span>
+</span></span><span style="display:flex;"><span><span style="color:#111">...</span>
+</span></span></code></pre></div>
+    </div>
+</div>
+
+
+
+
+<p>The latter example illustrates a bidirectional link between <code>cloud-server</code> node and <code>mec-svc-1</code> node is <code>200ms</code>.</p>
+
+
+    
+
+
+                    
+                    <div class="row"><div class="position-relative mx-auto col-lg-9">
+                          <div class="bg-primary overflow-hidden p-3 mt-5 shadow">
+
+    <h4 class="text-white text-center">Read more</h4>
+
+    <div class="d-flex justify-content-center"><a class="p-1 mr-3 d-inline-block text-white" href="/fogify/node-profiles.html" title="Node Profiles"><i class="fas fa-chevron-left p-1"></i>Node Profiles</a>
+        <a class="p-1 ml-3 d-inline-block text-white text-right" href="/fogify/blueprints.html" title="Blueprints">Blueprints<i class="fas fa-chevron-right p-1"></i></a>
+    </div>
+</div>
+
+
+                        </div></div> 
+
+                </div>
+
+            </div> 
+
+        </div> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/jquery.min.js"></script> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/popper.min.js"></script> 
+
+<script src="https://ucy-linc-lab.github.io/fogify/js/bootstrap.min.js"></script> 
+
+
+<script type="text/javascript" src="/fogify/plugins/lunr.min.js"></script>
+<script type="text/javascript" src="/fogify/plugins/auto-complete.js"></script>
+<link href="/fogify/plugins/auto-complete.css" rel="stylesheet">
+<script type="text/javascript">
+  
+      var baseurl = "https:\/\/ucy-linc-lab.github.io\/fogify\/";
+  
+</script>
+<script type="text/javascript" src="/fogify/plugins/search.js"></script>
+
+
+<script type="text/javascript" src="/fogify/plugins/clipboard.js"></script>
+<script>
+  new ClipboardJS('.btn');
+</script>
+</body>
+</html>

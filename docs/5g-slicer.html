@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html><head>
+
+    <meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="canonical" href="https://ucy-linc-lab.github.io/fogify/5g-slicer.html">
+
+    <title>
+        
+        5G-Slicer Extension | Fogify: A Fog Computing Emulator Framework
+        
+    </title>
+
+    
+    <link href="https://ucy-linc-lab.github.io/fogify/css/fontawesome.min.css" rel="stylesheet">
+
+    
+    <link rel="stylesheet" href="https://ucy-linc-lab.github.io/fogify/css/ace.min.css">
+
+    
+    
+        
+    
+
+</head>
+<body><nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow sticky-top" id="navbarMain">
+    <div class="container">
+        <div>
+            <a class="navbar-brand" href="/fogify">
+                Fogify: A Fog Computing Emulator Framework
+            </a>
+        </div>
+        
+            <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#navbarMainCollapse" aria-controls="navbarMainCollapse" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMainCollapse">
+              <ul class="navbar-nav ml-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="http://linc.ucy.ac.cy/" target="_blank">
+                                  More from us
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <i class='fab fa-github'></i> Fogify
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/5G-Slicer" target="_blank">
+                                  <i class='fab fa-github'></i> 5G-Slicer
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://hub.docker.com/u/fogemulator" target="_blank">
+                                  <i class='fab fa-docker'></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <button class='btn btn-success mt-n1'>Download</button>
+                                </a>
+                            </li>
+              </ul>
+            </div>
+    </div>
+</nav>
+<div class="container-fluid">
+            <div class="row">
+
+                <div class="docs-sidenav order-0 col-12 col-md-3 col-lg-2 col-xl-2 position-sticky border-right"><nav class="navbar navbar-expand-md navbar-light pl-0">
+    <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#sidenav-left-collapse" aria-controls="sidenav-left-collapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+     <div class="collapse navbar-collapse align-items-start flex-column" id="sidenav-left-collapse">
+            <form class="form-inline my-2 my-lg-0 searchbox">
+                <input class="form-control mr-sm-2 w-100" data-search-input id="search-by" type="text" placeholder="Search">
+            </form>
+         <ul class="navbar-nav flex-column pt-3">
+    <li data-nav-id="/fogify/installation.html" class="nav-item my-1 haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/installation.html"><h6>Installation</h6></a>
+        <ul class="list-unstyled ml-2">
+        <li data-nav-id="/fogify/installation/as-a-service.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/as-a-service.html" class="nav-link p-0">
+                    Fogify in Docker-compose
+                </a>
+        </li>
+        <li data-nav-id="/fogify/installation/bare-metal.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/bare-metal.html" class="nav-link p-0">
+                    Bare-metal Installation
+                </a>
+        </li>
+        </ul>
+    </li>
+    <li data-nav-id="/fogify/getting-started.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/getting-started.html"><h6>Getting started</h6></a>
+    </li>
+    <li data-nav-id="/fogify/services.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/services.html"><h6>Services</h6></a>
+    </li>
+    <li data-nav-id="/fogify/node-profiles.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/node-profiles.html"><h6>Node Profiles</h6></a>
+    </li>
+    <li data-nav-id="/fogify/network-qos.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS and VNFs</h6></a>
+    </li>
+    <li data-nav-id="/fogify/blueprints.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/blueprints.html"><h6>Blueprints</h6></a>
+    </li>
+    <li data-nav-id="/fogify/actions-and-scenarios.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/actions-and-scenarios.html"><h6>Actions &amp; Scenarios</h6></a>
+    </li>
+    <li data-nav-id="/fogify/monitoring.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/monitoring.html"><h6>Monitoring</h6></a>
+    </li>
+    <li data-nav-id="/fogify/connection-3rd-parties.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/connection-3rd-parties.html"><h6>Connection with third parties and API</h6></a>
+    </li>
+    <li data-nav-id="/fogify/fogifysdk.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/fogifysdk.html"><h6>FogifySDK</h6></a>
+    </li>
+    <li data-nav-id="/fogify/5g-slicer.html" class="nav-item my-1 parent active haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/5g-slicer.html"><h6>5G-Slicer Extension</h6></a>
+        <ul class="list-unstyled ml-2">
+        <li data-nav-id="/fogify/5g-slicer/get-started.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/get-started.html" class="nav-link p-0">
+                    5G-Slicer Getting Started
+                </a>
+        </li>
+        <li data-nav-id="/fogify/5g-slicer/slice-model.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/slice-model.html" class="nav-link p-0">
+                    Network Slice Modeling
+                </a>
+        </li>
+        <li data-nav-id="/fogify/5g-slicer/use-case.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/use-case.html" class="nav-link p-0">
+                    Dublin&#39;s Buses Use-case
+                </a>
+        </li>
+        </ul>
+    </li>
+    <li data-nav-id="/fogify/faq.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/faq.html"><h6>Frequently Asked Questions (FAQs)</h6></a>
+    </li>
+        </ul>
+    </div>
+</nav>
+
+
+</div>
+                <div class="docs-toc large order-lg-2 order-md-0 order-xs-1 col-12 col-lg-2 col-xl-2 position-sticky border-left"><div class="docs-toc">
+	<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#features">Features</a></li>
+      </ul>
+    </li>
+    <li><a href="#5g-slicer-overview">5G-Slicer Overview</a></li>
+    <li><a href="#publications">Publications</a></li>
+    <li><a href="#acknowledgements">Acknowledgements</a></li>
+  </ul>
+</nav>
+</div>
+</div>
+                <div class="main col-12 order-1 col-md-9 col-lg-10 col-xl-8 py-3">
+                
+
+<h1>5G-Slicer Extension</h1>
+
+<div class="row py-3">
+    <div class="col-md-12" style="text-align: justify">
+      <div class="container">
+        <p class="lead">Experimentation with 
+5G-enabled services over network slices is extremely challenging as it requires the 
+deployment and coordination of numerous physical devices, including
+edge and cloud resources.
+To alleviate the difficulties in setting up real-world 5G testbeds, 
+we introduce 5G-Slicer extension of the Fogify framework. 
+5G-Slicer facilitates the definition of mobile network slices 
+through modeling abstractions for radio units, mobile nodes, trajectories, etc., 
+while also offering realistic network QoS by dynamically altering -at runtime- signal strength. 
+Moreover, 5G-Slicer provides an already realized scenario for a city-scale deployment that 
+smart-city researchers can simply configure through a "ready-to-use" template, 
+leaving 5G-Slicer responsible for translating it into an emulated environment. </p>
+      </div>
+    </div>
+</div>    
+<hr>
+<h3 id="features">Features</h3>
+<div class="row py-3">
+	<div class="col-md-6">
+		<div class="card flex-row border-0">
+			<div class="mt-3">
+				<span class="fas fa-file fa-2x text-primary"></span>
+			</div>
+			<div class="card-body pl-2 " style="display: inline-block; text-align: justify">
+				<h4 class="card-title">
+					5G Slicing Modeling
+				</h4>
+				<p class="card-text text-muted">
+					5G-Slicer offers high-level modeling abstractions for 5G radio units, backhaul & midhaul QoS, 
+					user equipment, edge & cloud compute resources, VNFs, etc.
+				</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card flex-row border-0">
+			<div class="mt-3">
+				<span class="fas fa-map-marked fa-2x text-primary"></span>
+			</div>
+			<div class="card-body pl-2" style="display: inline-block; text-align: justify">
+				<h4 class="card-title">
+					Positioning & Mobility
+				</h4>
+				<p class="card-text text-muted">
+The system provides positioning provisions and can alter at runtime the entities' locations controlling
+ in such a way the link quality, such as network latency,  bandwidth,  error rate,  etc.  
+				</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card flex-row border-0">
+			<div class="mt-3">
+				<span class="fas fa-bus fa-2x text-primary"></span>
+			</div>
+			<div class="card-body pl-2" style="display: inline-block; text-align: justify">
+				<h4 class="card-title">
+					ITS Use case template
+				</h4>
+				<p class="card-text text-muted">
+                    5G-Slicer provides a "ready-to-use" template for a city-scale transportation sector that
+                    users are able to introduce their services 
+                 </p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card flex-row border-0">
+			<div class="mt-3">
+				<span class="fas fa-search fa-2x text-primary"></span>
+			</div>
+			<div class="card-body pl-2" style="display: inline-block; text-align: justify">
+				<h4 class="card-title">
+					Monitoring Capabilities
+				</h4>
+				<p class="card-text text-muted">
+		        Slicing plug-in introduced new monitoring capabilities for packet-level monitoring 
+		        and analytics to the emulation suite
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+<hr>
+<h2 id="5g-slicer-overview">5G-Slicer Overview</h2>
+<p></p>
+<div class="container-md">
+<div class="row justify-content-center">
+   <div class="row">
+   <div class="col-lg-6" style="text-align: justify">
+<p>A typical deployment starts by either describing the application services and network fabric via the 5G-Slicer model
+specification or by parameterizing a &ldquo;ready-to-use&rdquo; testbed template.
+The model specification can denote a wide range of network slice parameters, including the position of compute nodes and RUs,
+network links and their QoS, mobile node traces, communication protocols and VNFs applicable on nodes.
+On the contrary, parametrizable use-case templates automatically produce 5G deployments for IoT applications.
+The output of each template is a programming view equivalent to a validated deployment description.
+The topology and trajectories are propagated to the control layer.</p>
+<p>Then, the system extracts from the description the network slice specification
+and any signal degradation models defined during the modeling process.
+With these, it produces an in-memory Network Conceptual Graph (NCG), which contains the aforementioned information
+and will be used by the system for the runtime state propagation during the experimentation.
+The graph nodes represent network and compute devices annotated with information about their capabilities and
+deployed services, while edges denote the links between the nodes.
+The weight of each edge is determined by network QoS, incl. data rate, network delay, packet and error rate.
+Then 5G-Slicer translates the NCG to an emulated environment by utilizing the Fogify Emulator Connector.</p>
+</div>
+   <div class="col-lg-6" style="text-align: justify">
+   <p></p>
+        <img class="img-fluid" src="slicer-overview.png" />
+<p></p>
+</div>
+</div>
+The connector is responsible for the emulation environment instantiation, and the deployment of the IoT application  through the FogifySDK. 
+Furthermore, the Trajectory Manager parses the traces and applies the updates on the NCG, 
+and, in turn propagates these to the running emulated environment.
+One can view through an interactive map the traces of mobile nodes, 
+their performance (i.e. cpu, energy), and the load imposed to MECs. 
+</div>
+</div>
+<p/>
+<div class="row  justify-content-center">
+<div class="col-lg-12" style="text-align: justify">
+</div>
+</div>
+<hr>
+<h2 id="publications">Publications</h2>
+<p>For more details about 5G-Slicer and our scientific contributions, you can read the papers of <a href="http://linc.ucy.ac.cy/index.php?id=12">5G-Slicer</a>
+and a published <a href="http://linc.ucy.ac.cy/index.php?id=12">Demo</a>.
+If you would like to use 5G-Slicer for your research, you should include at least on of the following BibTeX entries.</p>
+<p>5G-Slicer&rsquo;s paper BibTeX citation:
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_3dda690b24">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_3dda690b24">
+    <pre tabindex="0"><code class="language-<nil>" data-lang="<nil>">
+@INPROCEEDINGS{Symeonides2022,
+author    = {Symeonides, Moysis and Trihinas, Demetris and Pallis, George and Dikaiakos, Marios D. and Psomas, Constantinos and Krikidis, Ioannis},
+title     = {5G-Slicer: An emulator for mobile IoT applications deployed over 5G network slices}, 
+booktitle = {Proceedings of the 7th ACM/IEEE Conference on Internet of Things Design and Implementation},
+year      = {2022}
+series    = {IoTDI ’22}
+}
+</code></pre>
+    </div>
+</div>
+
+
+
+</p>
+<p>5G-Slicer&rsquo;s demo BibTeX citation:
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_5ba445040d">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_5ba445040d">
+    <pre tabindex="0"><code class="language-<nil>" data-lang="<nil>">
+@inproceedings{Symeonides2020,
+author    = {Symeonides, Moysis and Trihinas, Demetris and Pallis, George and Dikaiakos, Marios D.},
+title     = {Demo: Emulating 5G-Ready Mobile IoT Services},
+booktitle = {Proceedings of the 7th ACM/IEEE Conference on Internet of Things Design and Implementation}, 
+year      = {2022}
+series    = {IoTDI ’22}
+} 
+</code></pre>
+    </div>
+</div>
+
+
+
+</p>
+<h2 id="acknowledgements">Acknowledgements</h2>
+<p>This work is partially supported by the EU Commission through <a href="https://rainbow-h2020.eu/">RAINBOW</a>  871403 (ICT-15-2019-2020) project
+and by the Cyprus Research and Innovation Foundation through COMPLEMENTARY/0916/0916/0171 and INFRASTRUCTURES/1216/0017 (IRIDA) projects.
+The authors wish to thank Dr. Christos Tranoris and prof. Spyros Denazis of the U. of Patras for providing measurements from the &ldquo;Patras 5G&rdquo; testbed,
+which was supported by the 5GVINNI H2020 (EU grant agreement No. 815279)</p>
+
+
+    
+
+
+                    
+                    <div class="row"><div class="position-relative mx-auto col-lg-9">
+                          <div class="bg-primary overflow-hidden p-3 mt-5 shadow">
+
+    <h4 class="text-white text-center">Read more</h4>
+
+    <div class="d-flex justify-content-center"><a class="p-1 mr-3 d-inline-block text-white" href="/fogify/fogifysdk.html" title="FogifySDK"><i class="fas fa-chevron-left p-1"></i>FogifySDK</a>
+        <a class="p-1 ml-3 d-inline-block text-white text-right" href="/fogify/5g-slicer/get-started.html" title="5G-Slicer Getting Started">5G-Slicer Getting Started<i class="fas fa-chevron-right p-1"></i></a>
+    </div>
+</div>
+
+
+                        </div></div> 
+
+                </div>
+
+            </div> 
+
+        </div> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/jquery.min.js"></script> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/popper.min.js"></script> 
+
+<script src="https://ucy-linc-lab.github.io/fogify/js/bootstrap.min.js"></script> 
+
+
+<script type="text/javascript" src="/fogify/plugins/lunr.min.js"></script>
+<script type="text/javascript" src="/fogify/plugins/auto-complete.js"></script>
+<link href="/fogify/plugins/auto-complete.css" rel="stylesheet">
+<script type="text/javascript">
+  
+      var baseurl = "https:\/\/ucy-linc-lab.github.io\/fogify\/";
+  
+</script>
+<script type="text/javascript" src="/fogify/plugins/search.js"></script>
+
+
+<script type="text/javascript" src="/fogify/plugins/clipboard.js"></script>
+<script>
+  new ClipboardJS('.btn');
+</script>
+</body>
+</html>

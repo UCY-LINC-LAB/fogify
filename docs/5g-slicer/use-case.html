@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html><head>
+
+    <meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="canonical" href="https://ucy-linc-lab.github.io/fogify/5g-slicer/use-case.html">
+
+    <title>
+        
+        Dublin&#39;s Buses Use-case | Fogify: A Fog Computing Emulator Framework
+        
+    </title>
+
+    
+    <link href="https://ucy-linc-lab.github.io/fogify/css/fontawesome.min.css" rel="stylesheet">
+
+    
+    <link rel="stylesheet" href="https://ucy-linc-lab.github.io/fogify/css/ace.min.css">
+
+    
+    
+        
+    
+
+</head>
+<body><nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow sticky-top" id="navbarMain">
+    <div class="container">
+        <div>
+            <a class="navbar-brand" href="/fogify">
+                Fogify: A Fog Computing Emulator Framework
+            </a>
+        </div>
+        
+            <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#navbarMainCollapse" aria-controls="navbarMainCollapse" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMainCollapse">
+              <ul class="navbar-nav ml-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="http://linc.ucy.ac.cy/" target="_blank">
+                                  More from us
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <i class='fab fa-github'></i> Fogify
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/5G-Slicer" target="_blank">
+                                  <i class='fab fa-github'></i> 5G-Slicer
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://hub.docker.com/u/fogemulator" target="_blank">
+                                  <i class='fab fa-docker'></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/UCY-LINC-LAB/fogify" target="_blank">
+                                  <button class='btn btn-success mt-n1'>Download</button>
+                                </a>
+                            </li>
+              </ul>
+            </div>
+    </div>
+</nav>
+<div class="container-fluid">
+            <div class="row">
+
+                <div class="docs-sidenav order-0 col-12 col-md-3 col-lg-2 col-xl-2 position-sticky border-right"><nav class="navbar navbar-expand-md navbar-light pl-0">
+    <button class="navbar-toggler navbar-toggler-right collapsed" type="button" data-toggle="collapse" data-target="#sidenav-left-collapse" aria-controls="sidenav-left-collapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+     <div class="collapse navbar-collapse align-items-start flex-column" id="sidenav-left-collapse">
+            <form class="form-inline my-2 my-lg-0 searchbox">
+                <input class="form-control mr-sm-2 w-100" data-search-input id="search-by" type="text" placeholder="Search">
+            </form>
+         <ul class="navbar-nav flex-column pt-3">
+    <li data-nav-id="/fogify/installation.html" class="nav-item my-1 haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/installation.html"><h6>Installation</h6></a>
+        <ul class="list-unstyled ml-2">
+        <li data-nav-id="/fogify/installation/as-a-service.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/as-a-service.html" class="nav-link p-0">
+                    Fogify in Docker-compose
+                </a>
+        </li>
+        <li data-nav-id="/fogify/installation/bare-metal.html" class="nav-item my-1">
+                
+                 <a href="/fogify/installation/bare-metal.html" class="nav-link p-0">
+                    Bare-metal Installation
+                </a>
+        </li>
+        </ul>
+    </li>
+    <li data-nav-id="/fogify/getting-started.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/getting-started.html"><h6>Getting started</h6></a>
+    </li>
+    <li data-nav-id="/fogify/services.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/services.html"><h6>Services</h6></a>
+    </li>
+    <li data-nav-id="/fogify/node-profiles.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/node-profiles.html"><h6>Node Profiles</h6></a>
+    </li>
+    <li data-nav-id="/fogify/network-qos.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/network-qos.html"><h6>Network QoS and VNFs</h6></a>
+    </li>
+    <li data-nav-id="/fogify/blueprints.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/blueprints.html"><h6>Blueprints</h6></a>
+    </li>
+    <li data-nav-id="/fogify/actions-and-scenarios.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/actions-and-scenarios.html"><h6>Actions &amp; Scenarios</h6></a>
+    </li>
+    <li data-nav-id="/fogify/monitoring.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/monitoring.html"><h6>Monitoring</h6></a>
+    </li>
+    <li data-nav-id="/fogify/connection-3rd-parties.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/connection-3rd-parties.html"><h6>Connection with third parties and API</h6></a>
+    </li>
+    <li data-nav-id="/fogify/fogifysdk.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/fogifysdk.html"><h6>FogifySDK</h6></a>
+    </li>
+    <li data-nav-id="/fogify/5g-slicer.html" class="nav-item my-1 parent haschildren
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/5g-slicer.html"><h6>5G-Slicer Extension</h6></a>
+        <ul class="list-unstyled ml-2">
+        <li data-nav-id="/fogify/5g-slicer/get-started.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/get-started.html" class="nav-link p-0">
+                    5G-Slicer Getting Started
+                </a>
+        </li>
+        <li data-nav-id="/fogify/5g-slicer/slice-model.html" class="nav-item my-1">
+                
+                 <a href="/fogify/5g-slicer/slice-model.html" class="nav-link p-0">
+                    Network Slice Modeling
+                </a>
+        </li>
+        <li data-nav-id="/fogify/5g-slicer/use-case.html" class="nav-item my-1 active">
+                
+                 <a href="/fogify/5g-slicer/use-case.html" class="nav-link p-0">
+                    Dublin&#39;s Buses Use-case
+                </a>
+        </li>
+        </ul>
+    </li>
+    <li data-nav-id="/fogify/faq.html" class="nav-item my-1
+        ">
+        
+        <a class="nav-link p-0" href="/fogify/faq.html"><h6>Frequently Asked Questions (FAQs)</h6></a>
+    </li>
+        </ul>
+    </div>
+</nav>
+
+
+</div>
+                <div class="docs-toc large order-lg-2 order-md-0 order-xs-1 col-12 col-lg-2 col-xl-2 position-sticky border-left"><div class="docs-toc">
+	<nav id="TableOfContents"></nav>
+</div>
+</div>
+                <div class="main col-12 order-1 col-md-9 col-lg-10 col-xl-8 py-3">
+                
+
+<h1>Dublin&#39;s Buses Use-case</h1>
+
+<p>5G-Slicer gives the opportunity for users to implement their scenarios via the <code>Template</code> class (<code>from usecases.template import Template</code>).
+Specifically, users need to implement <code>generate_experiment</code> function or to utilize the already created use-cases of the 5G-Slicer packet.
+The 5G-Slicer has already implemented a city-scale usecase of dublin&rsquo;s buses datasets.</p>
+<p>Users need only to introduce their application and a basic 5G-Slicer model like the following:
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_92118dc08d">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_92118dc08d">
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">services</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">cloud_service</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">bus-exp:0.0.1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">edge_service</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">bus-exp:0.0.1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">bus_service</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span><span style="color:#111">:</span> <span style="color:#ae81ff">bus-exp:0.0.1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#d88200">&#34;NODE_TYPE=IOT_NODE&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#d88200">&#34;/home/ubuntu/data:/data&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">version</span><span style="color:#111">:</span> <span style="color:#d88200">&#39;3.7&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">x-fogify</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">networks</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">network_type</span><span style="color:#111">:</span> <span style="color:#ae81ff">slice</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">midhaul_qos</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">10ms</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">deviation</span><span style="color:#111">:</span> <span style="color:#ae81ff">1ms</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">1000mbps</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">backhaul_qos</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">latency</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">30ms</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">deviation</span><span style="color:#111">:</span> <span style="color:#ae81ff">1ms</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">100mbps</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">wireless_connection_type</span><span style="color:#111">:</span> <span style="color:#ae81ff">MIMO</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">parameters</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">transmit_power</span><span style="color:#111">:</span> <span style="color:#ae81ff">30</span>  <span style="color:#75715e"># dbm</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">carrier_frequency</span><span style="color:#111">:</span> <span style="color:#ae81ff">28</span>  <span style="color:#75715e"># gigahrz</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">bandwidth</span><span style="color:#111">:</span> <span style="color:#ae81ff">100</span>  <span style="color:#75715e"># megahrz</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">UE_noise_figure</span><span style="color:#111">:</span> <span style="color:#ae81ff">7.8</span>  <span style="color:#75715e"># db</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">RU_antennas_gain</span><span style="color:#111">:</span> <span style="color:#ae81ff">8</span> <span style="color:#75715e"># db</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">UE_antennas_gain</span><span style="color:#111">:</span> <span style="color:#ae81ff">3</span> <span style="color:#75715e"># db</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">maximum_bitrate</span><span style="color:#111">:</span> <span style="color:#ae81ff">538.71</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">minmum_bitrate</span><span style="color:#111">:</span> <span style="color:#ae81ff">53.87</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">queuing_delay</span><span style="color:#111">:</span> <span style="color:#ae81ff">2</span> <span style="color:#75715e"># ms</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">RU_antennas</span><span style="color:#111">:</span> <span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">UE_antennas</span><span style="color:#111">:</span> <span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">dublin_network</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">nodes</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">capabilities</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">memory</span><span style="color:#111">:</span> <span style="color:#ae81ff">2G</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">processor</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">clock_speed</span><span style="color:#111">:</span> <span style="color:#ae81ff">2400</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">cores</span><span style="color:#111">:</span> <span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">cloud_machine</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">capabilities</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">memory</span><span style="color:#111">:</span> <span style="color:#ae81ff">2G</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">processor</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">clock_speed</span><span style="color:#111">:</span> <span style="color:#ae81ff">1400</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">cores</span><span style="color:#111">:</span> <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">edge_device</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">capabilities</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">memory</span><span style="color:#111">:</span> <span style="color:#ae81ff">0.</span><span style="color:#ae81ff">25G</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">processor</span><span style="color:#111">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">clock_speed</span><span style="color:#111">:</span> <span style="color:#ae81ff">500</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">cores</span><span style="color:#111">:</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span><span style="color:#111">:</span> <span style="color:#ae81ff">bus_device</span>
+</span></span></code></pre></div>
+    </div>
+</div>
+
+
+
+</p>
+<p>Then, they need to select specific parameters at the <code>BusExperiment</code> class implementation like:
+bounding box (<code>bounding_box</code>) in which the execution will take place,
+number of RUs, MECs, Cloud nodes, and buses (<code>num_of_RUs</code>, <code>num_of_edge</code>, <code>num_of_clouds</code>, <code>num_of_buses</code>)
+that the system randomly will extract from the dublin&rsquo;s buses dataset, place of the traces file and bus stop file, etc.
+Then, the function <code>generate_experiment</code> will return a <code>SlicerSDK</code> object that already has the information about the deployment.</p>
+
+
+
+
+
+
+    
+    
+
+
+
+
+<div class="position-relative">
+    <div class="position-absolute" style="right:0;">
+        <button class="btn btn-light" data-clipboard-target="#clipboard_ac412a22a6">
+        Copy
+        </button>
+    </div>
+    <div id="clipboard_ac412a22a6">
+    <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> <span style="color:#111">usecases.dublin_buses_experiment</span> <span style="color:#f92672">import</span> <span style="color:#111">BusExperiment</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> <span style="color:#111">SlicerSDK</span> <span style="color:#f92672">import</span> <span style="color:#111">SlicerSDK</span>
+</span></span><span style="display:flex;"><span><span style="color:#111">file_path</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#34;&lt;docker-compose.yaml path&gt;&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#111">fogify_controller_url</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#34;http://controller:5000&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#111">slicerSDK</span> <span style="color:#f92672">=</span> <span style="color:#111">SlicerSDK</span><span style="color:#111">(</span><span style="color:#111">fogify_controller_url</span><span style="color:#111">,</span> <span style="color:#111">file_path</span><span style="color:#111">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#111">experiment</span> <span style="color:#f92672">=</span> <span style="color:#111">BusExperiment</span><span style="color:#111">(</span><span style="color:#111">slicerSDK</span><span style="color:#111">,</span> 
+</span></span><span style="display:flex;"><span>                <span style="color:#111">bounding_box</span> <span style="color:#f92672">=</span> <span style="color:#111">(</span>  <span style="color:#75715e"># geographic bounding box of the experiment</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">(</span><span style="color:#ae81ff">53.33912464060235</span><span style="color:#111">,</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">6.286239624023438</span><span style="color:#111">),</span> 
+</span></span><span style="display:flex;"><span>                <span style="color:#111">(</span><span style="color:#ae81ff">53.35833815100412</span><span style="color:#111">,</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">6.226158142089845</span><span style="color:#111">)),</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">num_of_RUs</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span><span style="color:#111">,</span>  <span style="color:#75715e"># number of radio units</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">num_of_edge</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span><span style="color:#111">,</span>  <span style="color:#75715e"># number of edge servers</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">num_of_clouds</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span><span style="color:#111">,</span>  <span style="color:#75715e"># number of cloud servers</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">num_of_buses</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span><span style="color:#111">,</span>  <span style="color:#75715e"># number of IoTs (buses)</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">time_to_run</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">60</span><span style="color:#111">,</span>  <span style="color:#75715e"># minimum time of a bus-trace for the bounding box</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">traces_filename</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#39;usecases/data/all.csv&#39;</span><span style="color:#111">,</span>  <span style="color:#75715e"># file of the traces</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">bus_stops_filename</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#39;usecases/data/stops.csv&#39;</span><span style="color:#111">,</span>  <span style="color:#75715e"># file of the bus stops</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">edge_service</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#39;edge_service&#39;</span><span style="color:#111">,</span>  <span style="color:#75715e"># name of the edge service of the docker-compose file</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">edge_device</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#39;edge_device&#39;</span><span style="color:#111">,</span>  <span style="color:#75715e"># name of the edge device (described in fogify model) of the docker-compose file</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">bus_service</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#39;bus_service&#39;</span><span style="color:#111">,</span>  <span style="color:#75715e"># name of the IoT workload service of the docker-compose file</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">bus_device</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#39;bus_device&#39;</span><span style="color:#111">,</span> <span style="color:#75715e"># name of the IoT device (described in fogify model) of the docker-compose file</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">cloud_service</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#39;cloud_service&#39;</span><span style="color:#111">,</span>  <span style="color:#75715e"># name of the cloud service of the docker-compose file</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">cloud_device</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#39;cloud_machine&#39;</span><span style="color:#111">,</span>  <span style="color:#75715e"># name of the cloud service device (described in fogify model) of the docker-compose file</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">slice_name</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#39;dublin_network&#39;</span><span style="color:#111">,</span> <span style="color:#75715e"># name of the network that will be created</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">max_num_of_trace_steps</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">60</span><span style="color:#111">,</span> <span style="color:#75715e"># maximum number of changes(locations) that a trace can have</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">min_num_of_trace_steps</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#111">,</span> <span style="color:#75715e"># minimum number of changes(locations) that a trace can have</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">bus_ids</span> <span style="color:#f92672">=</span> <span style="color:#111">[],</span>  <span style="color:#75715e"># specific bus-ids (traces) for the emulation, if it is empty, system takes `num_of_buses` randomly</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#111">ru_overlap</span><span style="color:#111">:</span> <span style="color:#111">str</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#34;random&#34;</span>  <span style="color:#75715e"># selects specific RUs based on their radius overlapping (`random`, `min_density`, `max_density`, `kmeans`)</span>
+</span></span><span style="display:flex;"><span>           <span style="color:#111">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#111">slicerSDK</span> <span style="color:#f92672">=</span> <span style="color:#111">experiment</span><span style="color:#f92672">.</span><span style="color:#111">generate_experiment</span><span style="color:#111">()</span>  <span style="color:#75715e"># builds the experiment based on user&#39;s preferences </span>
+</span></span><span style="display:flex;"><span><span style="color:#111">slicerSDK</span><span style="color:#f92672">.</span><span style="color:#111">deploy</span><span style="color:#111">()</span>  <span style="color:#75715e"># deploy the infrastructure</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#111">slicerSDK</span><span style="color:#f92672">.</span><span style="color:#111">scenario_execution</span><span style="color:#111">(</span><span style="color:#d88200">&#39;mobility_scenario&#39;</span><span style="color:#111">)</span>  <span style="color:#75715e"># executes the mobility scenario of the selected buses</span>
+</span></span></code></pre></div>
+    </div>
+</div>
+
+
+
+
+
+
+    
+
+
+                    
+                    <div class="row"><div class="position-relative mx-auto col-lg-9">
+                          <div class="bg-primary overflow-hidden p-3 mt-5 shadow">
+
+    <h4 class="text-white text-center">Read more</h4>
+
+    <div class="d-flex justify-content-center"><a class="p-1 mr-3 d-inline-block text-white" href="/fogify/5g-slicer/slice-model.html" title="Network Slice Modeling"><i class="fas fa-chevron-left p-1"></i>Network Slice Modeling</a>
+        <a class="p-1 ml-3 d-inline-block text-white text-right" href="/fogify/faq.html" title="Frequently Asked Questions (FAQs)">Frequently Asked Questions (FAQs)<i class="fas fa-chevron-right p-1"></i></a>
+    </div>
+</div>
+
+
+                        </div></div> 
+
+                </div>
+
+            </div> 
+
+        </div> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/jquery.min.js"></script> 
+<script src="https://ucy-linc-lab.github.io/fogify/lib/popper.min.js"></script> 
+
+<script src="https://ucy-linc-lab.github.io/fogify/js/bootstrap.min.js"></script> 
+
+
+<script type="text/javascript" src="/fogify/plugins/lunr.min.js"></script>
+<script type="text/javascript" src="/fogify/plugins/auto-complete.js"></script>
+<link href="/fogify/plugins/auto-complete.css" rel="stylesheet">
+<script type="text/javascript">
+  
+      var baseurl = "https:\/\/ucy-linc-lab.github.io\/fogify\/";
+  
+</script>
+<script type="text/javascript" src="/fogify/plugins/search.js"></script>
+
+
+<script type="text/javascript" src="/fogify/plugins/clipboard.js"></script>
+<script>
+  new ClipboardJS('.btn');
+</script>
+</body>
+</html>

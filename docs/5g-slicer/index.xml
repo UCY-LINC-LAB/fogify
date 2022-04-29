@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>5G-Slicer Extension on Fogify: A Fog Computing Emulator Framework</title>
+    <link>https://ucy-linc-lab.github.io/fogify/5g-slicer.html</link>
+    <description>Recent content in 5G-Slicer Extension on Fogify: A Fog Computing Emulator Framework</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language><atom:link href="https://ucy-linc-lab.github.io/fogify/5g-slicer/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>5G-Slicer Getting Started</title>
+      <link>https://ucy-linc-lab.github.io/fogify/5g-slicer/get-started.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://ucy-linc-lab.github.io/fogify/5g-slicer/get-started.html</guid>
+      <description>This page includes information about deploying a simple application on 5G-Slicer plugin. Since we have already described the installation and deployment pipeline steps with Fogify Framework, in this part, we provide information about 5G-Slicer instantiation and modeling. For more information about the first three steps, you can go through our Fogify&amp;rsquo;s Getting Started guide. Start 5G-Slicer GUI and Fogify Backend 5G-Slicer &amp;amp; Fogify Services As we described before, one has to install the preconditions of Fogify and, for multi-host execution, to build a docker swarm cluster.</description>
+    </item>
+    
+    <item>
+      <title>Network Slice Modeling</title>
+      <link>https://ucy-linc-lab.github.io/fogify/5g-slicer/slice-model.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://ucy-linc-lab.github.io/fogify/5g-slicer/slice-model.html</guid>
+      <description>Users in 5G-Slicer are able to introduce network slices under the Fogify&amp;rsquo;s networks primitive. The model of network slices include the name, which is the identifier of the network slice, the network_type that is always should be slice, midhaul_qos that is the connectivity QoS among RUs and Edge nodes, backhaul_qos that is the QoS connectivity between cloud-enabled core and edge, RU to UE connection type (wireless_connection_type) along with its parameters, and optional property network_functions of the network functions (or VNFs), that includes the Fogify&amp;rsquo;s firewall rules (firewall_rules) and the packet level monitoring capability (packet_level_monitoring).</description>
+    </item>
+    
+    <item>
+      <title>Dublin&#39;s Buses Use-case</title>
+      <link>https://ucy-linc-lab.github.io/fogify/5g-slicer/use-case.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://ucy-linc-lab.github.io/fogify/5g-slicer/use-case.html</guid>
+      <description>5G-Slicer gives the opportunity for users to implement their scenarios via the Template class (from usecases.template import Template). Specifically, users need to implement generate_experiment function or to utilize the already created use-cases of the 5G-Slicer packet. The 5G-Slicer has already implemented a city-scale usecase of dublin&amp;rsquo;s buses datasets.
+Users need only to introduce their application and a basic 5G-Slicer model like the following: Copy    services:  cloud_service:  image: bus-exp:0.</description>
+    </item>
+    
+  </channel>
+</rss>
