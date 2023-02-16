@@ -1,5 +1,5 @@
 Flask==1.1.2
-werkzeug==1.0.1
+werkzeug==2.2.3
 Flask-API
 requests
 docker
