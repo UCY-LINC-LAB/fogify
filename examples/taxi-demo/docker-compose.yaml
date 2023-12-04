@@ -1,9 +1,9 @@
-version: '3.7'
+version: "3.8"
 
 services:
 
   ui:
-    image: fogemulator/fogify-jupyter:v0.01
+    image: fogemulator/fogify-jupyter:v0.02
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/bin/docker:/usr/bin/docker
@@ -14,19 +14,21 @@ services:
       - "GRANT_SUDO=yes"
     user: root
   controller:
-    build: .
-    image: fogemulator/fogify:v0.01 #name the image and give it a tag [name:tag]
+    image: fogify #name the image and give it a tag [name:tag]
     entrypoint: [ "python", "/code/fogify/main.py", "--controller"]
+    # [ "python", "/code/fogify/main.py", "--controller"] -> Production stack | [ "sh", "./controller-entrypoint.sh"] -> Development stack
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/bin/docker:/usr/bin/docker
     ports:
-      - 5000:5000
+      - "5000:5000"
     extra_hosts:
       - ${MANAGER_NAME}:${MANAGER_IP}
+      #- "server1-PowerEdge-FC430:192.168.1.1"
   agent:
-    image: fogemulator/fogify:v0.01
+    image: fogify #name the image and give it a tag [name:tag]
     entrypoint: [ "python", "/code/fogify/main.py", "--agent", "--agent-ip", "${HOST_IP}"]
+    # [ "sh", "./agent-entrypoint.sh"] -> Production stack | [ "python", "/code/fogify/main.py", "--agent", "--agent-ip", "${HOST_IP}"] -> Development stack
     extra_hosts:
       - ${MANAGER_NAME}:${MANAGER_IP}
     volumes:
@@ -41,19 +43,16 @@ services:
     privileged: true
     cap_add:
       - ALL
-    depends_on:
-      - cadvisor
-      - controller
     ports:
       - 5500:5500
     environment:
       CONTROLLER_IP: ${MANAGER_IP}
-
   cadvisor:
-    image: gcr.io/google-containers/cadvisor:v0.35.0
+    image: gcr.io/cadvisor/cadvisor:v0.39.3
     volumes:
       - /:/rootfs:ro
-      - /var/run:/var/run:ro
+      - /var/run:/var/run:rw
+      - /var/run/docker.sock:/var/run/docker.sock:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
@@ -61,3 +60,4 @@ services:
       - 9090:8080
     expose:
       - 8080
+      - 9090

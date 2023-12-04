@@ -162,7 +162,7 @@ x-fogify:
   - name: scenario_network_error
     actions:
       - time: 20
-        instance_type: car-1
+        instance_type: mec-svc-1
         instances: 1
         position: 0
         action:
@@ -171,9 +171,9 @@ x-fogify:
             network: mec-net-1
             uplink:
               latency:
-                delay: 50ms
+                delay: 100ms
       - time: 20
-        instance_type: car-1
+        instance_type: mec-svc-1
         instances: 1
         position: 1
         action:
@@ -182,12 +182,12 @@ x-fogify:
             network: mec-net-1
             uplink:
               latency:
-                delay: 150ms
+                delay: 250ms
       - time: 0
-        instance_type: car-2
+        instance_type: mec-svc-2
         instances: 1
         position: 2
         action:
-          type: scale-in
+          type: horizontal_scaling
           parameters:
             num-of-instances: 1
