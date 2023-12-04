@@ -34,6 +34,7 @@ class cAdvisorHandler(object):
         for container in containers:
             try:
                 stats = self.get_stats_from_cadvisor(container)
+                print(stats)
                 res.update(stats)
             except Exception:
                 logger.warning("Monitoring agent did not capture the metrics this time")
@@ -42,8 +43,12 @@ class cAdvisorHandler(object):
         self.metrics = res
 
     def get_stats_from_cadvisor(self, container):
-        stats = requests.get("http://%s:%s/api/v2.0/stats/docker/%s" % (self.ip, self.port, container.id)).json()
-        key = f"/docker/{container.id}"
+        print("http://%s:%s/api/v2.0/stats/%s?type=docker" % (self.ip, self.port, container.id))
+        stats = requests.get("http://%s:%s/api/v2.0/stats/%s?type=docker" % (self.ip, self.port, container.id)).json()
+        #print(stats)
+        key = f'/system.slice/docker-{container.id}.scope'
+        #print(key)
+        #print(stats[key])
         stats[key] = {"stats": stats[key], "aliases": [container.name], "id": container.id,
             "limits": dict(memory=container.attrs['HostConfig']['Memory'],
                            cpu=container.attrs['HostConfig']['NanoCpus'])}
