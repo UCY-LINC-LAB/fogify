@@ -1,0 +1,11 @@
+apiVersion: 2
+datasources:
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    database: k6
+    user: admin
+    password: capstone2023
+    url: http://192.168.1.1:8086
+    isDefault: true
+    editable: true

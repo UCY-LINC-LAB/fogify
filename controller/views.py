@@ -244,7 +244,7 @@ class ActionsAPI(MethodView):
         if action_type == "vertical_scaling": commands['vertical_scaling'] = self.vertical_scaling(params)
         if action_type == "network": commands["network"] = self.network(params)
         if action_type == "stress": commands["stress"] = self.stress(connector, params)
-        if action_type == "command": commands["command"] = self.command(params)
+        if action_type == "command": commands = self.command(params)
         if action_type == "links": commands["links"] = self.links(params)
 
         Communicator(get_connector()).agents__perform_action(commands, **params)
