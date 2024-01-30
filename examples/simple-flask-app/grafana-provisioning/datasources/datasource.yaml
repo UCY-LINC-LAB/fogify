@@ -1,11 +1,18 @@
-apiVersion: 2
+apiVersion: 1
+
 datasources:
   - name: InfluxDB
     type: influxdb
     access: proxy
-    database: k6
     user: admin
     password: capstone2023
     url: http://192.168.1.1:8086
     isDefault: true
     editable: true
+    jsonData:
+      # This database should be mapped to a bucket
+      dbName: k6_data
+      httpMode: GET
+      httpHeaderName1: 'Authorization'
+    secureJsonData:
+      httpHeaderValue1: 'Token sUff4vb6943R91sZ4lm7qsh9g3ljmf4PMm54kQClIp3MOXYyI6BCP34_uUAQDtvTioDQmeXFn6jMNDY4v9gnKQ=='

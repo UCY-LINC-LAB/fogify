@@ -62,7 +62,7 @@ services:
       - 8080
       - 9090
   influxdb:
-    image: influxdb:2.0-alpine
+    image: influxdb:latest
     ports:
       - '8086:8086'
     environment:
@@ -75,10 +75,12 @@ services:
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=sUff4vb6943R91sZ4lm7qsh9g3ljmf4PMm54kQClIp3MOXYyI6BCP34_uUAQDtvTioDQmeXFn6jMNDY4v9gnKQ==
   grafana:
     image: grafana/grafana:latest
+    volumes:
+      - ./grafana-provisioning/:/etc/grafana/provisioning
     ports:
       - '3000:3000'
-    depends_on:
-      - influxdb
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=capstone2023
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_SECURITY_COOKIE_SAMESITE=none
