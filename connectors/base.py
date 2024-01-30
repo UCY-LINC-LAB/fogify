@@ -142,3 +142,21 @@ class BasicConnector(ABC):
     @staticmethod
     def get_service_from_name(name):
         raise NotImplementedError
+
+    @staticmethod
+    def get_service_from_name(name):
+        """
+        Returns the service object based on the service name
+        :param name: The name of the service
+        :return: The service object
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def get_node_from_ip(ip_address):
+        """
+        Returns the node object based on the IP address
+        :param ip_address: The IP address of the node
+        :return: The node object
+        """
+        raise NotImplementedError
